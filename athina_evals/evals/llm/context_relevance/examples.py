@@ -1,4 +1,4 @@
-from evaluators.llm.example import FewShotExample, FewShotExampleInputParam
+from evals.llm.example import FewShotExample, FewShotExampleInputParam
 
 CONTEXT_RELEVANCE_EVAL_EXAMPLES = [
     FewShotExample(

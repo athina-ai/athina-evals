@@ -1,5 +1,5 @@
 from typing import List
-from evaluators.llm.base_llm_evaluator import BaseLlmEvaluator
+from evals.llm.base_llm_evaluator import BaseLlmEvaluator
 from .examples import FAITHFULNESS_EVAL_EXAMPLES
 
 

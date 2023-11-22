@@ -3,6 +3,7 @@ from athina_evals.interfaces.result import LlmEvalResult
 from athina_evals.llms.openai_service import OpenAiService
 from athina_evals.helpers.logger import logger
 from athina_evals.helpers.json import JsonHelper
+from athina_evals.keys.openai_api_key import OpenAiApiKey
 from .example import FewShotExample
 
 

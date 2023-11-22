@@ -3,6 +3,7 @@ import os
 from openai import OpenAI
 from retrying import retry
 from timeout_decorator import timeout
+from athina_evals.keys import OpenAiApiKey
 
 DEFAULT_MODEL = "gpt-3.5-turbo"
 DEFAULT_TEMPERATURE = 0.0
@@ -17,9 +18,9 @@ class OpenAiService:
         return cls._instance
 
     def __init__(self):
-        openai_api_key = os.environ.get("OPENAI_API_KEY")
+        openai_api_key = OpenAiApiKey.get_key()
         if openai_api_key is None:
-            raise Exception("OPENAI_API_KEY environment variable is not set.")
+            raise Exception("Please provide an OpenAI API key")
         self.openai = OpenAI(api_key=openai_api_key)
 
     @timeout(30)
