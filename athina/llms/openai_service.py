@@ -3,7 +3,7 @@ import os
 from openai import OpenAI
 from retrying import retry
 from timeout_decorator import timeout
-from athina_evals.keys import OpenAiApiKey
+from athina.keys import OpenAiApiKey
 
 DEFAULT_MODEL = "gpt-3.5-turbo"
 DEFAULT_TEMPERATURE = 0.0

@@ -1,9 +1,10 @@
 from typing import List, Optional
-from athina_evals.interfaces.result import LlmEvalResult
-from athina_evals.llms.openai_service import OpenAiService
-from athina_evals.helpers.logger import logger
-from athina_evals.helpers.json import JsonHelper
-from athina_evals.keys.openai_api_key import OpenAiApiKey
+from athina.interfaces.result import LlmEvalResult
+from athina.interfaces.model import Model
+from athina.llms.openai_service import OpenAiService
+from athina.helpers.logger import logger
+from athina.helpers.json import JsonHelper
+from athina.keys.openai_api_key import OpenAiApiKey
 from .example import FewShotExample
 
 
@@ -51,6 +52,8 @@ class BaseLlmEvaluator:
     ):
         self.llm_service = OpenAiService()
         self.grading_criteria = grading_criteria if grading_criteria else ""
+        if not Model.is_supported(model):
+            raise ValueError(f"Unsupported model: {model}")
 
     def _examples_str(self) -> str:
         return "\n".join([str(example) for example in self.EXAMPLES])

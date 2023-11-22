@@ -1,9 +1,9 @@
 from typing import List
-from evals.llm.base_llm_evaluator import BaseLlmEvaluator
+from ..base_llm_evaluator import BaseLlmEvaluator
 from .examples import CONTEXT_RELEVANCE_EVAL_EXAMPLES
 
 
-class ContextRelevanceEvaluator(BaseLlmEvaluator):
+class ContextRelevance(BaseLlmEvaluator):
     """
     This evaluator checks if the user's query can be answered using only the information in the context.
     """

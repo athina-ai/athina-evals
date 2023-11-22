@@ -1,9 +1,9 @@
 from typing import List
-from evals.llm.base_llm_evaluator import BaseLlmEvaluator
+from ..base_llm_evaluator import BaseLlmEvaluator
 from .examples import FAITHFULNESS_EVAL_EXAMPLES
 
 
-class FaithfulnessEvaluator(BaseLlmEvaluator):
+class Faithfulness(BaseLlmEvaluator):
     """
     This evaluator checks if the response can be inferred using the information provided as context.
     """

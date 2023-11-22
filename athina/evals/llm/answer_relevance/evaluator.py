@@ -3,7 +3,7 @@ from ..base_llm_evaluator import BaseLlmEvaluator
 from .examples import ANSWER_RELEVANCE_EVAL_EXAMPLES
 
 
-class AnswerRelevanceEvaluator(BaseLlmEvaluator):
+class AnswerRelevance(BaseLlmEvaluator):
     """
     This evaluator checks if the response answers specifically what the user is asking about, and covers all aspects of the user's query.
     """

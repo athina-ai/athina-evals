@@ -1,4 +1,4 @@
-from evals.llm.example import FewShotExample, FewShotExampleInputParam
+from ..example import FewShotExample, FewShotExampleInputParam
 
 FAITHFULNESS_EVAL_EXAMPLES = [
     FewShotExample(
