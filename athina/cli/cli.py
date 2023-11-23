@@ -26,7 +26,7 @@ def main():
     parser_config = subparsers.add_parser("list", help="Lists all available evals")
     parser_config.set_defaults(func=list)
 
-    # athina run
+    # athina run [eval_name] --model [model_name] [kwargs]
     parser_run = subparsers.add_parser("run", help="Run an eval suite")
     parser_run.add_argument(
         "eval_name",
@@ -58,6 +58,9 @@ def init(args):
     athina_api_key = input("Enter your Athina API key: ")
     config_data["athina_api_key"] = athina_api_key
 
+    llm_engine = input("Which OpenAI model should we use for evals: ")
+    config_data["llm_engine"] = llm_engine
+
     # Add other configuration prompts as needed
 
     ConfigHelper.save_config(config_data)
@@ -81,10 +84,11 @@ def list(args):
 def run(args):
     """Runs an eval suite"""
     eval_name = args.eval_name
+    model = ConfigHelper.load_llm_engine()
     kwargs = args.kwargs
 
     try:
-        RunHelper.validate_eval_args(eval_name, kwargs)
+        RunHelper.run_eval(eval_name, model, kwargs)
     except Exception as e:
         print(f"{e}")
         return
