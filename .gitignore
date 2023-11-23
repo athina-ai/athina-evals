@@ -129,6 +129,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+athina_config.yml
 
 # Project related
 data/results_full

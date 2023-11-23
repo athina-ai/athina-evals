@@ -14,6 +14,7 @@ timeout-decorator = "^0.5.0"
 openai = "^1.3.4"
 colorlog = "^6.7.0"
 athina-logger = "^0.0.12"
+pyyaml = "^6.0.1"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -25,3 +26,6 @@ build-backend = "poetry.core.masonry.api"
 
 [[tool.poetry.packages]]
 include = "athina/**/*"
+
+[tool.poetry.scripts]
+athina = "athina.cli.cli:main"
