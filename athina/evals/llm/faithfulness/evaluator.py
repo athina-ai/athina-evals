@@ -1,18 +1,20 @@
 from typing import List
-from ..base_llm_evaluator import BaseLlmEvaluator
+from ..llm_evaluator import LlmEvaluator
 from .examples import FAITHFULNESS_EVAL_EXAMPLES
 
 
-class Faithfulness(BaseLlmEvaluator):
+class Faithfulness(LlmEvaluator):
     """
     This evaluator checks if the response can be inferred using the information provided as context.
     """
 
+    DEFAULT_MODEL = "gpt-4"
     REQUIRED_ARGS: List[str] = ["context", "response"]
     EXAMPLES = FAITHFULNESS_EVAL_EXAMPLES
 
     SYSTEM_MESSAGE_TEMPLATE = f""" 
-    You are an expert at evaluating whether the response can be inferred using the information provided as context.
+    You are an expert at evaluating whether the response can be inferred using ONLY the information provided as context.
+    You are not concerned with factual correctness or accuracy. You are only determining whether the response can be inferred directly from the information provided as context.
     """
 
     USER_MESSAGE_TEMPLATE = """
@@ -28,6 +30,10 @@ class Faithfulness(BaseLlmEvaluator):
         ### EXAMPLES ###
         Here's are some examples: 
         {examples}
+
+        Now consider the following:
+        context: {context}.
+        response: {response}.
     """
 
     def __init__(self, *args, **kwargs):

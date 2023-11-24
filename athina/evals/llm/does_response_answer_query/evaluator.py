@@ -1,15 +1,21 @@
 from typing import List
-from ..base_llm_evaluator import BaseLlmEvaluator
-from .examples import ANSWER_RELEVANCE_EVAL_EXAMPLES
+from ..llm_evaluator import LlmEvaluator
+from .examples import DOES_RESPONSE_ANSWER_QUERY_EVAL_EXAMPLES
 
 
-class AnswerRelevance(BaseLlmEvaluator):
+class DoesResponseAnswerQuery(LlmEvaluator):
     """
     This evaluator checks if the response answers specifically what the user is asking about, and covers all aspects of the user's query.
     """
 
+    DEFAULT_MODEL = "gpt-4"
     REQUIRED_ARGS: List[str] = ["user_query", "response"]
-    EXAMPLES = ANSWER_RELEVANCE_EVAL_EXAMPLES
+    EXAMPLES = DOES_RESPONSE_ANSWER_QUERY_EVAL_EXAMPLES
+
+    SYSTEM_MESSAGE_TEMPLATE = f"""
+    You are an expert at evaluating whether the response answers specifically what the user is asking about, and covers all aspects of the user's query.
+    You are not checking for correctness, or factual accuracy. You are only checking if the response answers the user's query.
+    """
 
     USER_MESSAGE_TEMPLATE = """
         Let's think step by step.
@@ -24,6 +30,10 @@ class AnswerRelevance(BaseLlmEvaluator):
         ### EXAMPLES ###
         Here's are some examples: 
         {examples}
+
+        Now consider the following:
+        user's query: {user_query}.
+        response: {response}.
     """
 
     def __init__(self, *args, **kwargs):

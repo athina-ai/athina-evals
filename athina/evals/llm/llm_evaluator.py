@@ -8,9 +8,11 @@ from athina.keys.openai_api_key import OpenAiApiKey
 from .example import FewShotExample
 
 
-class BaseLlmEvaluator:
+class LlmEvaluator:
     llm_service: OpenAiService
     grading_criteria: str
+
+    DEFAULT_MODEL = "gpt-4-1106-preview"
 
     REQUIRED_ARGS: List[str] = ["response"]
 
@@ -27,18 +29,16 @@ class BaseLlmEvaluator:
     You are an expert at evaluating chatbot responses, according to some grading criteria.
 
     If it passes the grading criteria, then your result is Pass, otherwise it is Fail.
-
-    {RETURN_FORMAT_INSTRUCTIONS}
     """
 
     USER_MESSAGE_TEMPLATE = """
-    ### Grading Criteria ###
+    ### GRADING CRITERIA ###
     {grading_criteria}
 
     ### EXAMPLES ###
     {examples}
 
-    ### Response to evaluate ###
+    ### RESPONSE TO EVALUATE ###
     {response}
     """
 
@@ -46,20 +46,20 @@ class BaseLlmEvaluator:
 
     def __init__(
         self,
-        model: str,
-        metadata: Optional[dict] = None,
+        model: str = DEFAULT_MODEL,
         grading_criteria: Optional[str] = None,
     ):
         self.llm_service = OpenAiService()
         self.grading_criteria = grading_criteria if grading_criteria else ""
         if not Model.is_supported(model):
             raise ValueError(f"Unsupported model: {model}")
+        self.model = model
 
     def _examples_str(self) -> str:
         return "\n".join([str(example) for example in self.EXAMPLES])
 
     def _system_message(self, **kwargs) -> str:
-        return self.SYSTEM_MESSAGE_TEMPLATE
+        return self.SYSTEM_MESSAGE_TEMPLATE + self.RETURN_FORMAT_INSTRUCTIONS
 
     def _user_message(self, **kwargs) -> str:
         return self.USER_MESSAGE_TEMPLATE.format(
@@ -88,11 +88,20 @@ class BaseLlmEvaluator:
     def run(self, **kwargs) -> LlmEvalResult:
         self._validate_args(**kwargs)
         messages = self._prompt_messages(**kwargs)
+        if Model.supports_json_mode(self.model):
+            chat_completion_response = self.llm_service.json_completion(
+                model=self.model,
+                messages=messages,
+                temperature=self.TEMPERATURE,
+            )
+        else:
+            chat_completion_response = self.llm_service.chat_completion(
+                model=self.model,
+                messages=messages,
+                temperature=self.TEMPERATURE,
+            )
 
-        chat_completion_response = self.llm_service.chat_completion(
-            messages=messages,
-            temperature=self.TEMPERATURE,
-        )
+        # Extract JSON object from LLM response
         chat_completion_response_json = JsonHelper.extract_json_from_text(
             chat_completion_response
         )

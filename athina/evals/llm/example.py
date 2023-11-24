@@ -44,7 +44,7 @@ class FewShotExample:
         input_params_str = "\n".join([str(param) for param in self.input_params])
 
         return (
-            f"{input_params_str}\n"
-            + f"Result: {self.eval_result}\n"
-            + f"Reason:{self.eval_reason}"
+            f"{input_params_str} \n"
+            + f"result: {self.eval_result} \n"
+            + f"reason:{self.eval_reason} \n"
         )
