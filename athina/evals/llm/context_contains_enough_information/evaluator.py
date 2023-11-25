@@ -8,8 +8,10 @@ class ContextContainsEnoughInformation(LlmEvaluator):
     This evaluator checks if the user's query can be answered using only the information in the context.
     """
 
+    NAME = "ccei"
+    DISPLAY_NAME = "Context Contains Enough Information"
     DEFAULT_MODEL = "gpt-4"
-    REQUIRED_ARGS: List[str] = ["user_query", "context"]
+    REQUIRED_ARGS: List[str] = ["query", "context"]
     EXAMPLES = CONTEXT_CONTAINS_ENOUGH_INFORMATION_EXAMPLES
 
     SYSTEM_MESSAGE_TEMPLATE = f"""
@@ -21,7 +23,7 @@ class ContextContainsEnoughInformation(LlmEvaluator):
         Let's think step by step:
 
         1. Consider the following: 
-        user's query: {user_query}.
+        user's query: {query}.
         context: {context}.
         2. Make sure to also consider these instructions: {additional_instructions}
         3. Determine if the chatbot can answer the user's query with nothing but the "context" information provided to you.
@@ -40,7 +42,7 @@ class ContextContainsEnoughInformation(LlmEvaluator):
         
         Let's think step by step.
         1. Consider the following: 
-        user's query: {user_query}.
+        user's query: {query}.
         context: {context}.
         2. Make sure to also consider these instructions: {additional_instructions}
         3. Determine if the user's query can be answered using only the information in the context.
@@ -54,12 +56,13 @@ class ContextContainsEnoughInformation(LlmEvaluator):
 
     def _user_message(
         self,
-        user_query: str,
+        query: str,
         context: str,
         additional_instructions: str = "",
+        **kwargs,
     ) -> str:
         return self.USER_MESSAGE_TEMPLATE.format(
-            user_query=user_query,
+            query=query,
             context=context,
             additional_instructions=additional_instructions,
             examples=self.EXAMPLES,

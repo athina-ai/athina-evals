@@ -4,7 +4,7 @@ DOES_RESPONSE_ANSWER_QUERY_EVAL_EXAMPLES = [
     FewShotExample(
         input_params=[
             FewShotExampleInputParam(
-                name="user_query", value="Who was the first person to land on the moon?"
+                name="query", value="Who was the first person to land on the moon?"
             ),
             FewShotExampleInputParam(
                 name="response",
@@ -17,7 +17,7 @@ DOES_RESPONSE_ANSWER_QUERY_EVAL_EXAMPLES = [
     FewShotExample(
         input_params=[
             FewShotExampleInputParam(
-                name="user_query", value="Who was the first person to land on the moon?"
+                name="query", value="Who was the first person to land on the moon?"
             ),
             FewShotExampleInputParam(
                 name="response",

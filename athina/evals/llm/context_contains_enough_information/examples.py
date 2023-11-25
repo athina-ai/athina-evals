@@ -8,7 +8,7 @@ CONTEXT_CONTAINS_ENOUGH_INFORMATION_EXAMPLES = [
                 value="Bjarne Stroustrup invented C++",
             ),
             FewShotExampleInputParam(
-                name="user_query",
+                name="query",
                 value="Who invented the linux os?",
             ),
         ],
@@ -22,7 +22,7 @@ CONTEXT_CONTAINS_ENOUGH_INFORMATION_EXAMPLES = [
                 value="In 1969, Neil Armstrong became the first person to walk on the moon.",
             ),
             FewShotExampleInputParam(
-                name="user_query",
+                name="query",
                 value="What was the name of the spaceship used for the moon landing in 1969?",
             ),
         ],
@@ -36,7 +36,7 @@ CONTEXT_CONTAINS_ENOUGH_INFORMATION_EXAMPLES = [
                 value="YC is a seed stage accelerator program. It was founded in 2005 by Paul Graham, Jessica Livingston, Trevor Blackwell, and Robert Tappan Morris.",
             ),
             FewShotExampleInputParam(
-                name="user_query",
+                name="query",
                 value="How much does YC invest in startups?",
             ),
         ],

@@ -11,3 +11,7 @@ class AthinaApiKey(ABC):
     @classmethod
     def get_key(cls):
         return cls._athina_api_key
+
+    @classmethod
+    def is_set(cls):
+        return cls._athina_api_key is not None

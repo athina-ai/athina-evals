@@ -8,8 +8,10 @@ class DoesResponseAnswerQuery(LlmEvaluator):
     This evaluator checks if the response answers specifically what the user is asking about, and covers all aspects of the user's query.
     """
 
+    NAME = "draq"
+    DISPLAY_NAME = "Does Response Answer Query"
     DEFAULT_MODEL = "gpt-4"
-    REQUIRED_ARGS: List[str] = ["user_query", "response"]
+    REQUIRED_ARGS: List[str] = ["query", "response"]
     EXAMPLES = DOES_RESPONSE_ANSWER_QUERY_EVAL_EXAMPLES
 
     SYSTEM_MESSAGE_TEMPLATE = f"""
@@ -20,7 +22,7 @@ class DoesResponseAnswerQuery(LlmEvaluator):
     USER_MESSAGE_TEMPLATE = """
         Let's think step by step.
         1. Consider the following: 
-        user's query: {user_query}.
+        user's query: {query}.
         response: {response}.
         2. Make sure to also consider these instructions: {additional_instructions}
         3. Determine if the response answers specifically what the user is asking about, and covers all aspects of the user's query.
@@ -32,7 +34,7 @@ class DoesResponseAnswerQuery(LlmEvaluator):
         {examples}
 
         Now consider the following:
-        user's query: {user_query}.
+        user's query: {query}.
         response: {response}.
     """
 
@@ -41,12 +43,13 @@ class DoesResponseAnswerQuery(LlmEvaluator):
 
     def _user_message(
         self,
-        user_query: str,
+        query: str,
         response: str,
         additional_instructions: str = "",
+        **kwargs,
     ) -> str:
         return self.USER_MESSAGE_TEMPLATE.format(
-            user_query=user_query,
+            query=query,
             response=response,
             additional_instructions=additional_instructions,
             examples=self._examples_str(),

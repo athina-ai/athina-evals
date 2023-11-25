@@ -1,16 +1,21 @@
+import time
 from typing import List, Optional
 from athina.interfaces.result import LlmEvalResult
 from athina.interfaces.model import Model
 from athina.llms.openai_service import OpenAiService
 from athina.helpers.logger import logger
 from athina.helpers.json import JsonHelper
-from athina.keys.openai_api_key import OpenAiApiKey
+from athina.keys import AthinaApiKey
+from athina.services.athina_api_service import AthinaApiService
 from .example import FewShotExample
 
 
 class LlmEvaluator:
     llm_service: OpenAiService
     grading_criteria: str
+
+    NAME = "custom"
+    DISPLAY_NAME = "Custom"
 
     DEFAULT_MODEL = "gpt-4-1106-preview"
 
@@ -86,6 +91,7 @@ class LlmEvaluator:
                 raise ValueError(f"Missing required argument: {arg}")
 
     def run(self, **kwargs) -> LlmEvalResult:
+        start_time = time.time()
         self._validate_args(**kwargs)
         messages = self._prompt_messages(**kwargs)
         if Model.supports_json_mode(self.model):
@@ -106,15 +112,56 @@ class LlmEvaluator:
             chat_completion_response
         )
 
+        # Run the eval
         try:
             result = chat_completion_response_json["result"]
             explanation = chat_completion_response_json["explanation"]
             failure = result == "Fail"
-        except KeyError as e:
-            logger.error(f"Key missing in the response JSON: {e}")
-            raise ValueError(f"Response JSON is missing a required key: {e}")
+        except Exception as e:
+            logger.error(f"Error occurred during eval: {e}")
+            raise e
 
+        end_time = time.time()
+        eval_runtime_ms = int((end_time - start_time) * 1000)
         return LlmEvalResult(
+            name=self.NAME,
+            data=kwargs,
             failure=failure,
             reason=explanation,
+            runtime=eval_runtime_ms,
+            model=self.model,
         )
+
+    def _validate_batch_args(self, data: List[dict]) -> None:
+        """
+        Validates that each entry in the batch has all the required arguments.
+        """
+        for i, entry in enumerate(data):
+            for arg in self.REQUIRED_ARGS:
+                if arg not in entry:
+                    raise ValueError(
+                        f"Data at index {i} is missing required argument: {arg}"
+                    )
+
+    def _run_batch_generator(self, data: List[dict]):
+        """
+        Generator function for running a batch of evaluations.
+        Iterates over a dataset, and runs the evaluator on each entry.
+        """
+        for entry in data:
+            try:
+                yield self.run(**entry)
+            except Exception as e:
+                logger.error(f"Error evaluating entry {entry}: {e}")
+                yield None
+
+    def run_batch(self, data: List[dict]) -> List[LlmEvalResult]:
+        """
+        Runs the evaluator on a batch of data.
+        """
+        self._validate_batch_args(data)
+        eval_results = list(self._run_batch_generator(data))
+
+        # Log evaluation results to Athina
+        if AthinaApiKey.is_set():
+            AthinaApiService.log_eval_results(eval_results)
