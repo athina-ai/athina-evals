@@ -1,3 +1,4 @@
+from abc import ABC
 import time
 from typing import List, Optional
 from athina.interfaces.result import LlmEvalResult
@@ -10,7 +11,7 @@ from athina.services.athina_api_service import AthinaApiService
 from .example import FewShotExample
 
 
-class LlmEvaluator:
+class LlmEvaluator(ABC):
     llm_service: OpenAiService
     grading_criteria: str
 
@@ -165,3 +166,5 @@ class LlmEvaluator:
         # Log evaluation results to Athina
         if AthinaApiKey.is_set():
             AthinaApiService.log_eval_results(eval_results)
+
+        return eval_results
