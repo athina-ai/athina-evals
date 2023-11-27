@@ -4,6 +4,7 @@ from openai import OpenAI
 from retrying import retry
 from timeout_decorator import timeout
 from athina.keys import OpenAiApiKey
+from athina.errors.exceptions import NoOpenAiApiKeyException
 
 DEFAULT_TEMPERATURE = 0.0
 
@@ -19,7 +20,7 @@ class OpenAiService:
     def __init__(self):
         openai_api_key = OpenAiApiKey.get_key()
         if openai_api_key is None:
-            raise Exception("Please provide an OpenAI API key")
+            raise NoOpenAiApiKeyException()
         self.openai = OpenAI(api_key=openai_api_key)
 
     @timeout(30)

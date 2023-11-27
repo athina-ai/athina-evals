@@ -8,13 +8,7 @@ class Faithfulness(LlmEvaluator):
     This evaluator checks if the response can be inferred using the information provided as context.
     """
 
-    NAME = "faithfulness"
-    DISPLAY_NAME = "Faithfulness"
-    DEFAULT_MODEL = "gpt-4"
-    REQUIRED_ARGS: List[str] = ["context", "response"]
-    EXAMPLES = FAITHFULNESS_EVAL_EXAMPLES
-
-    SYSTEM_MESSAGE_TEMPLATE = f""" 
+    SYSTEM_MESSAGE_TEMPLATE = """ 
     You are an expert at evaluating whether the response can be inferred using ONLY the information provided as context.
     You are not concerned with factual correctness or accuracy. You are only determining whether the response can be inferred directly from the information provided as context.
     """
@@ -40,6 +34,21 @@ class Faithfulness(LlmEvaluator):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def name(self):
+        return "faithfulness"
+
+    def display_name(self):
+        return "Faithfulness"
+
+    def default_model(self):
+        return "gpt-4-1106-preview"
+
+    def required_args(self):
+        return ["context", "response"]
+
+    def examples(self):
+        return FAITHFULNESS_EVAL_EXAMPLES
 
     def _user_message(
         self,

@@ -42,3 +42,16 @@ class ConfigHelper:
     def save_config(config_data):
         with open(CONFIG_FILE_NAME, "w") as file:
             yaml.dump(config_data, file)
+
+    @staticmethod
+    def is_set():
+        try:
+            with open(CONFIG_FILE_NAME, "r") as file:
+                config = yaml.safe_load(file)
+
+            if config is None or config == {}:
+                return False
+            else:
+                return True
+        except:
+            return False

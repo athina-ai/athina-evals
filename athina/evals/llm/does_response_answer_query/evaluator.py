@@ -8,13 +8,7 @@ class DoesResponseAnswerQuery(LlmEvaluator):
     This evaluator checks if the response answers specifically what the user is asking about, and covers all aspects of the user's query.
     """
 
-    NAME = "draq"
-    DISPLAY_NAME = "Does Response Answer Query"
-    DEFAULT_MODEL = "gpt-4"
-    REQUIRED_ARGS: List[str] = ["query", "response"]
-    EXAMPLES = DOES_RESPONSE_ANSWER_QUERY_EVAL_EXAMPLES
-
-    SYSTEM_MESSAGE_TEMPLATE = f"""
+    SYSTEM_MESSAGE_TEMPLATE = """
     You are an expert at evaluating whether the response answers specifically what the user is asking about, and covers all aspects of the user's query.
     You are not checking for correctness, or factual accuracy. You are only checking if the response answers the user's query.
     """
@@ -40,6 +34,21 @@ class DoesResponseAnswerQuery(LlmEvaluator):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def name(self):
+        return "does_response_answer_query"
+
+    def display_name(self):
+        return "Does Response Answer Query"
+
+    def default_model(self):
+        return "gpt-4-1106-preview"
+
+    def required_args(self):
+        return ["query", "response"]
+
+    def examples(self):
+        return DOES_RESPONSE_ANSWER_QUERY_EVAL_EXAMPLES
 
     def _user_message(
         self,

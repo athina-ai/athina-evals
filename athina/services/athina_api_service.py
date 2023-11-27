@@ -1,8 +1,28 @@
+import asyncio
+import pkg_resources
+import requests
 from typing import List, Optional
 from athina.interfaces.athina import AthinaFilters, AthinaInference
+from athina.keys import AthinaApiKey
+
+# BASE_API_URL = "https://log.athina.ai"
+BASE_API_URL = "http://localhost:9000"
+SDK_VERSION = pkg_resources.get_distribution("athina-evals").version
 
 
 class AthinaApiService:
+    @staticmethod
+    def _headers():
+        if not AthinaApiKey.is_set():
+            raise Exception(
+                """Please sign up at https://athina.ai and set an Athina API key. 
+                See https://docs.athina.ai/evals/quick_start for more information."""
+            )
+        athina_api_key = AthinaApiKey.get_key()
+        return {
+            "athina-api-key": athina_api_key,
+        }
+
     @staticmethod
     def fetch_inferences(
         filters: Optional[AthinaFilters], limit: int = 50
@@ -10,19 +30,7 @@ class AthinaApiService:
         """
         Load data from Athina API.
         """
-        return [
-            AthinaInference(
-                prompt_response="abc",
-                prompt_slug="slugzy",
-                language_model_id="gpt-4",
-                environment="prod",
-                topic="refunds",
-                customer_id=None,
-                context={"information": "random info"},
-                user_query="who is jon snow?",
-            )
-        ]
-        pass
+        raise NotImplementedError("This method has not been implemented yet.")
 
     @staticmethod
     def log_eval_results() -> List[AthinaInference]:
@@ -32,8 +40,20 @@ class AthinaApiService:
         pass
 
     @staticmethod
-    def log_usage() -> List[AthinaInference]:
+    def log_usage(evalName: str) -> List[AthinaInference]:
         """
         Logs a usage event to Posthog via Athina.
         """
-        pass
+        try:
+            endpoint = f"{BASE_API_URL}/api/v1/sdk/log-usage"
+            requests.post(
+                endpoint,
+                headers=AthinaApiService._headers(),
+                json={
+                    "sdkVersion": SDK_VERSION,
+                    "evalName": evalName,
+                },
+            )
+        except Exception as e:
+            # Silent failure is ok here.
+            pass

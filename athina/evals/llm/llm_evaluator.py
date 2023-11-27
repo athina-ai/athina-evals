@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 import time
 from typing import List, Optional
 from athina.interfaces.result import LlmEvalResult
@@ -6,7 +6,9 @@ from athina.interfaces.model import Model
 from athina.llms.openai_service import OpenAiService
 from athina.helpers.logger import logger
 from athina.helpers.json import JsonHelper
+from athina.loaders import DataPoint
 from athina.keys import AthinaApiKey
+from athina.errors.exceptions import NoAthinaApiKeyException
 from athina.services.athina_api_service import AthinaApiService
 from .example import FewShotExample
 
@@ -14,13 +16,6 @@ from .example import FewShotExample
 class LlmEvaluator(ABC):
     llm_service: OpenAiService
     grading_criteria: str
-
-    NAME = "custom"
-    DISPLAY_NAME = "Custom"
-
-    DEFAULT_MODEL = "gpt-4-1106-preview"
-
-    REQUIRED_ARGS: List[str] = ["response"]
 
     TEMPERATURE = 0.0
 
@@ -52,17 +47,55 @@ class LlmEvaluator(ABC):
 
     def __init__(
         self,
-        model: str = DEFAULT_MODEL,
+        model: Optional[str] = None,
         grading_criteria: Optional[str] = None,
     ):
+        if not AthinaApiKey.is_set():
+            raise NoAthinaApiKeyException()
+
         self.llm_service = OpenAiService()
         self.grading_criteria = grading_criteria if grading_criteria else ""
-        if not Model.is_supported(model):
+        if model is None:
+            self.model = self.default_model()
+        elif not Model.is_supported(model):
             raise ValueError(f"Unsupported model: {model}")
-        self.model = model
+        else:
+            self.model = model
 
+    # Abstract properties
+    @property
+    @abstractmethod
+    def name(self):
+        """A unique name identifier for the evaluator."""
+        pass
+
+    @property
+    @abstractmethod
+    def display_name(self):
+        """A display name for the evaluator."""
+        pass
+
+    @property
+    @abstractmethod
+    def required_args(self):
+        """A list of required arguments for the evaluator."""
+        pass
+
+    @property
+    @abstractmethod
+    def default_model(self):
+        """The default model for the evaluator."""
+        pass
+
+    @property
+    @abstractmethod
+    def examples(self):
+        """A list of examples for the evaluator."""
+        pass
+
+    # Common methods
     def _examples_str(self) -> str:
-        return "\n".join([str(example) for example in self.EXAMPLES])
+        return "\n".join([str(example) for example in self.examples()])
 
     def _system_message(self, **kwargs) -> str:
         return self.SYSTEM_MESSAGE_TEMPLATE + self.RETURN_FORMAT_INSTRUCTIONS
@@ -87,14 +120,23 @@ class LlmEvaluator(ABC):
         ]
 
     def _validate_args(self, **kwargs) -> None:
-        for arg in self.REQUIRED_ARGS:
+        for arg in self.required_args():
             if arg not in kwargs:
                 raise ValueError(f"Missing required argument: {arg}")
 
     def run(self, **kwargs) -> LlmEvalResult:
         start_time = time.time()
+
+        # Log usage to Athina for analytics
+        AthinaApiService.log_usage(evalName=self.name())
+
+        # Validate that correct args were passed
         self._validate_args(**kwargs)
+
+        # Construct Prompt
         messages = self._prompt_messages(**kwargs)
+
+        # Run the LLM Completion
         if Model.supports_json_mode(self.model):
             chat_completion_response = self.llm_service.json_completion(
                 model=self.model,
@@ -113,7 +155,6 @@ class LlmEvaluator(ABC):
             chat_completion_response
         )
 
-        # Run the eval
         try:
             result = chat_completion_response_json["result"]
             explanation = chat_completion_response_json["explanation"]
@@ -124,8 +165,9 @@ class LlmEvaluator(ABC):
 
         end_time = time.time()
         eval_runtime_ms = int((end_time - start_time) * 1000)
+
         return LlmEvalResult(
-            name=self.NAME,
+            name=self.name(),
             data=kwargs,
             failure=failure,
             reason=explanation,
@@ -133,18 +175,19 @@ class LlmEvaluator(ABC):
             model=self.model,
         )
 
-    def _validate_batch_args(self, data: List[dict]) -> None:
+    def _validate_batch_args(self, data: List[DataPoint]) -> bool:
         """
         Validates that each entry in the batch has all the required arguments.
         """
         for i, entry in enumerate(data):
-            for arg in self.REQUIRED_ARGS:
+            for arg in self.required_args:
                 if arg not in entry:
                     raise ValueError(
                         f"Data at index {i} is missing required argument: {arg}"
                     )
+        return True
 
-    def _run_batch_generator(self, data: List[dict]):
+    def _run_batch_generator(self, data: List[DataPoint]):
         """
         Generator function for running a batch of evaluations.
         Iterates over a dataset, and runs the evaluator on each entry.
@@ -156,7 +199,7 @@ class LlmEvaluator(ABC):
                 logger.error(f"Error evaluating entry {entry}: {e}")
                 yield None
 
-    def run_batch(self, data: List[dict]) -> List[LlmEvalResult]:
+    def run_batch(self, data: List[DataPoint]) -> List[LlmEvalResult]:
         """
         Runs the evaluator on a batch of data.
         """

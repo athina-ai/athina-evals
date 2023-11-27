@@ -4,6 +4,9 @@ import argparse
 from athina.helpers.config import ConfigHelper
 from athina.helpers.run_helper import RunHelper
 from athina.helpers.kwparser import KeyValueAction
+from athina.interfaces.model import Model
+from athina.loaders import LoadFormat
+from typing import Optional
 
 
 def main():
@@ -26,22 +29,61 @@ def main():
     parser_config = subparsers.add_parser("list", help="Lists all available evals")
     parser_config.set_defaults(func=list)
 
-    # athina run [eval_name] --model [model_name] [kwargs]
+    # athina run [eval_name] [kwargs]
     parser_run = subparsers.add_parser("run", help="Run an eval suite")
+
+    # Add the 'eval_name' positional argument
     parser_run.add_argument(
         "eval_name",
         type=str,
         help="The name of the eval or eval suite to run",
     )
+
+    # Add the 'kwargs' argument for key=value pairs
     parser_run.add_argument(
         "kwargs",
         nargs="*",
         action=KeyValueAction,
         help="Additional named arguments as key=value pairs",
     )
-    parser_run.set_defaults(func=run)
 
+    # Add the '--format' optional argument
+    parser_run.add_argument(
+        "--model",
+        type=str,
+        choices=[
+            Model.GPT35_TURBO.value,
+            Model.GPT4.value,
+            Model.GPT4_1106_PREVIEW.value,
+        ],
+        help="LLM model for evaluation",
+    )
+
+    # Add the '--format' optional argument
+    parser_run.add_argument(
+        "--format",
+        type=str,
+        choices=[
+            LoadFormat.JSON.value,
+            LoadFormat.CSV.value,
+            LoadFormat.ATHINA.value,
+        ],
+        help="Output format type",
+    )
+
+    # Add the '--filename' optional argument
+    parser_run.add_argument(
+        "--filename",
+        type=str,
+        help="Path to the file",
+    )
+
+    # Set the default function to be called
+    parser_run.set_defaults(func=run_delegator)
+
+    # Parse the arguments
     args = parser.parse_args()
+
     if hasattr(args, "func"):
         args.func(args)
     else:
@@ -58,8 +100,7 @@ def init(args):
     athina_api_key = input("Enter your Athina API key: ")
     config_data["athina_api_key"] = athina_api_key
 
-    llm_engine = input("Which OpenAI model should we use for evals: ")
-    config_data["llm_engine"] = llm_engine
+    config_data["llm_engine"] = "gpt-4-1106-preview"
 
     # Add other configuration prompts as needed
 
@@ -81,13 +122,63 @@ def list(args):
     print(evals_list)
 
 
-def run(args):
-    """Runs a single eval on a single datapoint"""
-    eval_name = args.eval_name
-    model = ConfigHelper.load_llm_engine()
-    kwargs = args.kwargs
+def run_delegator(args):
+    """Delegates the run command to the appropriate function"""
 
+    if not ConfigHelper.is_set():
+        print("Please run 'athina init' to configure your API keys")
+        return
+
+    # Load the eval model
+    model = ConfigHelper.load_llm_engine()
+    if args.model is not None:
+        model = args.model
+
+    # Check if format is 'athina'
+    if args.format == "athina":
+        run_batch(args.eval_name, model, format="athina")
+        return
+
+    # Check if both format and filename are set
+    elif args.format is not None and args.filename is not None:
+        run_batch(args.eval_name, model, format=args.format, filename=args.filename)
+        return
+
+    # If format and filename are both None, call run_datapoint with kwargs
+    elif args.format is None and args.filename is None:
+        run_datapoint(args.eval_name, model, **dict(args.kwargs))
+        return
+
+    elif args.format is not None and args.filename is None:
+        raise Exception("Filename must be specified for batch process")
+        return
+
+    else:
+        raise Exception("Invalid run args")
+
+
+# Define the run_batch function
+def run_batch(
+    eval_name: str, model: str, format: str, filename: Optional[str] = None, **kwargs
+):
+    # Implementation for running batch process
     try:
+        print(
+            f"Running batch with format={format}, model={model}, filename={filename}, kwargs={kwargs}"
+        )
+
+        RunHelper.run_eval_on_batch(
+            eval_name=eval_name, model=model, format=format, **kwargs
+        )
+    except Exception as e:
+        print(f"{e}")
+        return
+
+
+def run_datapoint(eval_name: str, model: str, **kwargs):
+    """Runs a single eval on a single datapoint"""
+    try:
+        print(f"Running single with {eval_name} and kwargs {kwargs}")
         RunHelper.run_eval(eval_name, model, kwargs)
     except Exception as e:
         print(f"{e}")
