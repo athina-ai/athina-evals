@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "athina-evals"
-version = "0.0.1"
+version = "0.0.2"
 description = "Python SDK to configure and run evaluations for your LLM-based application"
 authors = ["Shiv Sakhuja <shiv@athina.ai>"]
 readme = "README.md"

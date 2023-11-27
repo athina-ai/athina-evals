@@ -82,7 +82,7 @@ def list(args):
 
 
 def run(args):
-    """Runs an eval suite"""
+    """Runs a single eval on a single datapoint"""
     eval_name = args.eval_name
     model = ConfigHelper.load_llm_engine()
     kwargs = args.kwargs
@@ -92,8 +92,6 @@ def run(args):
     except Exception as e:
         print(f"{e}")
         return
-
-    pass
 
 
 if __name__ == "__main__":
