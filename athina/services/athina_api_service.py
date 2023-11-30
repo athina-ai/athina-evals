@@ -6,7 +6,6 @@ from athina.interfaces.athina import AthinaFilters, AthinaInference
 from athina.keys import AthinaApiKey
 
 BASE_API_URL = "https://log.athina.ai"
-
 SDK_VERSION = pkg_resources.get_distribution("athina-evals").version
 
 
@@ -40,7 +39,7 @@ class AthinaApiService:
         pass
 
     @staticmethod
-    def log_usage(evalName: str) -> List[AthinaInference]:
+    def log_usage(eval_name: str, datapoints: int) -> List[AthinaInference]:
         """
         Logs a usage event to Posthog via Athina.
         """
@@ -51,9 +50,45 @@ class AthinaApiService:
                 headers=AthinaApiService._headers(),
                 json={
                     "sdkVersion": SDK_VERSION,
-                    "evalName": evalName,
+                    "evalName": eval_name,
+                    "datapoints": datapoints,
                 },
             )
+        except Exception as e:
+            # Silent failure is ok here.
+            pass
+
+    def trigger_eval(eval_name: str, eval_params: List[dict]):
+        """
+        Trigger an eval via Athina API.
+        """
+        try:
+            endpoint = f"{BASE_API_URL}/eval/trigger/by-name/{eval_name}"
+            response = requests.post(
+                endpoint,
+                headers=AthinaApiService._headers(),
+                json={
+                    "data": eval_params,
+                    "request_label": eval_name,
+                    "source": "SDK",
+                },
+            )
+            return response.json()
+        except Exception as e:
+            # Silent failure is ok here.
+            pass
+
+    def poll_for_result(eval_request_id: str):
+        """
+        Logs a usage event to Posthog via Athina.
+        """
+        try:
+            endpoint = f"{BASE_API_URL}/api/v1/eval/eval-request-id/{eval_request_id}"
+            response = requests.get(
+                endpoint,
+                headers=AthinaApiService._headers(),
+            )
+            return response.json()
         except Exception as e:
             # Silent failure is ok here.
             pass

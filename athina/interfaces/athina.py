@@ -17,6 +17,14 @@ class AthinaInference:
 
 
 @dataclass
+class AthinaEvalResult:
+    """Athina PromptRun class"""
+
+    # TODO: Implement this
+    pass
+
+
+@dataclass
 class AthinaFilters:
     prompt_slug: Optional[str]
     language_model_id: Optional[str]

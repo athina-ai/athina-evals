@@ -91,7 +91,7 @@ class LlmEvaluator(ABC):
     @abstractmethod
     def examples(self):
         """A list of examples for the evaluator."""
-        pass
+        return self.EXAMPLES
 
     # Common methods
     def _examples_str(self) -> str:
@@ -128,7 +128,7 @@ class LlmEvaluator(ABC):
         start_time = time.time()
 
         # Log usage to Athina for analytics
-        AthinaApiService.log_usage(evalName=self.name())
+        AthinaApiService.log_usage(eval_name=self.name(), datapoints=1)
 
         # Validate that correct args were passed
         self._validate_args(**kwargs)
