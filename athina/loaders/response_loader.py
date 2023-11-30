@@ -51,9 +51,8 @@ class ResponseLoader(Loader):
     ) -> List[DataPoint]:
         """
         Load data from Athina API.
-        By default, this will fetch the last 50 inferences from the API.
         """
-        athina_inferences = AthinaApiService.load_inferences(filters, limit=limit)
+        athina_inferences = AthinaApiService.fetch_inferences(filters, limit=limit)
         self._raw_dataset = list(
             map(
                 lambda x: {

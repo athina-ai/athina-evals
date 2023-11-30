@@ -67,18 +67,20 @@ class RagLoader(Loader):
     def load_athina_inferences(
         self,
         filters: Optional[AthinaFilters] = None,
-        limit: Optional[int] = None,
-        context_key: str = "information",
+        limit: int = 10,
+        context_key: Optional[str] = None,
     ) -> List[RagDataPoint]:
         """
         Load data from Athina API.
-        By default, this will fetch the last 50 inferences from the API.
+        By default, this will fetch the last 10 inferences from the API.
         """
         athina_inferences = AthinaApiService.fetch_inferences(filters, limit=limit)
         self._raw_dataset = list(
             map(
                 lambda x: {
-                    "context": x.context[context_key],
+                    "context": str(x.context)
+                    if context_key is None
+                    else str(x.context[context_key]),
                     "query": x.user_query,
                     "response": x.prompt_response,
                 },

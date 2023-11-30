@@ -180,7 +180,7 @@ class LlmEvaluator(ABC):
         Validates that each entry in the batch has all the required arguments.
         """
         for i, entry in enumerate(data):
-            for arg in self.required_args:
+            for arg in self.required_args():
                 if arg not in entry:
                     raise ValueError(
                         f"Data at index {i} is missing required argument: {arg}"

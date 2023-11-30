@@ -1,7 +1,7 @@
 import asyncio
 import pkg_resources
 import requests
-from typing import List, Optional
+from typing import List, Optional, Any
 from athina.interfaces.athina import AthinaFilters, AthinaInference
 from athina.keys import AthinaApiKey
 
@@ -25,15 +25,32 @@ class AthinaApiService:
 
     @staticmethod
     def fetch_inferences(
-        filters: Optional[AthinaFilters], limit: int = 50
+        filters: Optional[AthinaFilters], limit: int
     ) -> List[AthinaInference]:
         """
         Load data from Athina API.
         """
-        raise NotImplementedError("This method has not been implemented yet.")
+        try:
+            endpoint = f"{BASE_API_URL}/api/v1/sdk/prompt-runs/fetch-by-filter"
+            filters_dict = filters.to_dict() if filters is not None else {}
+            json = {
+                "limit": limit,
+                **filters_dict,
+            }
+            json = {k: v for k, v in json.items() if v is not None}
+            response = requests.post(
+                endpoint,
+                headers=AthinaApiService._headers(),
+                json=json,
+            )
+            inferences = response.json()["data"]["inferences"]
+            return list(map(lambda x: AthinaInference(**x), inferences))
+        except Exception as e:
+            print("Exception fetching inferences", e)
+            pass
 
     @staticmethod
-    def log_eval_results() -> List[AthinaInference]:
+    def log_eval_results(eval_results: Any) -> List[AthinaInference]:
         """
         Logs eval results to Athina
         """
