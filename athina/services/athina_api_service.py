@@ -5,8 +5,8 @@ from typing import List, Optional
 from athina.interfaces.athina import AthinaFilters, AthinaInference
 from athina.keys import AthinaApiKey
 
-# BASE_API_URL = "https://log.athina.ai"
-BASE_API_URL = "http://localhost:9000"
+BASE_API_URL = "https://log.athina.ai"
+
 SDK_VERSION = pkg_resources.get_distribution("athina-evals").version
 
 
