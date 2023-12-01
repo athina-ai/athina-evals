@@ -1,6 +1,7 @@
 from typing import List
 from ..llm_evaluator import LlmEvaluator
 from .examples import CONTEXT_CONTAINS_ENOUGH_INFORMATION_EXAMPLES
+from ..eval_type import AthinaEvalTypeId
 
 
 class ContextContainsEnoughInformation(LlmEvaluator):
@@ -32,7 +33,7 @@ class ContextContainsEnoughInformation(LlmEvaluator):
         super().__init__(*args, **kwargs)
 
     def name(self):
-        return "context_contains_enough_information"
+        return AthinaEvalTypeId.CONTEXT_CONTAINS_ENOUGH_INFORMATION.value
 
     def display_name(self):
         return "Context Contains Enough Information"

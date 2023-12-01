@@ -1,6 +1,7 @@
 import json
+from enum import Enum
 from dataclasses import dataclass, asdict
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, TypedDict, Any
 
 
 @dataclass
@@ -25,3 +26,80 @@ class AthinaFilters:
 
     def to_dict(self) -> str:
         return asdict(self)
+
+
+class AthinaEvalRunResult(TypedDict):
+    failed: bool
+    runtime: float
+    reason: str
+    data: Optional[Dict]
+
+
+class AthinaEvalResult(TypedDict):
+    job_type: str
+    failed_percent: Optional[float]
+    number_of_runs: int
+    flakiness: float
+    run_results: List[AthinaEvalRunResult]
+    runtime: float
+
+
+class AthinaEvalRequestSource(Enum):
+    DEV_SDK = "dev_sdk"
+    SCHEDULED_JOB = "scheduled_job"
+    UI_DASHBOARD = "ui_dashboard"
+
+
+class AthinaEvalRequestCreateRequest(TypedDict):
+    request_label: str
+    request_data: Dict[str, Any]
+    request_data_type: str
+    source: str
+
+
+class AthinaEvalResultCreateRequest(TypedDict):
+    org_id: Optional[str]
+    prompt_run_id: Optional[str]
+    job_config_id: Optional[str]
+    eval_job_id: Optional[str]
+    language_model_id: Optional[str]
+    job_type: str
+    eval_type_id: str
+    run_results: List[AthinaEvalRunResult]
+    eval_request_id: Optional[str]
+    number_of_runs: int
+    flakiness: float
+    runtime: int
+    failed_percent: Optional[float]
+
+
+class AthinaJobType(Enum):
+    LLM_EVAL = "LlmEval"
+
+
+class AthinaInterfaceHelper:
+    @staticmethod
+    def eval_result_to_create_request(
+        eval_request_id: str,
+        eval_type: str,
+        language_model_id: str,
+        eval_result: AthinaEvalResult,
+    ) -> AthinaEvalResultCreateRequest:
+        return AthinaEvalResultCreateRequest(
+            org_id=None,
+            prompt_run_id=None,
+            job_config_id=None,
+            eval_job_id=None,
+            language_model_id=language_model_id,
+            job_type=eval_result["job_type"],
+            eval_type_id=eval_type,
+            failures=[],
+            eval_result=eval_result,
+            prompt_run_updates={},
+            run_results=eval_result["run_results"],
+            eval_request_id=eval_request_id,
+            number_of_runs=eval_result["number_of_runs"],
+            flakiness=eval_result["flakiness"],
+            runtime=eval_result["runtime"],
+            failed_percent=eval_result["failed_percent"],
+        )

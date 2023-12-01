@@ -1,6 +1,7 @@
 from typing import List
 from ..llm_evaluator import LlmEvaluator
 from .examples import FAITHFULNESS_EVAL_EXAMPLES
+from ..eval_type import AthinaEvalTypeId
 
 
 class Faithfulness(LlmEvaluator):
@@ -36,7 +37,7 @@ class Faithfulness(LlmEvaluator):
         super().__init__(*args, **kwargs)
 
     def name(self):
-        return "faithfulness"
+        return AthinaEvalTypeId.FAITHFULNESS.value
 
     def display_name(self):
         return "Faithfulness"

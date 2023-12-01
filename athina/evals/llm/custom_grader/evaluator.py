@@ -1,5 +1,6 @@
 from typing import List
 from ..llm_evaluator import LlmEvaluator
+from ..eval_type import AthinaEvalTypeId
 
 
 class CustomGrader(LlmEvaluator):
@@ -17,7 +18,7 @@ class CustomGrader(LlmEvaluator):
             self._examples = kwargs["examples"]
 
     def name(self):
-        return "custom_grader"
+        return AthinaEvalTypeId.CUSTOM.value
 
     def display_name(self):
         return "Custom"

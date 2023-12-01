@@ -1,6 +1,7 @@
 from typing import List
 from ..llm_evaluator import LlmEvaluator
 from .examples import DOES_RESPONSE_ANSWER_QUERY_EVAL_EXAMPLES
+from ..eval_type import AthinaEvalTypeId
 
 
 class DoesResponseAnswerQuery(LlmEvaluator):
@@ -36,7 +37,7 @@ class DoesResponseAnswerQuery(LlmEvaluator):
         super().__init__(*args, **kwargs)
 
     def name(self):
-        return "does_response_answer_query"
+        return AthinaEvalTypeId.DOES_RESPONSE_ANSWER_QUERY.value
 
     def display_name(self):
         return "Does Response Answer Query"

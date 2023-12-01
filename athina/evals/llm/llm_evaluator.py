@@ -1,6 +1,14 @@
 from abc import ABC, abstractmethod
 import time
 from typing import List, Optional
+from athina.interfaces.athina import (
+    AthinaEvalResult,
+    AthinaEvalRunResult,
+    AthinaJobType,
+    AthinaInterfaceHelper,
+    AthinaEvalRequestCreateRequest,
+    AthinaEvalRequestSource,
+)
 from athina.interfaces.result import LlmEvalResult
 from athina.interfaces.model import Model
 from athina.llms.openai_service import OpenAiService
@@ -65,13 +73,13 @@ class LlmEvaluator(ABC):
     # Abstract properties
     @property
     @abstractmethod
-    def name(self):
+    def name(self) -> str:
         """A unique name identifier for the evaluator."""
         pass
 
     @property
     @abstractmethod
-    def display_name(self):
+    def display_name(self) -> str:
         """A display name for the evaluator."""
         pass
 
@@ -124,11 +132,11 @@ class LlmEvaluator(ABC):
             if arg not in kwargs:
                 raise ValueError(f"Missing required argument: {arg}")
 
-    def run(self, **kwargs) -> LlmEvalResult:
+    def _evaluate(self, **kwargs) -> LlmEvalResult:
+        """
+        Run the LLM evaluator.
+        """
         start_time = time.time()
-
-        # Log usage to Athina for analytics
-        AthinaApiService.log_usage(evalName=self.name())
 
         # Validate that correct args were passed
         self._validate_args(**kwargs)
@@ -158,7 +166,7 @@ class LlmEvaluator(ABC):
         try:
             result = chat_completion_response_json["result"]
             explanation = chat_completion_response_json["explanation"]
-            failure = result == "Fail"
+            failure = bool(result == "Fail")
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
             raise e
@@ -174,6 +182,55 @@ class LlmEvaluator(ABC):
             runtime=eval_runtime_ms,
             model=self.model,
         )
+
+    def run(self, **kwargs) -> LlmEvalResult:
+        # Log usage to Athina for analytics
+        AthinaApiService.log_usage(evalName=self.name())
+
+        # Create eval request
+        eval_request = AthinaEvalRequestCreateRequest(
+            request_label=self.name() + "_eval_" + str(time.time()),
+            request_data=kwargs,
+            request_data_type="json",
+            source=AthinaEvalRequestSource.DEV_SDK.value,
+        )
+        eval_request_id = AthinaApiService.create_eval_request(eval_request)
+
+        eval_result = self._evaluate(**kwargs)
+
+        # Construct eval result object
+        failed_percent = 1.0 if eval_result["failure"] else 0.0
+        athina_eval_result = AthinaEvalResult(
+            job_type=AthinaJobType.LLM_EVAL.value,
+            failed_percent=failed_percent,
+            number_of_runs=1,
+            flakiness=0.0,
+            run_results=[
+                AthinaEvalRunResult(
+                    failed=eval_result["failure"],
+                    runtime=eval_result["runtime"],
+                    reason=eval_result["reason"],
+                    data=kwargs,
+                )
+            ],
+            runtime=eval_result["runtime"],
+        )
+
+        # log eval results to Athina
+        athina_eval_result_create_request = (
+            AthinaInterfaceHelper.eval_result_to_create_request(
+                eval_request_id=eval_request_id,
+                eval_type=self.name(),
+                language_model_id=eval_result["model"],
+                eval_result=athina_eval_result,
+            )
+        )
+        athina_eval_result_create_request_dict = {
+            k: v for k, v in athina_eval_result_create_request.items() if v is not None
+        }
+        AthinaApiService.log_eval_results([athina_eval_result_create_request_dict])
+
+        return eval_result
 
     def _validate_batch_args(self, data: List[DataPoint]) -> bool:
         """
