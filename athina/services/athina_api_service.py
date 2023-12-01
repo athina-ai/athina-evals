@@ -1,4 +1,3 @@
-import asyncio
 import pkg_resources
 import requests
 from retrying import retry
@@ -10,8 +9,7 @@ from athina.interfaces.athina import (
     AthinaEvalResultCreateRequest,
 )
 from athina.keys import AthinaApiKey
-
-BASE_API_URL = "https://log.athina.ai"
+from athina.helpers.constants import API_BASE_URL
 
 SDK_VERSION = pkg_resources.get_distribution("athina-evals").version
 
@@ -37,7 +35,7 @@ class AthinaApiService:
         Load data from Athina API.
         """
         try:
-            endpoint = f"{BASE_API_URL}/api/v1/sdk/prompt-runs/fetch-by-filter"
+            endpoint = f"{API_BASE_URL}/api/v1/sdk/prompt-runs/fetch-by-filter"
             filters_dict = filters.to_dict() if filters is not None else {}
             json = {
                 "limit": limit,
@@ -56,18 +54,18 @@ class AthinaApiService:
             pass
 
     @staticmethod
-    def log_usage(evalName: str) -> List[AthinaInference]:
+    def log_usage(eval_name: str) -> List[AthinaInference]:
         """
         Logs a usage event to Posthog via Athina.
         """
         try:
-            endpoint = f"{BASE_API_URL}/api/v1/sdk/log-usage"
+            endpoint = f"{API_BASE_URL}/api/v1/sdk/log-usage"
             requests.post(
                 endpoint,
                 headers=AthinaApiService._headers(),
                 json={
                     "sdkVersion": SDK_VERSION,
-                    "evalName": evalName,
+                    "evalName": eval_name,
                 },
             )
         except Exception as e:
@@ -78,13 +76,13 @@ class AthinaApiService:
     @retry(wait_fixed=500, stop_max_attempt_number=3)
     def log_eval_results(
         athina_eval_result_create_many_request: List[AthinaEvalResultCreateRequest],
-    ) -> List[AthinaInference]:
+    ):
         """
         Logs eval results to Athina
         """
         try:
             # Construct eval update requests
-            endpoint = f"{BASE_API_URL}/api/v1/eval_result"
+            endpoint = f"{API_BASE_URL}/api/v1/eval_result"
             response = requests.post(
                 endpoint,
                 headers=AthinaApiService._headers(),
@@ -106,13 +104,13 @@ class AthinaApiService:
         Create eval request
         """
         try:
-            endpoint = f"{BASE_API_URL}/api/v1/eval_request"
+            endpoint = f"{API_BASE_URL}/api/v1/eval_request"
             response = requests.post(
                 endpoint,
                 headers=AthinaApiService._headers(),
                 json=athina_eval_request_create_request,
             )
-            return response.json()["data"]["eval_request"]["id"]
+            return response.json()
         except Exception as e:
             print(
                 f"An error occurred while posting eval results",

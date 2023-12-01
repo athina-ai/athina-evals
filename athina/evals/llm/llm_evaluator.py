@@ -13,6 +13,7 @@ from athina.interfaces.result import LlmEvalResult
 from athina.interfaces.model import Model
 from athina.llms.openai_service import OpenAiService
 from athina.helpers.logger import logger
+from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.helpers.json import JsonHelper
 from athina.loaders import DataPoint
 from athina.keys import AthinaApiKey
@@ -184,51 +185,23 @@ class LlmEvaluator(ABC):
         )
 
     def run(self, **kwargs) -> LlmEvalResult:
+        """
+        Run the LLM evaluator, and log results to Athina.
+        """
         # Log usage to Athina for analytics
-        AthinaApiService.log_usage(evalName=self.name())
+        AthinaApiService.log_usage(eval_name=self.name())
 
-        # Create eval request
-        eval_request = AthinaEvalRequestCreateRequest(
-            request_label=self.name() + "_eval_" + str(time.time()),
-            request_data=kwargs,
-            request_data_type="json",
-            source=AthinaEvalRequestSource.DEV_SDK.value,
+        eval_request_id = AthinaLoggingHelper.create_eval_request(
+            eval_name=self.name(), request_data=kwargs, request_type="single"
         )
-        eval_request_id = AthinaApiService.create_eval_request(eval_request)
 
         eval_result = self._evaluate(**kwargs)
 
-        # Construct eval result object
-        failed_percent = 1.0 if eval_result["failure"] else 0.0
-        athina_eval_result = AthinaEvalResult(
-            job_type=AthinaJobType.LLM_EVAL.value,
-            failed_percent=failed_percent,
-            number_of_runs=1,
-            flakiness=0.0,
-            run_results=[
-                AthinaEvalRunResult(
-                    failed=eval_result["failure"],
-                    runtime=eval_result["runtime"],
-                    reason=eval_result["reason"],
-                    data=kwargs,
-                )
-            ],
-            runtime=eval_result["runtime"],
+        AthinaLoggingHelper.log_eval_results(
+            eval_request_id=eval_request_id,
+            eval_results=[eval_result],
+            data=[kwargs],
         )
-
-        # log eval results to Athina
-        athina_eval_result_create_request = (
-            AthinaInterfaceHelper.eval_result_to_create_request(
-                eval_request_id=eval_request_id,
-                eval_type=self.name(),
-                language_model_id=eval_result["model"],
-                eval_result=athina_eval_result,
-            )
-        )
-        athina_eval_result_create_request_dict = {
-            k: v for k, v in athina_eval_result_create_request.items() if v is not None
-        }
-        AthinaApiService.log_eval_results([athina_eval_result_create_request_dict])
 
         return eval_result
 
@@ -251,7 +224,7 @@ class LlmEvaluator(ABC):
         """
         for entry in data:
             try:
-                yield self.run(**entry)
+                yield self._evaluate(**entry)
             except Exception as e:
                 logger.error(f"Error evaluating entry {entry}: {e}")
                 yield None
@@ -260,11 +233,19 @@ class LlmEvaluator(ABC):
         """
         Runs the evaluator on a batch of data.
         """
+        # Create eval request
+        eval_request_id = AthinaLoggingHelper.create_eval_request(
+            eval_name=self.name(), request_data={"data": data}, request_type="batch"
+        )
+
         self._validate_batch_args(data)
         eval_results = list(self._run_batch_generator(data))
 
         # Log evaluation results to Athina
-        if AthinaApiKey.is_set():
-            AthinaApiService.log_eval_results(eval_results)
+        AthinaLoggingHelper.log_eval_results(
+            eval_request_id=eval_request_id,
+            eval_results=eval_results,
+            data=data,
+        )
 
         return eval_results

@@ -1,4 +1,5 @@
 from typing import List, TypedDict
+from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.evals.llm.llm_evaluator import LlmEvaluator, LlmEvalResult
 from athina.loaders.loader import DataPoint
 
@@ -74,7 +75,7 @@ class EvalRunner:
         )
 
     @staticmethod
-    def run_batch(
+    def run_suite(
         evals: List[LlmEvaluator],
         dataset: List[DataPoint],
     ) -> List[LlmBatchEvalResult]:
@@ -88,12 +89,20 @@ class EvalRunner:
         Returns:
             A list of LlmBatchEvalResult objects.
         """
+        # Create eval request
+        eval_suite_name = "llm_eval_suite"
+        eval_request_id = AthinaLoggingHelper.create_eval_request(
+            eval_name=eval_suite_name,
+            request_data={"data": dataset},
+            request_type="suite",
+        )
+
         datapoints_with_eval_results = []
         for datapoint in dataset:
             eval_results = []
             for evaluator in evals:
                 try:
-                    eval_result = evaluator.run(**datapoint)
+                    eval_result = evaluator._evaluate(**datapoint)
                     eval_result.pop("data", None)
                     eval_results.append(eval_result)
                 except Exception as e:
@@ -113,6 +122,23 @@ class EvalRunner:
                 evals,
             )
         )
+
+        # Log evaluation results to Athina
+        eval_suite_results = list(
+            map(lambda x: x["eval_results"], datapoints_with_eval_results)
+        )
+        flattened_eval_results = [
+            item for sublist in eval_suite_results for item in sublist
+        ]
+
+        dataset = list(map(lambda x: x["data_point"], datapoints_with_eval_results))
+
+        AthinaLoggingHelper.log_eval_results(
+            eval_request_id=eval_request_id,
+            eval_results=flattened_eval_results,
+            data=dataset,
+        )
+
         return EvalRunner.batch_eval_result(
             datapoints_with_eval_results=datapoints_with_eval_results,
             eval_descriptions=eval_descriptions,
