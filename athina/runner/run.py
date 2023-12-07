@@ -1,7 +1,7 @@
 from typing import List, TypedDict
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.evals.llm.llm_evaluator import LlmEvaluator, LlmEvalResult
-from athina.loaders.loader import DataPoint
+from athina.interfaces.data import DataPoint
 
 
 class DataPointWithEvalResults(TypedDict):

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import TypedDict
-from athina.loaders.loader import DataPoint
+from athina.interfaces.data import DataPoint
 
 
 class LlmEvalResult(TypedDict):
@@ -14,3 +14,14 @@ class LlmEvalResult(TypedDict):
     reason: str
     runtime: int
     model: str
+
+
+class EvalPerformanceMetrics(TypedDict):
+    """
+    A class to represent the performance metrics for an evaluation.
+    """
+
+    accuracy: float
+    precision: float
+    recall: float
+    f1_score: float

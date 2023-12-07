@@ -9,13 +9,13 @@ from athina.interfaces.athina import (
     AthinaEvalRequestCreateRequest,
     AthinaEvalRequestSource,
 )
-from athina.interfaces.result import LlmEvalResult
+from athina.interfaces.result import LlmEvalResult, EvalPerformanceMetrics
 from athina.interfaces.model import Model
 from athina.llms.openai_service import OpenAiService
 from athina.helpers.logger import logger
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.helpers.json import JsonHelper
-from athina.loaders import DataPoint
+from athina.interfaces.data import DataPoint
 from athina.keys import AthinaApiKey
 from athina.errors.exceptions import NoAthinaApiKeyException
 from athina.services.athina_api_service import AthinaApiService
@@ -184,6 +184,15 @@ class LlmEvaluator(ABC):
             model=self.model,
         )
 
+    def set_experiment_configuration(self, **kwargs) -> None:
+        """Configured metadata parameters to log an experiment to Athina"""
+        self._experiment_settings(
+            experiment_name=self.name(),
+            eval_type=AthinaJobType.LLM_EVAL.value,
+            eval_request_source=AthinaEvalRequestSource.DEV_SDK.value,
+            eval_request_data=kwargs,
+        )
+
     def run(self, **kwargs) -> LlmEvalResult:
         """
         Run the LLM evaluator, and log results to Athina.
@@ -229,10 +238,13 @@ class LlmEvaluator(ABC):
                 logger.error(f"Error evaluating entry {entry}: {e}")
                 yield None
 
-    def run_batch(self, data: List[DataPoint]) -> List[LlmEvalResult]:
+    def run_batch(
+        self, data: List[DataPoint], labels: Optional[List[bool]] = None
+    ) -> List[LlmEvalResult]:
         """
         Runs the evaluator on a batch of data.
         """
+
         # Create eval request
         eval_request_id = AthinaLoggingHelper.create_eval_request(
             eval_name=self.name(), request_data={"data": data}, request_type="batch"
@@ -240,6 +252,11 @@ class LlmEvaluator(ABC):
 
         self._validate_batch_args(data)
         eval_results = list(self._run_batch_generator(data))
+
+        if (labels is not None) and (len(labels) == len(eval_results)):
+            self.calculate_eval_performance_metrics(
+                eval_results=eval_results, labels=labels
+            )
 
         # Log evaluation results to Athina
         AthinaLoggingHelper.log_eval_results(
@@ -249,3 +266,51 @@ class LlmEvaluator(ABC):
         )
 
         return eval_results
+
+    def calculate_eval_performance_metrics(
+        self,
+        eval_results: List[LlmEvalResult],
+        labels: List[bool],
+    ) -> EvalPerformanceMetrics:
+        """
+        Calculates the performance metrics for the evaluator.
+        """
+
+        # Extract predictions from eval_results
+        predictions = [result["failure"] for result in eval_results]
+
+        # Initialize counters
+        TP, FP, TN, FN = 0, 0, 0, 0
+
+        # Count TP, FP, TN, FN
+        for pred, label in zip(predictions, labels):
+            if pred == 1 and label == 1:
+                TP += 1
+            elif pred == 1 and label == 0:
+                FP += 1
+            elif pred == 0 and label == 0:
+                TN += 1
+            elif pred == 0 and label == 1:
+                FN += 1
+
+        # Calculate metrics
+        precision = TP / (TP + FP) if (TP + FP) else 0
+        recall = TP / (TP + FN) if (TP + FN) else 0
+        accuracy = (TP + TN) / (TP + FP + FN + TN)
+        f1_score = (
+            2 * (precision * recall) / (precision + recall)
+            if (precision + recall)
+            else 0
+        )
+
+        print(f"Precision: {precision}")
+        print(f"Recall: {recall}")
+        print(f"Accuracy: {accuracy}")
+        print(f"F1 Score: {f1_score}")
+
+        return EvalPerformanceMetrics(
+            precision=precision,
+            recall=recall,
+            accuracy=accuracy,
+            f1_score=f1_score,
+        )
