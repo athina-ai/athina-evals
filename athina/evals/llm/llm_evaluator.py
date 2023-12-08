@@ -1,15 +1,10 @@
 from abc import ABC, abstractmethod
 import time
 from typing import List, Optional
-from athina.interfaces.athina import (
-    AthinaEvalResult,
-    AthinaEvalRunResult,
-    AthinaJobType,
-    AthinaInterfaceHelper,
-    AthinaEvalRequestCreateRequest,
-    AthinaEvalRequestSource,
-)
-from athina.interfaces.result import LlmEvalResult, EvalPerformanceMetrics
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from athina.interfaces.result import LlmEvalResult, BatchRunResult
+from athina.interfaces.openai import OpenAiPromptMessage
+from athina.interfaces.athina import AthinaExperiment
 from athina.interfaces.model import Model
 from athina.llms.openai_service import OpenAiService
 from athina.helpers.logger import logger
@@ -25,23 +20,26 @@ from .example import FewShotExample
 class LlmEvaluator(ABC):
     llm_service: OpenAiService
     grading_criteria: str
+    _experiment: Optional[AthinaExperiment]
+    _system_message_template: Optional[str] = None
+    _user_message_template: Optional[str] = None
 
     TEMPERATURE = 0.0
 
     RETURN_FORMAT_INSTRUCTIONS = """
-    Provide a brief explanation of why the response does or does not pass the grading criteria, labeled as 'explanation', leading up to a verdict (Pass/Fail) labeled as 'result'.
-
     You MUST return a JSON object in the following format: { "result": 'result', "explanation": 'explanation' }.
+    Result must be either 'Pass' or 'Fail'.
     """
 
-    SYSTEM_MESSAGE_TEMPLATE = f""" 
+    DEFAULT_SYSTEM_MESSAGE_TEMPLATE = f""" 
     ### INSTRUCTIONS ###
     You are an expert at evaluating chatbot responses, according to some grading criteria.
 
     If it passes the grading criteria, then your result is Pass, otherwise it is Fail.
+    
     """
 
-    USER_MESSAGE_TEMPLATE = """
+    DEFAULT_USER_MESSAGE_TEMPLATE = """
     ### GRADING CRITERIA ###
     {grading_criteria}
 
@@ -58,6 +56,8 @@ class LlmEvaluator(ABC):
         self,
         model: Optional[str] = None,
         grading_criteria: Optional[str] = None,
+        system_message_template: Optional[str] = None,
+        user_message_template: Optional[str] = None,
     ):
         if not AthinaApiKey.is_set():
             raise NoAthinaApiKeyException()
@@ -70,6 +70,17 @@ class LlmEvaluator(ABC):
             raise ValueError(f"Unsupported model: {model}")
         else:
             self.model = model
+
+        # Initialize message templates
+        if system_message_template is None:
+            self._system_message_template = self.DEFAULT_SYSTEM_MESSAGE_TEMPLATE
+        else:
+            self._system_message_template = system_message_template
+
+        if user_message_template is None:
+            self._user_message_template = self.DEFAULT_USER_MESSAGE_TEMPLATE
+        else:
+            self._user_message_template = user_message_template
 
     # Abstract properties
     @property
@@ -106,11 +117,11 @@ class LlmEvaluator(ABC):
     def _examples_str(self) -> str:
         return "\n".join([str(example) for example in self.examples()])
 
-    def _system_message(self, **kwargs) -> str:
-        return self.SYSTEM_MESSAGE_TEMPLATE + self.RETURN_FORMAT_INSTRUCTIONS
+    def _system_message(self) -> str:
+        return self._system_message_template + self.RETURN_FORMAT_INSTRUCTIONS
 
     def _user_message(self, **kwargs) -> str:
-        return self.USER_MESSAGE_TEMPLATE.format(
+        return self._user_message_template.format(
             examples=self._examples_str(),
             grading_criteria=self.grading_criteria,
             **kwargs,
@@ -120,7 +131,7 @@ class LlmEvaluator(ABC):
         return [
             {
                 "role": "system",
-                "content": self._system_message(**kwargs),
+                "content": self._system_message(),
             },
             {
                 "role": "user",
@@ -184,34 +195,42 @@ class LlmEvaluator(ABC):
             model=self.model,
         )
 
-    def set_experiment_configuration(self, **kwargs) -> None:
+    def configure_experiment(self, experiment: AthinaExperiment):
         """Configured metadata parameters to log an experiment to Athina"""
-        self._experiment_settings(
-            experiment_name=self.name(),
-            eval_type=AthinaJobType.LLM_EVAL.value,
-            eval_request_source=AthinaEvalRequestSource.DEV_SDK.value,
-            eval_request_data=kwargs,
-        )
+        self._experiment = experiment
+        return self
 
-    def run(self, **kwargs) -> LlmEvalResult:
+    def run(self, **kwargs) -> BatchRunResult:
         """
         Run the LLM evaluator, and log results to Athina.
         """
         # Log usage to Athina for analytics
-        AthinaApiService.log_usage(eval_name=self.name())
+        AthinaApiService.log_usage(eval_name=self.name(), run_type="single")
 
+        # Create eval request
         eval_request_id = AthinaLoggingHelper.create_eval_request(
             eval_name=self.name(), request_data=kwargs, request_type="single"
         )
 
+        # Log experiment
+        if self._experiment:
+            AthinaApiService.log_experiment(
+                eval_request_id=eval_request_id,
+                experiment=self._experiment,
+            )
+
         eval_result = self._evaluate(**kwargs)
 
+        # Log evaluation results to Athina
         AthinaLoggingHelper.log_eval_results(
             eval_request_id=eval_request_id,
             eval_results=[eval_result],
         )
 
-        return eval_result
+        return BatchRunResult(
+            eval_request_id=eval_request_id,
+            eval_results=[eval_result],
+        )
 
     def _validate_batch_args(self, data: List[DataPoint]) -> bool:
         """
@@ -224,6 +243,30 @@ class LlmEvaluator(ABC):
                         f"Data at index {i} is missing required argument: {arg}"
                     )
         return True
+
+    def _run_batch_generator_async(
+        self, data: List[DataPoint], max_parallel_evals: int
+    ):
+        with ThreadPoolExecutor(max_workers=max_parallel_evals) as executor:
+            # Submit all tasks to the executor and store them with their original index
+            future_to_index = {
+                executor.submit(self._evaluate, **entry): i
+                for i, entry in enumerate(data)
+            }
+
+            # Create a list to store results in the original order
+            results = [None] * len(data)
+
+            for future in as_completed(future_to_index):
+                index = future_to_index[future]
+                try:
+                    results[index] = future.result()
+                except Exception as e:
+                    entry = data[index]
+                    logger.error(f"Error evaluating entry {entry}: {e}")
+                    results[index] = None
+
+            return results
 
     def _run_batch_generator(self, data: List[DataPoint]):
         """
@@ -238,8 +281,8 @@ class LlmEvaluator(ABC):
                 yield None
 
     def run_batch(
-        self, data: List[DataPoint], labels: Optional[List[bool]] = None
-    ) -> List[LlmEvalResult]:
+        self, data: List[DataPoint], max_parallel_evals: int = 1
+    ) -> BatchRunResult:
         """
         Runs the evaluator on a batch of data.
         """
@@ -249,13 +292,24 @@ class LlmEvaluator(ABC):
             eval_name=self.name(), request_data={"data": data}, request_type="batch"
         )
 
-        self._validate_batch_args(data)
-        eval_results = list(self._run_batch_generator(data))
+        # Log usage to Athina for analytics
+        AthinaApiService.log_usage(eval_name=self.name(), run_type="batch")
 
-        if (labels is not None) and (len(labels) == len(eval_results)):
-            self.calculate_eval_performance_metrics(
-                eval_results=eval_results, labels=labels
+        # Log experiment
+        if self._experiment:
+            AthinaApiService.log_experiment(
+                eval_request_id=eval_request_id,
+                experiment=self._experiment,
             )
+
+        # Validate the dataset against the required args
+        self._validate_batch_args(data)
+
+        # Run the evaluations
+        if max_parallel_evals > 1:
+            eval_results = self._run_batch_generator_async(data, max_parallel_evals)
+        else:
+            eval_results = list(self._run_batch_generator(data))
 
         # Log evaluation results to Athina
         AthinaLoggingHelper.log_eval_results(
@@ -263,52 +317,7 @@ class LlmEvaluator(ABC):
             eval_results=eval_results,
         )
 
-        return eval_results
-
-    def calculate_eval_performance_metrics(
-        self,
-        eval_results: List[LlmEvalResult],
-        labels: List[bool],
-    ) -> EvalPerformanceMetrics:
-        """
-        Calculates the performance metrics for the evaluator.
-        """
-
-        # Extract predictions from eval_results
-        predictions = [result["failure"] for result in eval_results]
-
-        # Initialize counters
-        TP, FP, TN, FN = 0, 0, 0, 0
-
-        # Count TP, FP, TN, FN
-        for pred, label in zip(predictions, labels):
-            if pred == 1 and label == 1:
-                TP += 1
-            elif pred == 1 and label == 0:
-                FP += 1
-            elif pred == 0 and label == 0:
-                TN += 1
-            elif pred == 0 and label == 1:
-                FN += 1
-
-        # Calculate metrics
-        precision = TP / (TP + FP) if (TP + FP) else 0
-        recall = TP / (TP + FN) if (TP + FN) else 0
-        accuracy = (TP + TN) / (TP + FP + FN + TN)
-        f1_score = (
-            2 * (precision * recall) / (precision + recall)
-            if (precision + recall)
-            else 0
-        )
-
-        print(f"Precision: {precision}")
-        print(f"Recall: {recall}")
-        print(f"Accuracy: {accuracy}")
-        print(f"F1 Score: {f1_score}")
-
-        return EvalPerformanceMetrics(
-            precision=precision,
-            recall=recall,
-            accuracy=accuracy,
-            f1_score=f1_score,
+        return BatchRunResult(
+            eval_request_id=eval_request_id,
+            eval_results=eval_results,
         )

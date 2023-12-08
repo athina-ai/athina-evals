@@ -2,6 +2,7 @@ import json
 from enum import Enum
 from dataclasses import dataclass, asdict
 from typing import Optional, Dict, List, TypedDict, Any
+from .openai import OpenAiPromptMessage
 
 
 @dataclass
@@ -105,3 +106,12 @@ class AthinaInterfaceHelper:
             runtime=eval_result["runtime"],
             failed_percent=eval_result["failed_percent"],
         )
+
+
+class AthinaExperiment(TypedDict):
+    experiment_name: str
+    experiment_description: str
+    language_model_provider: str
+    language_model_id: str
+    prompt_template: List[OpenAiPromptMessage]
+    dataset_name: str

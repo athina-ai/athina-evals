@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from typing import TypedDict
+from typing import TypedDict, List
 from athina.interfaces.data import DataPoint
 
 
 class LlmEvalResult(TypedDict):
     """
-    A class to represent the result of an LLM evaluation.
+    Represents the LLM evaluation result.
     """
 
     name: str
@@ -16,12 +16,27 @@ class LlmEvalResult(TypedDict):
     model: str
 
 
-class EvalPerformanceMetrics(TypedDict):
+class BatchRunResult(TypedDict):
     """
-    A class to represent the performance metrics for an evaluation.
+    Represents the result of a batch run of LLM evaluation.
     """
 
+    eval_request_id: str
+    eval_results: List[LlmEvalResult]
+
+
+class EvalPerformanceReport(TypedDict):
+    """
+    Represents the performance metrics for an evaluation.
+    """
+
+    true_positives: int
+    false_positives: int
+    true_negatives: int
+    false_negatives: int
     accuracy: float
     precision: float
     recall: float
     f1_score: float
+    runtime: int
+    dataset_size: int
