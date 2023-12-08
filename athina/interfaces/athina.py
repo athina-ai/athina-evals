@@ -32,7 +32,6 @@ class AthinaEvalRunResult(TypedDict):
     failed: bool
     runtime: float
     reason: str
-    data: Optional[Dict]
 
 
 class AthinaEvalResult(TypedDict):
@@ -42,6 +41,7 @@ class AthinaEvalResult(TypedDict):
     flakiness: float
     run_results: List[AthinaEvalRunResult]
     runtime: float
+    data: Dict
 
 
 class AthinaEvalRequestSource(Enum):
@@ -66,6 +66,7 @@ class AthinaEvalResultCreateRequest(TypedDict):
     job_type: str
     eval_type_id: str
     run_results: List[AthinaEvalRunResult]
+    data: Dict
     eval_request_id: Optional[str]
     number_of_runs: int
     flakiness: float
@@ -97,6 +98,7 @@ class AthinaInterfaceHelper:
             eval_result=eval_result,
             prompt_run_updates={},
             run_results=eval_result["run_results"],
+            data=eval_result["data"],
             eval_request_id=eval_request_id,
             number_of_runs=eval_result["number_of_runs"],
             flakiness=eval_result["flakiness"],

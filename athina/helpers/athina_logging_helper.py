@@ -35,8 +35,7 @@ class AthinaLoggingHelper:
 
     def log_eval_results(
         eval_request_id: str,
-        eval_results: LlmEvalResult,
-        data: List[dict],
+        eval_results: List[LlmEvalResult],
     ):
         try:
             athina_eval_result_create_many_request = []
@@ -54,9 +53,9 @@ class AthinaLoggingHelper:
                             failed=eval_result["failure"],
                             runtime=eval_result["runtime"],
                             reason=eval_result["reason"],
-                            data=data,
                         )
                     ],
+                    data=eval_result["data"],
                     runtime=eval_result["runtime"],
                 )
 

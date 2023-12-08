@@ -209,7 +209,6 @@ class LlmEvaluator(ABC):
         AthinaLoggingHelper.log_eval_results(
             eval_request_id=eval_request_id,
             eval_results=[eval_result],
-            data=[kwargs],
         )
 
         return eval_result
@@ -262,7 +261,6 @@ class LlmEvaluator(ABC):
         AthinaLoggingHelper.log_eval_results(
             eval_request_id=eval_request_id,
             eval_results=eval_results,
-            data=data,
         )
 
         return eval_results
