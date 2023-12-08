@@ -7,7 +7,9 @@ from athina.interfaces.athina import (
     AthinaInference,
     AthinaEvalRequestCreateRequest,
     AthinaEvalResultCreateRequest,
+    AthinaExperiment,
 )
+from athina.interfaces.result import EvalPerformanceReport
 from athina.keys import AthinaApiKey
 from athina.helpers.constants import API_BASE_URL
 
@@ -54,7 +56,7 @@ class AthinaApiService:
             pass
 
     @staticmethod
-    def log_usage(eval_name: str) -> List[AthinaInference]:
+    def log_usage(eval_name: str, run_type: str) -> List[AthinaInference]:
         """
         Logs a usage event to Posthog via Athina.
         """
@@ -66,6 +68,7 @@ class AthinaApiService:
                 json={
                     "sdkVersion": SDK_VERSION,
                     "evalName": eval_name,
+                    "run_type": run_type,
                 },
             )
         except Exception as e:
@@ -109,6 +112,70 @@ class AthinaApiService:
                 endpoint,
                 headers=AthinaApiService._headers(),
                 json=athina_eval_request_create_request,
+            )
+            return response.json()
+        except Exception as e:
+            print(
+                f"An error occurred while posting eval results",
+                str(e),
+            )
+            raise
+
+    def log_eval_performance_report(
+        self, eval_request_id: str, report: EvalPerformanceReport
+    ) -> None:
+        """
+        Logs the performance metrics for the evaluator.
+        """
+        try:
+            endpoint = f"{API_BASE_URL}/api/v1/eval_performance_report"
+            response = requests.post(
+                endpoint,
+                headers=AthinaApiService._headers(),
+                json={
+                    "eval_request_id": eval_request_id,
+                    "true_positives": report["true_positives"],
+                    "false_positives": report["false_positives"],
+                    "true_negatives": report["true_negatives"],
+                    "false_negatives": report["false_negatives"],
+                    "accuracy": report["accuracy"],
+                    "precision": report["precision"],
+                    "recall": report["recall"],
+                    "f1_score": report["f1_score"],
+                    "runtime": report["runtime"],
+                    "dataset_size": report["dataset_size"],
+                },
+            )
+            return response.json()
+        except Exception as e:
+            print(
+                f"An error occurred while posting eval results",
+                str(e),
+            )
+            raise
+
+    @staticmethod
+    def log_experiment(
+        eval_request_id: str,
+        experiment: AthinaExperiment,
+    ):
+        """
+        Logs the experiment metadata to Athina.
+        """
+        try:
+            endpoint = f"{API_BASE_URL}/api/v1/experiment"
+            response = requests.post(
+                endpoint,
+                headers=AthinaApiService._headers(),
+                json={
+                    "eval_request_id": eval_request_id,
+                    "experiment_name": experiment["experiment_name"],
+                    "experiment_description": experiment["experiment_description"],
+                    "language_model_provider": experiment["language_model_provider"],
+                    "language_model_id": experiment["language_model_id"],
+                    "prompt_template": experiment["prompt_template"],
+                    "dataset_name": experiment["dataset_name"],
+                },
             )
             return response.json()
         except Exception as e:
