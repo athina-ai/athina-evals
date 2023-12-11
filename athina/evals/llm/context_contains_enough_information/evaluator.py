@@ -20,10 +20,9 @@ class ContextContainsEnoughInformation(LlmEvaluator):
         1. Consider the following: 
         user's query: {query}.
         context: {context}.
-        2. Make sure to also consider these instructions: {additional_instructions}
-        3. Determine if the chatbot can answer the user's query with nothing but the "context" information provided to you.
-        4. Provide a brief explanation of why the context does or does not contain sufficient information, labeled as 'explanation', leading up to a verdict (Pass/Fail) labeled as 'result'.
-        5. Return a JSON object in the following format: "verdict": 'result', "explanation": 'explanation'.
+        2. Determine if the chatbot can answer the user's query with nothing but the "context" information provided to you.
+        3. Provide a brief explanation of why the context does or does not contain sufficient information, labeled as 'explanation', leading up to a verdict (Pass/Fail) labeled as 'result'.
+        4. Return a JSON object in the following format: "verdict": 'result', "explanation": 'explanation'.
 
         Here's are some examples: 
         {examples}
@@ -38,6 +37,9 @@ class ContextContainsEnoughInformation(LlmEvaluator):
     def display_name(self):
         return "Context Contains Enough Information"
 
+    def metric_id(self) -> str:
+        return None
+
     def default_model(self):
         return "gpt-4-1106-preview"
 
@@ -51,12 +53,10 @@ class ContextContainsEnoughInformation(LlmEvaluator):
         self,
         query: str,
         context: str,
-        additional_instructions: str = "",
         **kwargs,
     ) -> str:
         return self.USER_MESSAGE_TEMPLATE.format(
             query=query,
             context=context,
-            additional_instructions=additional_instructions,
             examples=self.EXAMPLES,
         )

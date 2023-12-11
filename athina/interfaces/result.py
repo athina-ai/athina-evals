@@ -1,6 +1,15 @@
 from dataclasses import dataclass
-from typing import TypedDict, List
+from typing import TypedDict, List, Optional
 from athina.interfaces.data import DataPoint
+
+
+class LlmEvalResultMetric(TypedDict):
+    """
+    Represents the LLM evaluation result metric.
+    """
+
+    id: str
+    value: float
 
 
 class LlmEvalResult(TypedDict):
@@ -9,11 +18,13 @@ class LlmEvalResult(TypedDict):
     """
 
     name: str
+    display_name: str
     data: DataPoint
     failure: int
     reason: str
     runtime: int
     model: str
+    metric: Optional[LlmEvalResultMetric]
 
 
 class BatchRunResult(TypedDict):

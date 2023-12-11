@@ -20,6 +20,9 @@ class CustomGrader(LlmEvaluator):
     def name(self):
         return AthinaEvalTypeId.CUSTOM.value
 
+    def metric_id(self) -> str:
+        return None
+
     def display_name(self):
         return "Custom"
 

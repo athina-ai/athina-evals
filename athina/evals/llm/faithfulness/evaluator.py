@@ -19,18 +19,13 @@ class Faithfulness(LlmEvaluator):
         1. Consider the following: 
         context: {context}.
         response: {response}.
-        2. Make sure to also consider these instructions: {additional_instructions}
-        3. Determine if the response can be inferred using ONLY the information provided in the context.
-        4. Provide a brief explanation of why the response can or cannot be inferred purely from the context, labeled as 'explanation', leading up to a verdict (Pass/Fail) labeled as 'result'.
-        5. Return a JSON object in the following format: "result": 'result', "explanation": 'explanation'.
+        2. Determine if the response can be inferred using ONLY the information provided in the context.
+        3. Provide a brief explanation of why the response can or cannot be inferred purely from the context, labeled as 'explanation', leading up to a verdict (Pass/Fail) labeled as 'result'.
+        4. Return a JSON object in the following format: "result": 'result', "explanation": 'explanation'.
 
         ### EXAMPLES ###
         Here's are some examples: 
         {examples}
-
-        Now consider the following:
-        context: {context}.
-        response: {response}.
     """
 
     def __init__(self, *args, **kwargs):
@@ -41,6 +36,9 @@ class Faithfulness(LlmEvaluator):
 
     def display_name(self):
         return "Faithfulness"
+
+    def metric_id(self) -> str:
+        return "faithfulness_score"
 
     def default_model(self):
         return "gpt-4-1106-preview"
@@ -55,12 +53,10 @@ class Faithfulness(LlmEvaluator):
         self,
         context: str,
         response: str,
-        additional_instructions: str = "",
         **kwargs,
     ) -> str:
         return self.USER_MESSAGE_TEMPLATE.format(
             context=context,
             response=response,
-            additional_instructions=additional_instructions,
             examples=self._examples_str(),
         )

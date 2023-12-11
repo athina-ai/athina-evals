@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import time
 from typing import List, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from athina.interfaces.result import LlmEvalResult, BatchRunResult
+from athina.interfaces.result import LlmEvalResult, LlmEvalResultMetric, BatchRunResult
 from athina.interfaces.openai import OpenAiPromptMessage
 from athina.interfaces.athina import AthinaExperiment
 from athina.interfaces.model import Model
@@ -20,15 +20,17 @@ from .example import FewShotExample
 class LlmEvaluator(ABC):
     llm_service: OpenAiService
     grading_criteria: str
-    _experiment: Optional[AthinaExperiment]
+    _experiment: Optional[AthinaExperiment] = None
     _system_message_template: Optional[str] = None
     _user_message_template: Optional[str] = None
 
     TEMPERATURE = 0.0
 
     RETURN_FORMAT_INSTRUCTIONS = """
-    You MUST return a JSON object in the following format: { "result": 'result', "explanation": 'explanation' }.
-    Result must be either 'Pass' or 'Fail'.
+    You MUST return a JSON object with the following fields: 
+    - result: Result must be either 'Pass' or 'Fail'.
+    - explanation: An explanation of why the result is Pass or Fail.
+    - score: (Optional) Use the scoring criteria specified.
     """
 
     DEFAULT_SYSTEM_MESSAGE_TEMPLATE = f""" 
@@ -73,7 +75,9 @@ class LlmEvaluator(ABC):
 
         # Initialize message templates
         if system_message_template is None:
-            self._system_message_template = self.DEFAULT_SYSTEM_MESSAGE_TEMPLATE
+            self._system_message_template = (
+                self.DEFAULT_SYSTEM_MESSAGE_TEMPLATE + self.RETURN_FORMAT_INSTRUCTIONS
+            )
         else:
             self._system_message_template = system_message_template
 
@@ -93,6 +97,12 @@ class LlmEvaluator(ABC):
     @abstractmethod
     def display_name(self) -> str:
         """A display name for the evaluator."""
+        pass
+
+    @property
+    @abstractmethod
+    def metric_id(self) -> str:
+        """The metric computed by the evaluator."""
         pass
 
     @property
@@ -118,7 +128,7 @@ class LlmEvaluator(ABC):
         return "\n".join([str(example) for example in self.examples()])
 
     def _system_message(self) -> str:
-        return self._system_message_template + self.RETURN_FORMAT_INSTRUCTIONS
+        return self._system_message_template
 
     def _user_message(self, **kwargs) -> str:
         return self._user_message_template.format(
@@ -174,26 +184,34 @@ class LlmEvaluator(ABC):
         chat_completion_response_json = JsonHelper.extract_json_from_text(
             chat_completion_response
         )
-
         try:
+            metric = None
             result = chat_completion_response_json["result"]
             explanation = chat_completion_response_json["explanation"]
             failure = bool(result == "Fail")
+            if "score" in chat_completion_response_json:
+                score = chat_completion_response_json["score"]
+                metric = LlmEvalResultMetric(id=self.metric_id(), value=score)
+            else:
+                metric = LlmEvalResultMetric(id="failed", value=float(failure))
+
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
             raise e
 
         end_time = time.time()
         eval_runtime_ms = int((end_time - start_time) * 1000)
-
-        return LlmEvalResult(
+        llm_eval_result = LlmEvalResult(
             name=self.name(),
+            display_name=self.display_name(),
             data=kwargs,
             failure=failure,
             reason=explanation,
             runtime=eval_runtime_ms,
             model=self.model,
+            metric=metric,
         )
+        return {k: v for k, v in llm_eval_result.items() if v is not None}
 
     def configure_experiment(self, experiment: AthinaExperiment):
         """Configured metadata parameters to log an experiment to Athina"""
@@ -296,7 +314,7 @@ class LlmEvaluator(ABC):
         AthinaApiService.log_usage(eval_name=self.name(), run_type="batch")
 
         # Log experiment
-        if self._experiment:
+        if self._experiment is not None:
             AthinaApiService.log_experiment(
                 eval_request_id=eval_request_id,
                 experiment=self._experiment,
