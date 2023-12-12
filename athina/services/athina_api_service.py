@@ -37,7 +37,7 @@ class AthinaApiService:
         Load data from Athina API.
         """
         try:
-            endpoint = f"{API_BASE_URL}/api/v1/sdk/prompt-runs/fetch-by-filter"
+            endpoint = f"{API_BASE_URL}/api/v1/sdk/prompt_run/fetch-by-filter"
             filters_dict = filters.to_dict() if filters is not None else {}
             json = {
                 "limit": limit,
