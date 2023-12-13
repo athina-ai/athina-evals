@@ -2,6 +2,8 @@ import pkg_resources
 import requests
 from retrying import retry
 from typing import List, Optional, Any
+from athina.constants.messages import AthinaMessages
+from athina.errors.exceptions import NoAthinaApiKeyException
 from athina.interfaces.athina import (
     AthinaFilters,
     AthinaInference,
@@ -20,10 +22,7 @@ class AthinaApiService:
     @staticmethod
     def _headers():
         if not AthinaApiKey.is_set():
-            raise Exception(
-                """Please sign up at https://athina.ai and set an Athina API key. 
-                See https://docs.athina.ai/evals/quick_start for more information."""
-            )
+            raise NoAthinaApiKeyException()
         athina_api_key = AthinaApiKey.get_key()
         return {
             "athina-api-key": athina_api_key,
@@ -56,7 +55,7 @@ class AthinaApiService:
             pass
 
     @staticmethod
-    def log_usage(eval_name: str, run_type: str) -> List[AthinaInference]:
+    def log_usage(eval_name: str, run_type: str):
         """
         Logs a usage event to Posthog via Athina.
         """
@@ -107,6 +106,7 @@ class AthinaApiService:
         Create eval request
         """
         try:
+            print(AthinaMessages.SIGN_UP_FOR_BEST_EXPERIENCE)
             endpoint = f"{API_BASE_URL}/api/v1/eval_request"
             response = requests.post(
                 endpoint,
@@ -123,7 +123,7 @@ class AthinaApiService:
 
     def log_eval_performance_report(
         self, eval_request_id: str, report: EvalPerformanceReport
-    ) -> None:
+    ):
         """
         Logs the performance metrics for the evaluator.
         """

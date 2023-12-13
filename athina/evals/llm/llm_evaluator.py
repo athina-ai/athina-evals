@@ -61,9 +61,6 @@ class LlmEvaluator(ABC):
         system_message_template: Optional[str] = None,
         user_message_template: Optional[str] = None,
     ):
-        if not AthinaApiKey.is_set():
-            raise NoAthinaApiKeyException()
-
         self.llm_service = OpenAiService()
         self.grading_criteria = grading_criteria if grading_criteria else ""
         if model is None:
@@ -232,7 +229,7 @@ class LlmEvaluator(ABC):
 
         # Log experiment
         if self._experiment:
-            AthinaApiService.log_experiment(
+            AthinaLoggingHelper.log_experiment(
                 eval_request_id=eval_request_id,
                 experiment=self._experiment,
             )
@@ -315,7 +312,7 @@ class LlmEvaluator(ABC):
 
         # Log experiment
         if self._experiment is not None:
-            AthinaApiService.log_experiment(
+            AthinaLoggingHelper.log_experiment(
                 eval_request_id=eval_request_id,
                 experiment=self._experiment,
             )

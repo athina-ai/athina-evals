@@ -10,11 +10,32 @@ from athina.interfaces.athina import (
 )
 from athina.interfaces.result import LlmEvalResult
 from athina.services.athina_api_service import AthinaApiService
-
+from athina.keys import AthinaApiKey
+from athina.constants.messages import AthinaMessages
 
 class AthinaLoggingHelper:
+    def log_eval_performance_report(
+        self, *args, **kwargs
+    ):
+        """
+        Passthrough method: Checks if the user has set an Athina API key
+        """
+        if AthinaApiKey.is_set():
+            return AthinaApiService.log_eval_performance_report(*args, **kwargs)
+        
+    def log_experiment(
+        self, *args, **kwargs
+    ):
+        """
+        Passthrough method: Checks if the user has set an Athina API key
+        """
+        if AthinaApiKey.is_set():
+            return AthinaApiService.log_experiment(*args, **kwargs)
+
     def create_eval_request(eval_name: str, request_data: dict, request_type: str):
         try:
+            if not AthinaApiKey.is_set():
+                return []
             # Create eval request
             eval_request = AthinaEvalRequestCreateRequest(
                 request_label=eval_name + "_eval_" + str(time.time()),
@@ -38,6 +59,8 @@ class AthinaLoggingHelper:
         eval_results: List[LlmEvalResult],
     ):
         try:
+            if not AthinaApiKey.is_set():
+                return
             athina_eval_result_create_many_request = []
 
             for eval_result in eval_results:
