@@ -106,7 +106,6 @@ class AthinaApiService:
         Create eval request
         """
         try:
-            print(AthinaMessages.SIGN_UP_FOR_BEST_EXPERIENCE)
             endpoint = f"{API_BASE_URL}/api/v1/eval_request"
             response = requests.post(
                 endpoint,

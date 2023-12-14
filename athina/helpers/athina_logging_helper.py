@@ -14,28 +14,27 @@ from athina.keys import AthinaApiKey
 from athina.constants.messages import AthinaMessages
 
 class AthinaLoggingHelper:
-    def log_eval_performance_report(
-        self, *args, **kwargs
-    ):
+    @staticmethod
+    def log_eval_performance_report(*args, **kwargs):
         """
         Passthrough method: Checks if the user has set an Athina API key
         """
         if AthinaApiKey.is_set():
             return AthinaApiService.log_eval_performance_report(*args, **kwargs)
         
-    def log_experiment(
-        self, *args, **kwargs
-    ):
+    @staticmethod
+    def log_experiment(*args, **kwargs):
         """
         Passthrough method: Checks if the user has set an Athina API key
         """
         if AthinaApiKey.is_set():
             return AthinaApiService.log_experiment(*args, **kwargs)
 
+    @staticmethod
     def create_eval_request(eval_name: str, request_data: dict, request_type: str):
         try:
             if not AthinaApiKey.is_set():
-                return []
+                return None
             # Create eval request
             eval_request = AthinaEvalRequestCreateRequest(
                 request_label=eval_name + "_eval_" + str(time.time()),
