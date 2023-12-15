@@ -31,21 +31,27 @@ class DoesResponseAnswerQuery(LlmEvaluator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    @property
     def name(self):
         return AthinaEvalTypeId.DOES_RESPONSE_ANSWER_QUERY.value
 
+    @property
     def display_name(self):
         return "Does Response Answer Query"
 
+    @property
     def default_model(self):
         return "gpt-4-1106-preview"
 
+    @property
     def required_args(self):
         return ["query", "response"]
 
+    @property
     def examples(self):
         return DOES_RESPONSE_ANSWER_QUERY_EVAL_EXAMPLES
 
+    @property
     def metric_id(self) -> str:
         return None
 

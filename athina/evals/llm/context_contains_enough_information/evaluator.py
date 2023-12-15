@@ -31,21 +31,27 @@ class ContextContainsEnoughInformation(LlmEvaluator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    @property
     def name(self):
         return AthinaEvalTypeId.CONTEXT_CONTAINS_ENOUGH_INFORMATION.value
 
+    @property
     def display_name(self):
         return "Context Contains Enough Information"
 
+    @property
     def metric_id(self) -> str:
         return None
 
+    @property
     def default_model(self):
         return "gpt-4-1106-preview"
 
+    @property
     def required_args(self):
         return ["query", "context"]
 
+    @property
     def examples(self):
         return CONTEXT_CONTAINS_ENOUGH_INFORMATION_EXAMPLES
 
@@ -58,5 +64,5 @@ class ContextContainsEnoughInformation(LlmEvaluator):
         return self.USER_MESSAGE_TEMPLATE.format(
             query=query,
             context=context,
-            examples=self.EXAMPLES,
+            examples=self.examples,
         )

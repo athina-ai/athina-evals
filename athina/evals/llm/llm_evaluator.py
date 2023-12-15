@@ -64,7 +64,7 @@ class LlmEvaluator(ABC):
         self.llm_service = OpenAiService()
         self.grading_criteria = grading_criteria if grading_criteria else ""
         if model is None:
-            self.model = self.default_model()
+            self.model = self.default_model
         elif not Model.is_supported(model):
             raise ValueError(f"Unsupported model: {model}")
         else:
@@ -122,7 +122,7 @@ class LlmEvaluator(ABC):
 
     # Common methods
     def _examples_str(self) -> str:
-        return "\n".join([str(example) for example in self.examples()])
+        return "\n".join([str(example) for example in self.examples])
 
     def _system_message(self) -> str:
         return self._system_message_template
@@ -147,7 +147,7 @@ class LlmEvaluator(ABC):
         ]
 
     def _validate_args(self, **kwargs) -> None:
-        for arg in self.required_args():
+        for arg in self.required_args:
             if arg not in kwargs:
                 raise ValueError(f"Missing required argument: {arg}")
 
@@ -188,7 +188,7 @@ class LlmEvaluator(ABC):
             failure = bool(result == "Fail")
             if "score" in chat_completion_response_json:
                 score = chat_completion_response_json["score"]
-                metric = LlmEvalResultMetric(id=self.metric_id(), value=score)
+                metric = LlmEvalResultMetric(id=self.metric_id, value=score)
             else:
                 metric = LlmEvalResultMetric(id="failed", value=float(failure))
 
@@ -199,8 +199,8 @@ class LlmEvaluator(ABC):
         end_time = time.time()
         eval_runtime_ms = int((end_time - start_time) * 1000)
         llm_eval_result = LlmEvalResult(
-            name=self.name(),
-            display_name=self.display_name(),
+            name=self.name,
+            display_name=self.display_name,
             data=kwargs,
             failure=failure,
             reason=explanation,
@@ -220,11 +220,11 @@ class LlmEvaluator(ABC):
         Run the LLM evaluator, and log results to Athina.
         """
         # Log usage to Athina for analytics
-        AthinaApiService.log_usage(eval_name=self.name(), run_type="single")
+        AthinaApiService.log_usage(eval_name=self.name, run_type="single")
 
         # Create eval request
         eval_request_id = AthinaLoggingHelper.create_eval_request(
-            eval_name=self.name(), request_data=kwargs, request_type="single"
+            eval_name=self.name, request_data=kwargs, request_type="single"
         )
 
         # Log experiment
@@ -252,7 +252,7 @@ class LlmEvaluator(ABC):
         Validates that each entry in the batch has all the required arguments.
         """
         for i, entry in enumerate(data):
-            for arg in self.required_args():
+            for arg in self.required_args:
                 if arg not in entry:
                     raise ValueError(
                         f"Data at index {i} is missing required argument: {arg}"
@@ -304,11 +304,11 @@ class LlmEvaluator(ABC):
 
         # Create eval request
         eval_request_id = AthinaLoggingHelper.create_eval_request(
-            eval_name=self.name(), request_data={"data": data}, request_type="batch"
+            eval_name=self.name, request_data={"data": data}, request_type="batch"
         )
 
         # Log usage to Athina for analytics
-        AthinaApiService.log_usage(eval_name=self.name(), run_type="batch")
+        AthinaApiService.log_usage(eval_name=self.name, run_type="batch")
 
         # Log experiment
         if self._experiment is not None:

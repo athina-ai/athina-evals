@@ -31,21 +31,27 @@ class Faithfulness(LlmEvaluator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    @property
     def name(self):
         return AthinaEvalTypeId.FAITHFULNESS.value
 
+    @property
     def display_name(self):
         return "Faithfulness"
 
+    @property
     def metric_id(self) -> str:
-        return "faithfulness_score"
+        return None
 
+    @property
     def default_model(self):
         return "gpt-4-1106-preview"
 
+    @property
     def required_args(self):
         return ["context", "response"]
 
+    @property
     def examples(self):
         return FAITHFULNESS_EVAL_EXAMPLES
 

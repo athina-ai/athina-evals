@@ -116,8 +116,8 @@ class EvalRunner:
         eval_descriptions = list(
             map(
                 lambda x: {
-                    "name": x.name(),
-                    "display_name": x.display_name(),
+                    "name": x.name,
+                    "display_name": x.display_name,
                 },
                 evals,
             )

@@ -62,7 +62,7 @@ class RunHelper:
             raise ValueError(f"Invalid evaluation name: {eval_name}")
 
         # Retrieve the required arguments from the eval class
-        required_args = evaluator.required_args()
+        required_args = evaluator.required_args
 
         # Check if each required argument is in kwargs
         missing_args = [arg for arg in required_args if arg not in kwargs]

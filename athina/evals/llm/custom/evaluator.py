@@ -52,20 +52,27 @@ class CustomLlmEval(LlmEvaluator):
             **kwargs
         )
 
+    @property
     def name(self):
         return AthinaEvalTypeId.CUSTOM.value
-
+        
+    @property
     def metric_id(self) -> str:
         return self._metric_id
-
+        
+    @property
     def display_name(self):
         return self._display_name
-
+        
+    @property
     def default_model(self):
         return self._model
-
+        
+    @property
     def required_args(self):
         return self._required_args
-
+        
+    @property
     def examples(self):
         return self._examples
+        
