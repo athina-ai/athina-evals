@@ -116,6 +116,15 @@ class AthinaInterfaceHelper:
 
 
 class AthinaExperiment(TypedDict):
+    """
+    Metadata about the experiment you are running.
+    - experiment_name: The name of the experiment.
+    - experiment_description: A description of the experiment.
+    - language_model_provider: The language model provider you are using for your LLM inference (ex: openai).
+    - language_model_id: The language model id (ex: gpt-3.5-turbo)
+    - prompt_template: The prompt template you are using for your LLM inference.
+    - dataset_name: The name of the dataset you are using.
+    """
     experiment_name: str
     experiment_description: str
     language_model_provider: str
