@@ -1,7 +1,7 @@
 from typing import List, Optional
 from athina.interfaces.result import LlmEvalResult, EvalPerformanceReport
 from athina.services.athina_api_service import AthinaApiService
-
+from athina.helpers.logger import logger
 
 class EvalPerformanceCalculator:
     """
@@ -55,16 +55,16 @@ class EvalPerformanceCalculator:
         dataset_size = len(eval_results)
 
         if should_print:
-            print(f"Dataset Size: {dataset_size}")
-            print(f"Runtime: {runtime}")
-            print(f"True Positives: {TP}")
-            print(f"False Positives: {FP}")
-            print(f"True Negatives: {TN}")
-            print(f"False Negatives: {FN}")
-            print(f"Precision: {precision}")
-            print(f"Recall: {recall}")
-            print(f"Accuracy: {accuracy}")
-            print(f"F1 Score: {f1_score}")
+            logger.info(f"Dataset Size: {dataset_size}")
+            logger.info(f"Runtime: {runtime}")
+            logger.info(f"True Positives: {TP}")
+            logger.info(f"False Positives: {FP}")
+            logger.info(f"True Negatives: {TN}")
+            logger.info(f"False Negatives: {FN}")
+            logger.info(f"Precision: {precision}")
+            logger.info(f"Recall: {recall}")
+            logger.info(f"Accuracy: {accuracy}")
+            logger.info(f"F1 Score: {f1_score}")
 
         report = EvalPerformanceReport(
             true_positives=TP,

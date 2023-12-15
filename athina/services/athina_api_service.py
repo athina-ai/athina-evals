@@ -115,7 +115,7 @@ class AthinaApiService:
             return response.json()
         except Exception as e:
             print(
-                f"An error occurred while posting eval results",
+                f"An error occurred while creating eval request",
                 str(e),
             )
             raise
@@ -148,7 +148,7 @@ class AthinaApiService:
             return response.json()
         except Exception as e:
             print(
-                f"An error occurred while posting eval results",
+                f"An error occurred while posting eval performance report",
                 str(e),
             )
             raise
@@ -179,7 +179,7 @@ class AthinaApiService:
             return response.json()
         except Exception as e:
             print(
-                f"An error occurred while posting eval results",
+                f"An error occurred while posting experiment metadata",
                 str(e),
             )
             raise
