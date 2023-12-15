@@ -1,5 +1,6 @@
 from typing import List
 from ..llm_evaluator import LlmEvaluator
+from ..eval_type import AthinaEvalTypeId
 
 
 class CustomGrader(LlmEvaluator):
@@ -16,17 +17,26 @@ class CustomGrader(LlmEvaluator):
         if "examples" in kwargs:
             self._examples = kwargs["examples"]
 
+    @property
     def name(self):
-        return "custom_grader"
+        return AthinaEvalTypeId.CUSTOM.value
 
+    @property
+    def metric_id(self) -> str:
+        return None
+
+    @property
     def display_name(self):
         return "Custom"
 
+    @property
     def default_model(self):
         return "gpt-4-1106-preview"
 
+    @property
     def required_args(self):
         return ["response"]
 
+    @property
     def examples(self):
         return self._examples

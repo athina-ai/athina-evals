@@ -23,7 +23,6 @@ class OpenAiService:
             raise NoOpenAiApiKeyException()
         self.openai = OpenAI(api_key=openai_api_key)
 
-    @timeout(30)
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def chat_completion(self, messages, model, temperature=DEFAULT_TEMPERATURE) -> str:
         """
@@ -38,7 +37,6 @@ class OpenAiService:
             print(f"Error in ChatCompletion: {e}")
             raise e
 
-    @timeout(30)
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def json_completion(self, messages, model, temperature=DEFAULT_TEMPERATURE) -> str:
         """

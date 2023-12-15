@@ -2,12 +2,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import TypedDict, List
 import json
-
-
-class DataPoint(TypedDict):
-    """Data point for a single inference."""
-
-    response: str
+from athina.interfaces.data import DataPoint
 
 
 class LoadFormat(Enum):
@@ -68,6 +63,7 @@ class Loader(ABC):
             with open(filename, "r") as f:
                 self._raw_dataset = json.load(f)
                 self.process()
+                return self._processed_dataset
         except (FileNotFoundError, json.JSONDecodeError) as e:
             print(f"Error loading JSON: {e}")
 

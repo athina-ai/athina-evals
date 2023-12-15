@@ -1,6 +1,7 @@
 from typing import List
 from ..llm_evaluator import LlmEvaluator
 from .examples import DOES_RESPONSE_ANSWER_QUERY_EVAL_EXAMPLES
+from ..eval_type import AthinaEvalTypeId
 
 
 class DoesResponseAnswerQuery(LlmEvaluator):
@@ -18,48 +19,50 @@ class DoesResponseAnswerQuery(LlmEvaluator):
         1. Consider the following: 
         user's query: {query}.
         response: {response}.
-        2. Make sure to also consider these instructions: {additional_instructions}
-        3. Determine if the response answers specifically what the user is asking about, and covers all aspects of the user's query.
-        4. Provide a brief explanation of why the response does or does not answer the user's query sufficiently, labeled as 'explanation', leading up to a verdict (Pass/Fail) labeled as 'result'.
-        5. Return a JSON object in the following format: "result": 'result', "explanation": 'explanation'.
+        2. Determine if the response answers specifically what the user is asking about, and covers all aspects of the user's query.
+        3. Provide a brief explanation of why the response does or does not answer the user's query sufficiently, labeled as 'explanation', leading up to a verdict (Pass/Fail) labeled as 'result'.
+        4. Return a JSON object in the following format: "result": 'result', "explanation": 'explanation'
 
         ### EXAMPLES ###
         Here's are some examples: 
         {examples}
-
-        Now consider the following:
-        user's query: {query}.
-        response: {response}.
     """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    @property
     def name(self):
-        return "does_response_answer_query"
+        return AthinaEvalTypeId.DOES_RESPONSE_ANSWER_QUERY.value
 
+    @property
     def display_name(self):
         return "Does Response Answer Query"
 
+    @property
     def default_model(self):
         return "gpt-4-1106-preview"
 
+    @property
     def required_args(self):
         return ["query", "response"]
 
+    @property
     def examples(self):
         return DOES_RESPONSE_ANSWER_QUERY_EVAL_EXAMPLES
+
+    @property
+    def metric_id(self) -> str:
+        return None
 
     def _user_message(
         self,
         query: str,
         response: str,
-        additional_instructions: str = "",
         **kwargs,
     ) -> str:
         return self.USER_MESSAGE_TEMPLATE.format(
             query=query,
             response=response,
-            additional_instructions=additional_instructions,
             examples=self._examples_str(),
         )

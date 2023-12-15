@@ -1,5 +1,5 @@
 from typing import Optional
-from .messages import NO_ATHINA_API_KEY, NO_OPENAI_API_KEY
+from athina.constants.messages import AthinaMessages
 
 
 class CustomException(Exception):
@@ -17,10 +17,10 @@ class CustomException(Exception):
 
 
 class NoAthinaApiKeyException(CustomException):
-    def __init__(self, message: str = NO_ATHINA_API_KEY):
+    def __init__(self, message: str = AthinaMessages.SIGN_UP_FOR_BEST_EXPERIENCE):
         super().__init__(message)
 
 
 class NoOpenAiApiKeyException(CustomException):
-    def __init__(self, message: str = NO_OPENAI_API_KEY):
+    def __init__(self, message: str = AthinaMessages.SIGN_UP_FOR_BEST_EXPERIENCE):
         super().__init__(message)
