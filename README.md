@@ -1,6 +1,8 @@
+[Documentation](https://docs.athina.ai/evals) | [Watch Demo Video →](https://www.loom.com/share/10e37f1ba11242ac8c97902edd2fa61e)
+
 ## Overview
 
-**`athina-evals` is an framework to help you quickly set up evaluations and monitoring for your LLM-powered application**
+**Athina is an open-source library with plug-and-play preset evals designed to help engineers systematically improve their LLM reliability and performance through eval-driven-development.**
 
 It's difficult to know if your LLM response is good or bad. Most developers start out by simply eyeballing the responses. This is fine when you're building a prototype and testing on 5-10 examples.
 
@@ -16,25 +18,23 @@ Evals can help you:
 
 _Think of evals like unit tests for your LLM app._
 
-## Documentation
-
-See [https://docs.athina.ai](https://docs.athina.ai) for the complete documentation.
+<br />
 
 ## Quick Start
 
-#### 1. Install the package
+To get started with Athina Evals:
+
+**1. Install the `athina` package**
 
 ```
-pip install athina-evals
+pip install athina
 ```
 
-#### 2. Get an Athina API key
+<br />
 
-Sign up at [athina.ai](https://athina.ai) to get an API key.
+**2. Set your API keys**
 
-_(free, and only takes about 30 seconds)_
-
-#### 3. Set API keys
+If you are using the python SDK, then can set the API keys like this:
 
 ```python
 from athina.keys import AthinaApiKey, OpenAiApiKey
@@ -43,15 +43,32 @@ OpenAiApiKey.set_key(os.getenv('OPENAI_API_KEY'))
 AthinaApiKey.set_key(os.getenv('ATHINA_API_KEY'))
 ```
 
-#### 4. Run evals
+If you are using the CLI, then run `athina init`, and enter the API keys when prompted.
+
+<br />
+
+**3. Load your dataset like this:**
+
+_You can also [load data](/evals/loading_data) using a CSV or Python Dictionary_
 
 ```python
-# Load the data from CSV, JSON, Athina or Dictionary
-dataset = RagLoader().load_json(json_file)
+from athina.loaders import RagLoader
 
-# Run the DoesResponseAnswerQuery evaluator on the dataset
+dataset = RagLoader().load_json(json_filepath)
+```
+<br />
+
+**4. Now you can run evals like this.**
+
+```python
+from athina.evals import DoesResponseAnswerQuery
+
 DoesResponseAnswerQuery().run_batch(data=dataset)
 ```
+
+<br />
+
+For more details, see this guide on [running evals](/evals/running_evals).
 
 ## <br />
 
