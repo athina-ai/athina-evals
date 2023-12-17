@@ -1,7 +1,6 @@
 from typing import List, Optional
 from athina.interfaces.athina import AthinaFilters
 from athina.interfaces.data import DataPoint
-from athina.services.athina_api_service import AthinaApiService
 from .loader import Loader
 
 
@@ -49,18 +48,8 @@ class ResponseLoader(Loader):
         self,
         filters: Optional[AthinaFilters] = None,
         limit: Optional[int] = None,
-    ) -> List[DataPoint]:
+    ):
         """
         Load data from Athina API.
         """
-        athina_inferences = AthinaApiService.fetch_inferences(filters, limit=limit)
-        self._raw_dataset = list(
-            map(
-                lambda x: {
-                    "response": x.prompt_response,
-                },
-                athina_inferences,
-            )
-        )
-        self.process()
-        return self._processed_dataset
+        pass

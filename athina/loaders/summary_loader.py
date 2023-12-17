@@ -1,7 +1,6 @@
 from typing import List, Optional
 from athina.interfaces.athina import AthinaFilters
 from athina.interfaces.data import DataPoint
-from athina.services.athina_api_service import AthinaApiService
 from .loader import Loader
 
 
