@@ -1,3 +1,4 @@
+from enum import Enum
 import pprint
 import time
 import traceback
@@ -9,6 +10,7 @@ from athina.metrics.metric_type import MetricType
 from ..llm_evaluator import LlmEvaluator
 from ..eval_type import AthinaEvalTypeId
 from ..example import FewShotExample
+from athina.llms.question_answerer import QuestionAnswerer
 from athina.llms.question_answerer_bulk import QuestionAnswererBulk
 from athina.llms.question_answerer_cot import QuestionAnswererChainOfThought
 from athina.llms.question_generator import QuestionGenerator
@@ -23,7 +25,8 @@ class SummaryAccuracy(LlmEvaluator):
         self,
         questions: Optional[List[str]] = None,
         n_questions: int = 10,
-        model: str = "gpt-3.5-turbo",
+        model: str = "gpt-4-1106-preview",
+        question_answerer: Optional[QuestionAnswerer] = None,
         metrics: List[MetricType] = [
             MetricType.AGREEMENT_SCORE,
             MetricType.CONTRADICTION_SCORE,
@@ -48,9 +51,11 @@ class SummaryAccuracy(LlmEvaluator):
         self.question_generator = QuestionGenerator(
             self._model, n_questions
         )
-        self.question_answerer = QuestionAnswererBulk(self._model)
+        if question_answerer is None:
+            self.question_answerer = QuestionAnswererBulk(model=self._model)
+        else:
+            self.question_answerer = question_answerer
         self.n_instances = 0
-        # Intialize metrics
         self.metrics: List[MetricType] = metrics
         self.label_counts = {}
         for metric in metrics:

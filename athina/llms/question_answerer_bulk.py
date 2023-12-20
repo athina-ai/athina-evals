@@ -27,7 +27,7 @@ class QuestionAnswererBulk(QuestionAnswerer):
             ...
     """
 
-    def __init__(self, model):
+    def __init__(self, model: str = "gpt-4-1106-preview"):
         """
         Initialize the QuestionAnswerer class.
         """

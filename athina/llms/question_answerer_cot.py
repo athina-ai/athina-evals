@@ -26,7 +26,7 @@ class QuestionAnswererChainOfThought(QuestionAnswerer):
         5. Return a JSON object in the following format: "answer": "answer", "explanation": "explanation"
     """
 
-    def __init__(self, model):
+    def __init__(self, model: str = "gpt-4-1106-preview"):
         """
         Initialize the QuestionAnswerer class.
         """

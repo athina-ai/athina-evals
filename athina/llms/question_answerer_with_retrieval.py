@@ -66,7 +66,7 @@ class QuestionAnswererWithRetrieval(QuestionAnswerer):
         5. Return a JSON object in the following format: "answer": "answer", "explanation": "explanation"
     """
 
-    def __init__(self, model, context, context_chunk_size=128):
+    def __init__(self, context, model: str = "gpt-4-1106-preview", context_chunk_size=128):
         self._model = model
         self.openai_service = OpenAiService()
         self.context_chunks, self.context_embeddings = self._preprocess_context(context, context_chunk_size)
