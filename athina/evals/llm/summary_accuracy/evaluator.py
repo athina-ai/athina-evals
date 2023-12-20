@@ -140,8 +140,8 @@ class SummaryAccuracy(LlmEvaluator):
             if self.questions is None or len(self.questions) == 0:
                 self.questions = self.question_generator.generate(summary)
 
-            answers_doc = self.question_answerer.answer(self.questions, document)[1]
-            answers_sum = self.question_answerer.answer(self.questions, summary)[1]
+            answers_doc = self.question_answerer.answer(questions=self.questions, context=document)[1]
+            answers_sum = self.question_answerer.answer(questions=self.questions, context=summary)[1]
             metric_results = {}
             # Compute metrics
             if answers_doc is None or answers_sum is None or self.questions is None:

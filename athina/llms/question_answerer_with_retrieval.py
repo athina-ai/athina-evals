@@ -127,7 +127,7 @@ class QuestionAnswererWithRetrieval(QuestionAnswerer):
             }
 
 
-    def answer(self, questions: List[str]) -> Tuple[dict, dict]:
+    def answer(self, questions: List[str], **kwargs) -> Tuple[dict, dict]:
         results = {}
         simple_result = {}
         with ThreadPoolExecutor() as executor:
