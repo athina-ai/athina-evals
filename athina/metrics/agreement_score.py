@@ -27,7 +27,7 @@ class AgreementScore(Metric):
         for idx, (ans_src, ans_sum) in enumerate(zip(answers_src_ls, answers_sum_ls)):
             if ans_src.strip().lower() == ans_sum.strip().lower():
                 n_matches += 1
-                agreed_question = questions[f"question {idx+1}"]
+                agreed_question = questions[idx]
                 agreed_questions.append(f"{agreed_question}")
         return n_matches, agreed_questions
 

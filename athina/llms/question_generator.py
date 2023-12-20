@@ -1,3 +1,4 @@
+from typing import List
 from athina.llms.openai_service import OpenAiService
 from athina.interfaces.model import Model
 
@@ -32,7 +33,7 @@ class QuestionGenerator:
         self.n_questions = n_questions
         self.openai_service = OpenAiService()
 
-    def generate(self, text: str) -> dict:
+    def generate(self, text: str) -> List[str]:
         """
         Generate a set of closed-ended questions based on the provided text.
 
@@ -40,7 +41,7 @@ class QuestionGenerator:
             text (str): The reference content used to generate questions.
 
         Returns:
-            dict: A dictionary of generated questions with keys indicating the question order and values being the questions themselves.
+            list[str]: A list of generated questions
         """
         user_message = self.USER_MESSAGE_TEMPLATE.format(text, self.n_questions)
         messages = [
@@ -54,4 +55,10 @@ class QuestionGenerator:
             messages=messages,
         )
 
-        return json_response
+        if json_response is None:
+            raise Exception("Unable to generate questions")
+
+        # Extract questions from JSON object
+        questions = [question for question in json_response.values()]
+
+        return questions

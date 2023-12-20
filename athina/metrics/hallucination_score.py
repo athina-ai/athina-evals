@@ -35,7 +35,7 @@ class HallucinationScore(Metric):
                 "no",
             ]:
                 n_hallucination += 1
-                halu_question = questions[f"question {idx+1}"]
+                halu_question = questions[idx]
                 halu_questions.append(f"{halu_question}")
 
         return n_hallucination, halu_questions

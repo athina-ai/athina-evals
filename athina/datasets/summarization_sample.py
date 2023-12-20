@@ -19,7 +19,7 @@ Bob: That sounds more like what I'm looking for. I hadn't thought about those br
 
 Alice: You're welcome, Bob! Feel free to reach out if you have more questions or need help once you decide on a breed. It's important to choose a dog that fits well with your lifestyle and needs.
         """,
-        "summary": """
+        "response": """
 In this conversation, Alice, a veterinarian, and Bob discuss Bob's desire to get a new dog. Bob seeks a hypoallergenic breed that sheds minimally and is friendly. Alice notes that while Golden Retrievers and Labradors are friendly, they aren't hypoallergenic and shed a lot. French Bulldogs are less shedding but also not completely hypoallergenic and can be stubborn. Alice then suggests Poodles, Bichon Frises, or Portuguese Water Dogs as breeds fitting Bob's criteria: hypoallergenic, low shedding, and friendly. Bob appreciates the advice and considers these options. Alice offers further assistance as needed.
         """,
         "questions": [

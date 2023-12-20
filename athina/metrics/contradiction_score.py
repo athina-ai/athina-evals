@@ -40,7 +40,7 @@ class ContradictionScore(Metric):
                 and ans_src.strip().lower() != ans_sum.strip().lower()
             ):
                 n_contradiction += 1
-                cont_question = questions[f"question {idx+1}"]
+                cont_question = questions[idx]
                 cont_questions.append(f"{cont_question}")
 
         return n_contradiction, cont_questions
