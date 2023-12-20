@@ -25,6 +25,21 @@ class OpenAiService:
             raise NoOpenAiApiKeyException()
         self.openai = OpenAI(api_key=openai_api_key)
 
+    def embeddings(self, text: str) -> list:
+        """
+        Fetches response from OpenAI's Embeddings API.
+        """
+        try:
+            response = self.openai.embeddings.create(
+                model="text-embedding-ada-002",
+                input=text,
+                encoding_format="float"
+            )
+            return response.data[0].embedding
+        except Exception as e:
+            print(f"Error in Embeddings: {e}")
+            raise e
+
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def chat_completion(self, messages, model, temperature=DEFAULT_TEMPERATURE) -> str:
         """
