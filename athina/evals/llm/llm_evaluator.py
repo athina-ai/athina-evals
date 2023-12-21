@@ -3,16 +3,12 @@ import time
 from typing import List, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from athina.interfaces.result import LlmEvalResult, LlmEvalResultMetric, BatchRunResult
-from athina.interfaces.openai import OpenAiPromptMessage
 from athina.interfaces.athina import AthinaExperiment
 from athina.interfaces.model import Model
 from athina.llms.openai_service import OpenAiService
 from athina.helpers.logger import logger
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
-from athina.helpers.json import JsonHelper
 from athina.interfaces.data import DataPoint
-from athina.keys import AthinaApiKey
-from athina.errors.exceptions import NoAthinaApiKeyException
 from athina.services.athina_api_service import AthinaApiService
 from .example import FewShotExample
 
