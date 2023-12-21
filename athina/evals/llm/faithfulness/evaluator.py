@@ -2,6 +2,7 @@ from typing import List
 from ..llm_evaluator import LlmEvaluator
 from .examples import FAITHFULNESS_EVAL_EXAMPLES
 from ..eval_type import AthinaEvalTypeId
+from athina.metrics.metric_type import MetricType
 
 
 class Faithfulness(LlmEvaluator):
@@ -41,7 +42,7 @@ class Faithfulness(LlmEvaluator):
 
     @property
     def metric_id(self) -> str:
-        return None
+        return MetricType.RESPONSE_FAITHFULNESS.value
 
     @property
     def default_model(self):

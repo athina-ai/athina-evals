@@ -2,6 +2,7 @@ from typing import List
 from ..llm_evaluator import LlmEvaluator
 from .examples import CONTEXT_CONTAINS_ENOUGH_INFORMATION_EXAMPLES
 from ..eval_type import AthinaEvalTypeId
+from athina.metrics.metric_type import MetricType
 
 
 class ContextContainsEnoughInformation(LlmEvaluator):
@@ -41,7 +42,7 @@ class ContextContainsEnoughInformation(LlmEvaluator):
 
     @property
     def metric_id(self) -> str:
-        return None
+        return MetricType.CONTEXT_SUFFICIENCY.value
 
     @property
     def default_model(self):
