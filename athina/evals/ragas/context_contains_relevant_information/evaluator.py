@@ -1,12 +1,10 @@
-from typing import List
-from ..llm_evaluator import LlmEvaluator
-from .examples import CONTEXT_CONTAINS_ENOUGH_INFORMATION_EXAMPLES
-from athina.interfaces.eval_type import LlmEvalTypeId
+from athina.interfaces.eval_type import RagasEvalTypeId
+from athina.interfaces.metric import EvalMetric
 
 
-class ContextContainsEnoughInformation(LlmEvaluator):
+class ContextContainsRelevantInformation():
     """
-    This evaluator checks if the user's query can be answered using only the information in the context.
+    This evaluator checks if the context contains relevant information to answer the user query.
     """
 
     SYSTEM_MESSAGE_TEMPLATE = """
@@ -33,15 +31,15 @@ class ContextContainsEnoughInformation(LlmEvaluator):
 
     @property
     def name(self):
-        return LlmEvalTypeId.CONTEXT_CONTAINS_ENOUGH_INFORMATION.value
+        return RagasEvalTypeId.CONTEXT_RELEVANCY.value
 
     @property
     def display_name(self):
-        return "Context Contains Enough Information"
+        return "Context Contains Relevant Information"
 
     @property
     def metric_id(self) -> str:
-        return None
+        return EvalMetric.RELEVANCY_SCORE.value
 
     @property
     def default_model(self):
@@ -53,7 +51,7 @@ class ContextContainsEnoughInformation(LlmEvaluator):
 
     @property
     def examples(self):
-        return CONTEXT_CONTAINS_ENOUGH_INFORMATION_EXAMPLES
+        return None
 
     def _user_message(
         self,

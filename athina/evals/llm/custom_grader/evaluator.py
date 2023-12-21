@@ -1,6 +1,6 @@
 from typing import List
 from ..llm_evaluator import LlmEvaluator
-from ..eval_type import AthinaEvalTypeId
+from athina.interfaces.eval_type import LlmEvalTypeId
 
 
 class CustomGrader(LlmEvaluator):
@@ -19,7 +19,7 @@ class CustomGrader(LlmEvaluator):
 
     @property
     def name(self):
-        return AthinaEvalTypeId.CUSTOM.value
+        return LlmEvalTypeId.CUSTOM.value
 
     @property
     def metric_id(self) -> str:

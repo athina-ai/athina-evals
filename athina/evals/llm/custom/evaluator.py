@@ -1,6 +1,6 @@
 from typing import List, Optional
 from ..llm_evaluator import LlmEvaluator
-from ..eval_type import AthinaEvalTypeId
+from athina.interfaces.eval_type import LlmEvalTypeId
 from ..example import FewShotExample
 
 
@@ -54,7 +54,7 @@ class CustomLlmEval(LlmEvaluator):
 
     @property
     def name(self):
-        return AthinaEvalTypeId.CUSTOM.value
+        return LlmEvalTypeId.CUSTOM.value
         
     @property
     def metric_id(self) -> str:
