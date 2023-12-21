@@ -3,16 +3,12 @@ import time
 from typing import List, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from athina.interfaces.result import LlmEvalResult, LlmEvalResultMetric, BatchRunResult
-from athina.interfaces.openai import OpenAiPromptMessage
 from athina.interfaces.athina import AthinaExperiment
 from athina.interfaces.model import Model
 from athina.llms.openai_service import OpenAiService
 from athina.helpers.logger import logger
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
-from athina.helpers.json import JsonHelper
 from athina.interfaces.data import DataPoint
-from athina.keys import AthinaApiKey
-from athina.errors.exceptions import NoAthinaApiKeyException
 from athina.services.athina_api_service import AthinaApiService
 from .example import FewShotExample
 
@@ -20,6 +16,7 @@ from .example import FewShotExample
 class LlmEvaluator(ABC):
     llm_service: OpenAiService
     grading_criteria: str
+    _model: str
     _experiment: Optional[AthinaExperiment] = None
     _system_message_template: Optional[str] = None
     _user_message_template: Optional[str] = None
@@ -64,11 +61,11 @@ class LlmEvaluator(ABC):
         self.llm_service = OpenAiService()
         self.grading_criteria = grading_criteria if grading_criteria else ""
         if model is None:
-            self.model = self.default_model
+            self._model = self.default_model
         elif not Model.is_supported(model):
             raise ValueError(f"Unsupported model: {model}")
         else:
-            self.model = model
+            self._model = model
 
         # Initialize message templates
         if system_message_template is None:
@@ -164,23 +161,13 @@ class LlmEvaluator(ABC):
         messages = self._prompt_messages(**kwargs)
 
         # Run the LLM Completion
-        if Model.supports_json_mode(self.model):
-            chat_completion_response = self.llm_service.json_completion(
-                model=self.model,
-                messages=messages,
-                temperature=self.TEMPERATURE,
-            )
-        else:
-            chat_completion_response = self.llm_service.chat_completion(
-                model=self.model,
-                messages=messages,
-                temperature=self.TEMPERATURE,
-            )
 
-        # Extract JSON object from LLM response
-        chat_completion_response_json = JsonHelper.extract_json_from_text(
-            chat_completion_response
+        chat_completion_response_json: dict = self.llm_service.json_completion(
+            model=self._model,
+            messages=messages,
+            temperature=self.TEMPERATURE,
         )
+
         try:
             metric = None
             result = chat_completion_response_json["result"]
@@ -205,7 +192,7 @@ class LlmEvaluator(ABC):
             failure=failure,
             reason=explanation,
             runtime=eval_runtime_ms,
-            model=self.model,
+            model=self._model,
             metric=metric,
         )
         return {k: v for k, v in llm_eval_result.items() if v is not None}

@@ -1,7 +1,6 @@
 from typing import List, Optional
 from athina.interfaces.athina import AthinaFilters
 from athina.interfaces.data import DataPoint
-from athina.services.athina_api_service import AthinaApiService
 from .loader import Loader
 
 
@@ -70,23 +69,9 @@ class RagLoader(Loader):
         filters: Optional[AthinaFilters] = None,
         limit: int = 10,
         context_key: Optional[str] = None,
-    ) -> List[RagDataPoint]:
+    ):
         """
         Load data from Athina API.
         By default, this will fetch the last 10 inferences from the API.
         """
-        athina_inferences = AthinaApiService.fetch_inferences(filters, limit=limit)
-        self._raw_dataset = list(
-            map(
-                lambda x: {
-                    "context": str(x.context)
-                    if context_key is None
-                    else str(x.context[context_key]),
-                    "query": x.user_query,
-                    "response": x.prompt_response,
-                },
-                athina_inferences,
-            )
-        )
-        self.process()
-        return self._processed_dataset
+        pass
