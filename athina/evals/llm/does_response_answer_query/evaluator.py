@@ -1,7 +1,7 @@
 from typing import List
 from ..llm_evaluator import LlmEvaluator
 from .examples import DOES_RESPONSE_ANSWER_QUERY_EVAL_EXAMPLES
-from ..eval_type import AthinaEvalTypeId
+from athina.evals.eval_type import LlmEvalTypeId
 from athina.metrics.metric_type import MetricType
 
 
@@ -34,7 +34,7 @@ class DoesResponseAnswerQuery(LlmEvaluator):
 
     @property
     def name(self):
-        return AthinaEvalTypeId.DOES_RESPONSE_ANSWER_QUERY.value
+        return LlmEvalTypeId.DOES_RESPONSE_ANSWER_QUERY.value
 
     @property
     def display_name(self):

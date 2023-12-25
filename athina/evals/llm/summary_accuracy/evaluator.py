@@ -8,7 +8,7 @@ from athina.interfaces.result import LlmEvalResult, LlmEvalResultMetric, BatchRu
 from athina.loaders.summary_loader import SummaryDataPoint
 from athina.metrics.metric_type import MetricType
 from ..llm_evaluator import LlmEvaluator
-from ..eval_type import AthinaEvalTypeId
+from athina.evals.eval_type import LlmEvalTypeId
 from ..example import FewShotExample
 from athina.llms.question_answerer import QuestionAnswerer
 from athina.llms.question_answerer_bulk import QuestionAnswererBulk
@@ -63,7 +63,7 @@ class SummaryAccuracy(LlmEvaluator):
 
     @property
     def name(self):
-        return AthinaEvalTypeId.CUSTOM.value
+        return LlmEvalTypeId.CUSTOM.value
         
     @property
     def metric_id(self) -> str:
