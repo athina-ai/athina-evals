@@ -57,6 +57,8 @@ class AthinaApiService:
         """
         Logs a usage event to Posthog via Athina.
         """
+        if not AthinaApiKey.is_set():
+            return
         try:
             endpoint = f"{API_BASE_URL}/api/v1/sdk/log-usage"
             requests.post(
