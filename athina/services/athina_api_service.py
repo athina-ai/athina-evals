@@ -15,14 +15,12 @@ from athina.interfaces.result import EvalPerformanceReport
 from athina.keys import AthinaApiKey
 from athina.helpers.constants import API_BASE_URL
 
-SDK_VERSION = pkg_resources.get_distribution("athina-evals").version
+SDK_VERSION = pkg_resources.get_distribution("athina").version
 
 
 class AthinaApiService:
     @staticmethod
     def _headers():
-        if not AthinaApiKey.is_set():
-            raise NoAthinaApiKeyException()
         athina_api_key = AthinaApiKey.get_key()
         return {
             "athina-api-key": athina_api_key,
