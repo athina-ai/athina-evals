@@ -4,7 +4,7 @@ import time
 import traceback
 from typing import List, Optional
 from athina.interfaces.model import Model
-from athina.interfaces.result import LlmEvalResult, LlmEvalResultMetric, BatchRunResult
+from athina.interfaces.result import EvalResult, EvalResultMetric, BatchRunResult
 from athina.loaders.summary_loader import SummaryDataPoint
 from athina.metrics.metric_type import MetricType
 from ..llm_evaluator import LlmEvaluator
@@ -79,7 +79,10 @@ class SummaryAccuracy(LlmEvaluator):
         
     @property
     def required_args(self):
-        return ["document", "response"]
+        return {
+            "document": str,
+            "response": str,
+        }
         
     @property
     def examples(self):
@@ -92,7 +95,7 @@ class SummaryAccuracy(LlmEvaluator):
         return ""
 
 
-    def _evaluate(self, **instance) -> LlmEvalResult:
+    def _evaluate(self, **instance) -> EvalResult:
         """
         Run the LLM evaluator.
         """
@@ -109,7 +112,7 @@ class SummaryAccuracy(LlmEvaluator):
         end_time = time.time()
         eval_runtime_ms = int((end_time - start_time) * 1000)
         
-        llm_eval_result = LlmEvalResult(
+        llm_eval_result = EvalResult(
             name=self.name,
             display_name=self.display_name,
             data=SummaryDataPoint(**instance),

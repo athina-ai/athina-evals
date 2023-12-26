@@ -8,7 +8,7 @@ from athina.interfaces.athina import (
     AthinaEvalRunResult,
     AthinaInterfaceHelper,
 )
-from athina.interfaces.result import LlmEvalResult
+from athina.interfaces.result import EvalResult
 from athina.services.athina_api_service import AthinaApiService
 from athina.keys import AthinaApiKey
 from athina.constants.messages import AthinaMessages
@@ -55,7 +55,7 @@ class AthinaLoggingHelper:
 
     def log_eval_results(
         eval_request_id: str,
-        eval_results: List[LlmEvalResult],
+        eval_results: List[EvalResult],
     ):
         try:
             if not AthinaApiKey.is_set():

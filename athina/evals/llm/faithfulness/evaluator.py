@@ -50,7 +50,10 @@ class Faithfulness(LlmEvaluator):
 
     @property
     def required_args(self):
-        return ["context", "response"]
+        return {
+            "context": List[str],
+            "response": str
+        }
 
     @property
     def examples(self):

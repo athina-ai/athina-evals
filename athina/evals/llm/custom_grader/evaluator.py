@@ -35,7 +35,9 @@ class CustomGrader(LlmEvaluator):
 
     @property
     def required_args(self):
-        return ["response"]
+        return {
+            "response": str
+        }
 
     @property
     def examples(self):

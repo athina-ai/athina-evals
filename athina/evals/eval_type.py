@@ -9,4 +9,4 @@ class LlmEvalTypeId(Enum):
     SUMMARY_ACCURACY = "SummaryAccuracy"
 
 class RagasEvalTypeId(Enum):
-    CONTEXT_RELEVANCY = "ContextRelevancy"
+    RAGAS_CONTEXT_RELEVANCY = "RagasContextRelevancy"

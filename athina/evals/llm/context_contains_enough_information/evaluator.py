@@ -50,7 +50,10 @@ class ContextContainsEnoughInformation(LlmEvaluator):
 
     @property
     def required_args(self):
-        return ["query", "context"]
+        return {
+            'query': str,
+            'context': List[str]
+        }
 
     @property
     def examples(self):

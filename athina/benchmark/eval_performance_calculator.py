@@ -1,5 +1,5 @@
 from typing import List, Optional
-from athina.interfaces.result import LlmEvalResult, EvalPerformanceReport
+from athina.interfaces.result import EvalResult, EvalPerformanceReport
 from athina.services.athina_api_service import AthinaApiService
 from athina.helpers.logger import logger
 
@@ -10,7 +10,7 @@ class EvalPerformanceCalculator:
 
     @staticmethod
     def calculate_eval_performance_metrics(
-        eval_results: List[LlmEvalResult],
+        eval_results: List[EvalResult],
         labels: List[bool],
         eval_request_id: Optional[str] = None,
         should_print: bool = False,

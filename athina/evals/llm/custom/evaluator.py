@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from ..llm_evaluator import LlmEvaluator
 from athina.evals.eval_type import LlmEvalTypeId
 from ..example import FewShotExample
@@ -12,7 +12,7 @@ class CustomLlmEval(LlmEvaluator):
     _display_name: str = None
     _metric_id: str = None
     _model: str = None
-    _required_args: List[str] = None
+    _required_args: Dict[str, Any] = None
     _examples: List[FewShotExample] = None
     _system_message_template: Optional[str] = None
     _user_message_template: Optional[str] = None

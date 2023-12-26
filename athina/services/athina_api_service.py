@@ -1,8 +1,7 @@
 import pkg_resources
 import requests
 from retrying import retry
-from typing import List, Optional, Any
-from athina.constants.messages import AthinaMessages
+from typing import List, Optional
 from athina.errors.exceptions import NoAthinaApiKeyException
 from athina.interfaces.athina import (
     AthinaFilters,
@@ -15,7 +14,7 @@ from athina.interfaces.result import EvalPerformanceReport
 from athina.keys import AthinaApiKey
 from athina.helpers.constants import API_BASE_URL
 
-SDK_VERSION = pkg_resources.get_distribution("athina-evals").version
+SDK_VERSION = pkg_resources.get_distribution("athina").version
 
 
 class AthinaApiService:
