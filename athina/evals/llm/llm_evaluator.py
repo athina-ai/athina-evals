@@ -78,6 +78,11 @@ class LlmEvaluator(BaseEvaluator):
             self._user_message_template = user_message_template
 
 
+    def __str__(self):
+        formatted_args = {key: value.__name__ if hasattr(value, '__name__') else str(value)
+                          for key, value in self.required_args.items()}
+        return f"Docstring: {self.__doc__.strip()}\nRequired Arguments: {formatted_args}"
+    
     def _system_message(self) -> str:
         return self._system_message_template
 
