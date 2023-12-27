@@ -64,7 +64,7 @@ class RagLoader(Loader):
             # Create a processed instance with mandatory fields
             processed_instance = {
                 "query": raw_instance[self.col_query],
-                "context": "\n".join(context),  # Join strings in the list with a newline
+                "context": context,  # Join strings in the list with a newline
                 "response": raw_instance[self.col_response],
             }
 

@@ -76,6 +76,7 @@ class BaseEvaluator(ABC):
         """
         Validates that each entry in the batch has all the required arguments and their types.
         """
+        print(data)
         for i, entry in enumerate(data):
             for arg, expected_type in self.required_args.items():
                 if arg not in entry:
