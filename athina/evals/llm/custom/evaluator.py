@@ -22,7 +22,7 @@ class CustomLlmEval(LlmEvaluator):
         display_name: str = None,
         metric_id: str = None,
         model: str = None,
-        required_args: List[str] = [],
+        required_args: Dict[str, Any] = {},
         examples: List[FewShotExample] = [],
         system_message_template: Optional[str] = None,
         user_message_template: Optional[str] = None,

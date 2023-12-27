@@ -66,7 +66,7 @@ class Faithfulness(LlmEvaluator):
         **kwargs,
     ) -> str:
         return self.USER_MESSAGE_TEMPLATE.format(
-            context=context,
+            context='\n'.join(context),
             response=response,
             examples=self._examples_str(),
         )
