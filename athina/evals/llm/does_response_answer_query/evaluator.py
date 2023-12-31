@@ -2,6 +2,7 @@ from typing import List
 from ..llm_evaluator import LlmEvaluator
 from .examples import DOES_RESPONSE_ANSWER_QUERY_EVAL_EXAMPLES
 from ..eval_type import AthinaEvalTypeId
+from athina.metrics.metric_type import MetricType
 
 
 class DoesResponseAnswerQuery(LlmEvaluator):
@@ -53,7 +54,7 @@ class DoesResponseAnswerQuery(LlmEvaluator):
 
     @property
     def metric_id(self) -> str:
-        return None
+        return MetricType.ANSWER_COMPLETENESS.value
 
     def _user_message(
         self,

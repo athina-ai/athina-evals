@@ -161,7 +161,6 @@ class LlmEvaluator(ABC):
         messages = self._prompt_messages(**kwargs)
 
         # Run the LLM Completion
-
         chat_completion_response_json: dict = self.llm_service.json_completion(
             model=self._model,
             messages=messages,
@@ -177,7 +176,7 @@ class LlmEvaluator(ABC):
                 score = chat_completion_response_json["score"]
                 metric = LlmEvalResultMetric(id=self.metric_id, value=score)
             else:
-                metric = LlmEvalResultMetric(id="failed", value=float(failure))
+                metric = LlmEvalResultMetric(id=self.metric_id, value=float(not failure))
 
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")

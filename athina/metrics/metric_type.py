@@ -7,6 +7,9 @@ class MetricType(Enum):
     AGREEMENT_SCORE = 'agreement_score'
     HALLUCINATION_SCORE = 'hallucination_score'
     CONTRADICTION_SCORE = 'contradiction_score'
+    CONTEXT_SUFFICIENCY = 'context_sufficiency'
+    ANSWER_COMPLETENESS = 'answer_completeness'
+    RESPONSE_FAITHFULNESS = 'response_faithfulness'
 
     def get_class(self):
         if self == MetricType.AGREEMENT_SCORE:
