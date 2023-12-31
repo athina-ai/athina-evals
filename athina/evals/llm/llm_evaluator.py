@@ -193,7 +193,7 @@ class LlmEvaluator(ABC):
             reason=explanation,
             runtime=eval_runtime_ms,
             model=self._model,
-            metric=metric,
+            metrics=[metric],
         )
         return {k: v for k, v in llm_eval_result.items() if v is not None}
 

@@ -25,7 +25,7 @@ class LlmEvalResult(TypedDict):
     reason: str
     runtime: int
     model: str
-    metric: Optional[LlmEvalResultMetric]
+    metrics: List[LlmEvalResultMetric]
 
 @dataclass
 class BatchRunResult:

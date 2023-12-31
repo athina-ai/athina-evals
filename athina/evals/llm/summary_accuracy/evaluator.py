@@ -117,10 +117,10 @@ class SummaryAccuracy(LlmEvaluator):
             reason=self.reason(),
             runtime=eval_runtime_ms,
             model=self._model,
-            metric={
+            metrics=[{
                 "id": self.metric_id,
                 "value": summary_eval_result[self.metric_id],
-            },
+            }],
         )
 
         return {k: v for k, v in llm_eval_result.items() if v is not None}
