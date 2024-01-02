@@ -197,8 +197,6 @@ class LlmEvaluator(ABC):
             model=self._model,
             metrics=metrics,
         )
-        print("LLM EVAL RESULT")
-        print(llm_eval_result)
         return {k: v for k, v in llm_eval_result.items() if v is not None}
 
     def configure_experiment(self, experiment: AthinaExperiment):
@@ -295,7 +293,6 @@ class LlmEvaluator(ABC):
         """
 
         # Create eval request
-        print("logging eval request")
         eval_request_id = AthinaLoggingHelper.create_eval_request(
             eval_name=self.name, request_data={"data": data}, request_type="batch"
         )
@@ -320,7 +317,6 @@ class LlmEvaluator(ABC):
             eval_results = list(self._run_batch_generator(data))
 
         # Log evaluation results to Athina
-        print("logging eval result")
         AthinaLoggingHelper.log_eval_results(
             eval_request_id=eval_request_id,
             eval_results=eval_results,
