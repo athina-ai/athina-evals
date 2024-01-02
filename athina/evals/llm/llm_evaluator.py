@@ -1,3 +1,4 @@
+import traceback
 from abc import ABC, abstractmethod
 import time
 from typing import List, Optional
@@ -10,6 +11,7 @@ from athina.helpers.logger import logger
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.interfaces.data import DataPoint
 from athina.services.athina_api_service import AthinaApiService
+from athina.metrics.metric_type import MetricType
 from .example import FewShotExample
 
 
@@ -95,8 +97,8 @@ class LlmEvaluator(ABC):
 
     @property
     @abstractmethod
-    def metric_id(self) -> str:
-        """The metric computed by the evaluator."""
+    def metric_ids(self) -> str:
+        """The metrics computed by the evaluator."""
         pass
 
     @property
@@ -168,16 +170,16 @@ class LlmEvaluator(ABC):
             temperature=self.TEMPERATURE,
         )
 
+        metrics = []
         try:
-            metric = None
             result = chat_completion_response_json["result"]
             explanation = chat_completion_response_json["explanation"]
             failure = bool(result == "Fail")
+            passed_value = 1 - float(failure)
+            metrics.append(LlmEvalResultMetric(id=MetricType.PASSED.value, value=passed_value))
             if "score" in chat_completion_response_json:
                 score = chat_completion_response_json["score"]
-                metric = LlmEvalResultMetric(id=self.metric_id, value=score)
-            else:
-                metric = LlmEvalResultMetric(id="failed", value=float(failure))
+                metrics.append(LlmEvalResultMetric(id=self.metric_id, value=score))
 
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
@@ -193,8 +195,10 @@ class LlmEvaluator(ABC):
             reason=explanation,
             runtime=eval_runtime_ms,
             model=self._model,
-            metrics=[metric],
+            metrics=metrics,
         )
+        print("LLM EVAL RESULT")
+        print(llm_eval_result)
         return {k: v for k, v in llm_eval_result.items() if v is not None}
 
     def configure_experiment(self, experiment: AthinaExperiment):
@@ -280,6 +284,7 @@ class LlmEvaluator(ABC):
                 yield self._evaluate(**entry)
             except Exception as e:
                 logger.error(f"Error evaluating entry {entry}: {e}")
+                traceback.print_exc()
                 yield None
 
     def run_batch(
@@ -290,6 +295,7 @@ class LlmEvaluator(ABC):
         """
 
         # Create eval request
+        print("logging eval request")
         eval_request_id = AthinaLoggingHelper.create_eval_request(
             eval_name=self.name, request_data={"data": data}, request_type="batch"
         )
@@ -314,6 +320,7 @@ class LlmEvaluator(ABC):
             eval_results = list(self._run_batch_generator(data))
 
         # Log evaluation results to Athina
+        print("logging eval result")
         AthinaLoggingHelper.log_eval_results(
             eval_request_id=eval_request_id,
             eval_results=eval_results,

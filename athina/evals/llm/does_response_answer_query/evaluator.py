@@ -52,8 +52,8 @@ class DoesResponseAnswerQuery(LlmEvaluator):
         return DOES_RESPONSE_ANSWER_QUERY_EVAL_EXAMPLES
 
     @property
-    def metric_id(self) -> str:
-        return None
+    def metric_ids(self) -> str:
+        return []
 
     def _user_message(
         self,

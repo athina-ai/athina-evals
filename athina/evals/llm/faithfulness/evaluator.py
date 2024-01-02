@@ -40,8 +40,8 @@ class Faithfulness(LlmEvaluator):
         return "Faithfulness"
 
     @property
-    def metric_id(self) -> str:
-        return None
+    def metric_ids(self) -> str:
+        return []
 
     @property
     def default_model(self):
