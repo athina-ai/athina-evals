@@ -22,7 +22,7 @@ raw_data = [
 
 function_name = "contains_any"
 dataset = FunctionEvalLoader(function_name=function_name).load_dict(raw_data)
-response = FunctionEvaluator(function_name=function_name, function_args=).run_batch(data=dataset).to_df()
+response = FunctionEvaluator(function_name=function_name).run_batch(data=dataset).to_df()
 print(response)
 
 raw_data = [
