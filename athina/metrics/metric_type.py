@@ -11,6 +11,7 @@ class MetricType(Enum):
     ANSWER_COMPLETENESS = 'answer_completeness'
     RESPONSE_FAITHFULNESS = 'response_faithfulness'
     RAGAS_CONTEXT_RELEVANCY = 'ragas_context_relevancy'
+    FUNCTION_RESPONSE = 'function_response'
 
     def get_class(self):
         if self == MetricType.AGREEMENT_SCORE:

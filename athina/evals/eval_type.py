@@ -10,3 +10,6 @@ class LlmEvalTypeId(Enum):
 
 class RagasEvalTypeId(Enum):
     RAGAS_CONTEXT_RELEVANCY = "RagasContextRelevancy"
+
+class FunctionEvalTypeId(Enum):
+    FUNCTION = "function"
