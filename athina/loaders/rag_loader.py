@@ -55,7 +55,7 @@ class RagLoader(Loader):
                 raise KeyError(f"'{self.col_context}' not found in provided data.")
             if self.col_response not in raw_instance:
                 raise KeyError(f"'{self.col_response}' not found in provided data.")
-            
+                
             # Check if context is a list of strings
             context = raw_instance[self.col_context]
             if not isinstance(context, list) or not all(isinstance(item, str) for item in context):
