@@ -25,7 +25,7 @@ class LlmEvalResult(TypedDict):
     reason: str
     runtime: int
     model: str
-    metric: Optional[LlmEvalResultMetric]
+    metrics: List[LlmEvalResultMetric]
 
 @dataclass
 class BatchRunResult:
@@ -38,20 +38,32 @@ class BatchRunResult:
 
     def to_df(self):
         """
-        Converts the batch run result to a Pandas DataFrame.
+        Converts the batch run result to a Pandas DataFrame, including data and dynamic metrics.
         """
         pd.set_option('display.max_colwidth', 500)
-        df = pd.DataFrame(self.eval_results)
 
-        # Normalize the 'data' column
-        results_df = df.drop(columns=['data', 'name', 'metric']).rename(columns={'failure': 'failed', 'name': 'eval','reason': 'grade_reason'})
-        data_normalized = pd.json_normalize(df['data'])
-        metric_normalized = pd.json_normalize(df['metric']).rename(columns={'id': 'metric_id', 'value': 'metric_value'})
+        df_data = []
+        for item in self.eval_results:
+            # Start with dynamic fields from the 'data' dictionary
+            entry = {key: value for key, value in item['data'].items()}
 
-        # Concatenate the normalized data with the original DataFrame (excluding the 'data' column)
-        df = pd.concat([data_normalized, results_df, metric_normalized], axis=1)
+            # Add fixed fields
+            entry.update({
+                'display_name': item['display_name'],
+                'failed': item['failure'],
+                'grade_reason': item['reason'],
+                'runtime': item['runtime'],
+                'model': item['model']
+            })
+
+            # Add dynamic metrics
+            for metric in item['metrics']:
+                entry[metric['id']] = metric['value']
+
+            df_data.append(entry)
+
+        df = pd.DataFrame(df_data)
         return df
-
 
 class EvalPerformanceReport(TypedDict):
     """

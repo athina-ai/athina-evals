@@ -10,7 +10,7 @@ class CustomLlmEval(LlmEvaluator):
     """
 
     _display_name: str = None
-    _metric_id: str = None
+    _metric_ids: List[str] = None
     _model: str = None
     _required_args: List[str] = None
     _examples: List[FewShotExample] = None
@@ -20,7 +20,7 @@ class CustomLlmEval(LlmEvaluator):
     def __init__(
         self,
         display_name: str = None,
-        metric_id: str = None,
+        metric_ids: List[str] = None,
         model: str = None,
         required_args: List[str] = [],
         examples: List[FewShotExample] = [],
@@ -34,7 +34,7 @@ class CustomLlmEval(LlmEvaluator):
             raise ValueError("model is not defined")
 
         self._display_name = display_name
-        self._metric_id = metric_id
+        self._metric_ids = metric_ids
         self._model = model
         self._required_args = required_args
         self._examples = examples
@@ -57,8 +57,8 @@ class CustomLlmEval(LlmEvaluator):
         return AthinaEvalTypeId.CUSTOM.value
         
     @property
-    def metric_id(self) -> str:
-        return self._metric_id
+    def metric_ids(self) -> str:
+        return self._metric_ids
         
     @property
     def display_name(self):
