@@ -8,7 +8,7 @@ def _standardize_url(url):
     else:
         return "http://" + url
     
-def regex(pattern, response):
+def regex(pattern, response=None):
     match = re.search(pattern, response)
     if match:
         return {"result": True, "reason": f"regex pattern {pattern} found in output"}
@@ -18,7 +18,7 @@ def regex(pattern, response):
             "reason": f"regex pattern {pattern} not found in output",
         }
 
-def contains_any(keywords, response, case_sensitive=False):
+def contains_any(keywords, response=None, case_sensitive=False):
     if not case_sensitive:
         response = response.lower()
         keywords = list(map(lambda k: k.lower(), keywords))
@@ -39,7 +39,7 @@ def contains_any(keywords, response, case_sensitive=False):
 
     return {"result": result, "reason": reason}
 
-def contains_json(response):
+def contains_json(response=None):
     trimmed_output = response.strip()
     pattern = r"^\{.*\}$|^\[.*\]$"
     result = bool(re.search(pattern, trimmed_output, re.DOTALL))
@@ -54,7 +54,7 @@ def contains_json(response):
             "reason": "Output does not contain JSON",
         }
 
-def no_invalid_links(response):
+def no_invalid_links(response=None):
     pattern = r"(?!.*@)(?:https?://)?(?:www\.)?\S+\.\S+"
     link_match = re.search(pattern=pattern, string=response)
     if link_match:
@@ -83,7 +83,7 @@ def no_invalid_links(response):
 def api_call(
     url: str,
     payload: dict,
-    response,
+    response = None,
     headers: dict = None,
 ):
     payload["response"] = response

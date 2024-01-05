@@ -26,11 +26,13 @@ class FunctionEvalLoader(Loader):
     def __init__(
         self,
         function_name="contains_any",
+        function_arguments={}
     ):
         """
         Initializes the loader with specified or default column names.
         """
         self.function_name = function_name
+        self.function_arguments = function_arguments
         self.col_response = "response"
         self._raw_dataset = {}
         self._processed_dataset: List[FunctionEvalDataPoint] = []
@@ -45,19 +47,18 @@ class FunctionEvalLoader(Loader):
         """
         operator = operations.get(self.function_name)
         non_default_parameters = get_named_non_default_parameters(operator)
+
+        for function_argument in self.function_arguments:
+            if function_argument not in non_default_parameters:
+                raise KeyError(f"'{function_argument}' not found in provided function arguments.")
+        
         for raw_instance in self._raw_dataset:
             # Check for mandatory columns in raw_instance 
-
             if self.col_response not in raw_instance:
                 raise KeyError(f"'{self.col_response}' not found in provided data.")
-            for parameter in non_default_parameters:
-                if parameter not in raw_instance:
-                    raise KeyError(f"'{parameter}' not found in provided data.")
             # Create a processed instance with mandatory fields
             processed_instance = {
                 "response": raw_instance[self.col_response],
             }
-            for parameter in non_default_parameters:
-                processed_instance[parameter] = raw_instance[parameter]
             # Store the results
             self._processed_dataset.append(processed_instance)

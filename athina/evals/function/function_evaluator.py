@@ -12,6 +12,7 @@ from athina.interfaces.model import Model
 from athina.helpers.logger import logger
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.interfaces.data import DataPoint
+from athina.interfaces.athina import AthinaExperiment
 from athina.services.athina_api_service import AthinaApiService
 from ..base_evaluator import BaseEvaluator
 from .functions import operations
@@ -19,6 +20,8 @@ from .functions import operations
 class FunctionEvaluator(BaseEvaluator):
 
     _function_name: str
+    _function_arguments: dict
+    _experiment: Optional[AthinaExperiment] = None
     _model: str
 
     """
@@ -53,6 +56,10 @@ class FunctionEvaluator(BaseEvaluator):
         return "contains_any"
 
     @property
+    def default_function_arguments(self):
+        return {}
+
+    @property
     def required_args(self):
         return ["response"]
 
@@ -63,13 +70,17 @@ class FunctionEvaluator(BaseEvaluator):
     def __init__(
         self,
         function_name: Optional[str] = None,
+        function_arguments: Optional[dict] = None,
     ):
         if function_name is None:
-            self._function_name = self.default_function
-        elif function_name not in operations.keys():
+            function_name = self.default_function
+        if function_arguments is None:
+            function_arguments = self.default_function_arguments
+        if function_name not in operations.keys():
             raise ValueError(f"Unsupported function: {function_name}")
         else:
             self._function_name = function_name
+            self._function_arguments = function_arguments
 
     def _validate_args(self, **kwargs) -> None:
         for arg in self.required_args:
@@ -87,7 +98,7 @@ class FunctionEvaluator(BaseEvaluator):
         try: 
             # Evaluate the dataset using Function
             operator = operations.get(self._function_name)
-            response = operator(**kwargs)
+            response = operator(**kwargs, **self._function_arguments)
             metric = EvalResultMetric(id=self.metric_id, value=float(not response["result"]))
             explanation = response['reason']
 
@@ -204,12 +215,12 @@ class FunctionEvaluator(BaseEvaluator):
         # Log usage to Athina for analytics
         AthinaApiService.log_usage(eval_name=self.name, run_type="batch")
 
-        # # Log experiment
-        # if self._experiment is not None:
-        #     AthinaLoggingHelper.log_experiment(
-        #         eval_request_id=eval_request_id,
-        #         experiment=self._experiment,
-        #     )
+        # Log experiment
+        if self._experiment is not None:
+            AthinaLoggingHelper.log_experiment(
+                eval_request_id=eval_request_id,
+                experiment=self._experiment,
+            )
 
         # Validate the dataset against the required args
         self._validate_batch_args(data)
