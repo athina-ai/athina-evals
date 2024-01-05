@@ -28,9 +28,6 @@ class FunctionEvaluator(BaseEvaluator):
     This evaluator runs the requested Function on the given data.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     @property
     def _model(self):
         return ""
