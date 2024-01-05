@@ -34,9 +34,9 @@ class LlmEvaluator(ABC):
 
     DEFAULT_SYSTEM_MESSAGE_TEMPLATE = f""" 
     ### INSTRUCTIONS ###
-    You are an expert at evaluating chatbot responses, according to some grading criteria.
+    You are an expert at evaluating responses by an AI.
 
-    If it passes the grading criteria, then your result is Pass, otherwise it is Fail.
+    Based on the instructions provided, you will evaluate the response and determine if it passes or fails.
     
     """
 
