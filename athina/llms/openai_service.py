@@ -1,5 +1,3 @@
-import json
-import os
 from openai import OpenAI
 from retrying import retry
 from timeout_decorator import timeout
@@ -7,11 +5,12 @@ from athina.helpers.json import JsonHelper
 from athina.keys import OpenAiApiKey
 from athina.interfaces.model import Model
 from athina.errors.exceptions import NoOpenAiApiKeyException
+from .abstract_llm_service import AbstractLlmService
 
 DEFAULT_TEMPERATURE = 0.0
 
 
-class OpenAiService:
+class OpenAiService(AbstractLlmService):
     _instance = None
 
     def __new__(cls):

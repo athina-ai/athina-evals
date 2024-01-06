@@ -12,11 +12,12 @@ from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.interfaces.data import DataPoint
 from athina.services.athina_api_service import AthinaApiService
 from athina.metrics.metric_type import MetricType
+from athina.llms.abstract_llm_service import AbstractLlmService
 from .example import FewShotExample
 
 
 class LlmEvaluator(ABC):
-    llm_service: OpenAiService
+    llm_service: AbstractLlmService
     grading_criteria: str
     _model: str
     _experiment: Optional[AthinaExperiment] = None
@@ -59,8 +60,12 @@ class LlmEvaluator(ABC):
         grading_criteria: Optional[str] = None,
         system_message_template: Optional[str] = None,
         user_message_template: Optional[str] = None,
+        llm_service: Optional[AbstractLlmService] = None,
     ):
-        self.llm_service = OpenAiService()
+        if llm_service is not None and isinstance(llm_service, AbstractLlmService):
+            self.llm_service = llm_service
+        else:
+            self.llm_service = OpenAiService()
         self.grading_criteria = grading_criteria if grading_criteria else ""
         if model is None:
             self._model = self.default_model
