@@ -9,6 +9,7 @@ from athina.evals.llm.faithfulness.evaluator import Faithfulness
 from athina.evals.llm.custom_grader.evaluator import CustomGrader
 from athina.evals.llm.summary_accuracy.evaluator import SummaryAccuracy
 from athina.evals.ragas.context_relevancy.evaluator import ContextRelevancy
+from athina.evals.function.function_evaluator import FunctionEvaluator
 
 __all__ = [
     "DoesResponseAnswerQuery",
@@ -17,4 +18,5 @@ __all__ = [
     "Faithfulness",
     "CustomGrader",
     "ContextRelevancy",
+    "FunctionEvaluator",
 ]
