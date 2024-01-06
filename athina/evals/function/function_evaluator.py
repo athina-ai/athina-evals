@@ -34,15 +34,15 @@ class FunctionEvaluator(BaseEvaluator):
     
     @property
     def name(self):
-        return FunctionEvalTypeId.FUNCTION.value
+        return ""
 
     @property
     def display_name(self):
-        return "Function"
+        return "Function evaluator"
 
     @property
     def metric_id(self) -> str:
-        return MetricType.FUNCTION_RESPONSE.value
+        return MetricType.PASSED.value
 
     @property
     def default_model(self):

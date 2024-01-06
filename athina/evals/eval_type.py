@@ -12,4 +12,5 @@ class RagasEvalTypeId(Enum):
     RAGAS_CONTEXT_RELEVANCY = "RagasContextRelevancy"
 
 class FunctionEvalTypeId(Enum):
-    FUNCTION = "function"
+    REGEX = "Regex"
+    CONTAINS_ANY = "ContainsAny"

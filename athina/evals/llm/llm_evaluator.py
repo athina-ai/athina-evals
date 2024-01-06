@@ -116,7 +116,7 @@ class LlmEvaluator(BaseEvaluator):
         start_time = time.time()
 
         # Validate that correct args were passed
-        self._validate_args(**kwargs)
+        self.validate_args(**kwargs)
 
         # Construct Prompt
         messages = self._prompt_messages(**kwargs)
