@@ -34,7 +34,7 @@ class FunctionEvaluator(BaseEvaluator):
     
     @property
     def name(self):
-        return ""
+        return self._function_name
 
     @property
     def display_name(self):
@@ -92,11 +92,12 @@ class FunctionEvaluator(BaseEvaluator):
 
         # Validate that correct args were passed
         self._validate_args(**kwargs)
+        metrics = []
         try: 
             # Evaluate the dataset using Function
             operator = operations.get(self._function_name)
             response = operator(**kwargs, **self._function_arguments)
-            metric = EvalResultMetric(id=self.metric_id, value=float(not response["result"]))
+            metrics.append(EvalResultMetric(id=self.metric_id, value=float(not response["result"])))
             explanation = response['reason']
 
         except Exception as e:
@@ -112,7 +113,7 @@ class FunctionEvaluator(BaseEvaluator):
             reason=explanation,
             runtime=eval_runtime_ms,
             model=self._model,
-            metric=metric,
+            metrics=metrics,
             failure=response["result"],
         )
         return {k: v for k, v in eval_result.items() if v is not None}

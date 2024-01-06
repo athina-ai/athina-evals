@@ -1,4 +1,5 @@
 import re
+import json
 import requests
 from typing import Any
 
@@ -8,7 +9,7 @@ def _standardize_url(url):
     else:
         return "http://" + url
     
-def regex(pattern, response=None):
+def regex(pattern, response=None, context=None):
     match = re.search(pattern, response)
     if match:
         return {"result": True, "reason": f"regex pattern {pattern} found in output"}
@@ -18,7 +19,7 @@ def regex(pattern, response=None):
             "reason": f"regex pattern {pattern} not found in output",
         }
 
-def contains_any(keywords, response=None, case_sensitive=False):
+def contains_any(keywords, response=None, case_sensitive=False, context=None):
     if not case_sensitive:
         response = response.lower()
         keywords = list(map(lambda k: k.lower(), keywords))
@@ -39,10 +40,12 @@ def contains_any(keywords, response=None, case_sensitive=False):
 
     return {"result": result, "reason": reason}
 
-def contains_json(response=None):
-    trimmed_output = response.strip()
-    pattern = r"^\{.*\}$|^\[.*\]$"
-    result = bool(re.search(pattern, trimmed_output, re.DOTALL))
+def contains_json(response=None, context=None):
+    try:
+        json.loads(response)
+        result = True
+    except json.JSONDecodeError:
+        result = False
     if result:
         return {
             "result": True,
@@ -96,8 +99,8 @@ def api_call(
     }
 
 operations = {
-    "regex": regex,
-    "contains_any": contains_any,
-    "contains_json": contains_json,
-    "no_invalid_links": no_invalid_links,
+    "Regex": regex,
+    "ContainsAny": contains_any,
+    "ContainsJson": contains_json,
+    "NoInvalidLinks": no_invalid_links,
 }
