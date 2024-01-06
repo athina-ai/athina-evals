@@ -56,8 +56,8 @@ class DoesResponseAnswerQuery(LlmEvaluator):
         return DOES_RESPONSE_ANSWER_QUERY_EVAL_EXAMPLES
 
     @property
-    def metric_id(self) -> str:
-        return MetricType.ANSWER_COMPLETENESS.value
+    def metric_ids(self) -> str:
+        return [MetricType.PASSED.value]
 
     def _user_message(
         self,

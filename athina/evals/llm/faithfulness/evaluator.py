@@ -41,8 +41,8 @@ class Faithfulness(LlmEvaluator):
         return "Faithfulness"
 
     @property
-    def metric_id(self) -> str:
-        return MetricType.RESPONSE_FAITHFULNESS.value
+    def metric_ids(self) -> str:
+        return [MetricType.PASSED.value]
 
     @property
     def default_model(self):

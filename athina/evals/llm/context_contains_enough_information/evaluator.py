@@ -41,8 +41,8 @@ class ContextContainsEnoughInformation(LlmEvaluator):
         return "Context Contains Enough Information"
 
     @property
-    def metric_id(self) -> str:
-        return MetricType.CONTEXT_SUFFICIENCY.value
+    def metric_ids(self) -> str:
+        return [MetricType.PASSED.value]
 
     @property
     def default_model(self):

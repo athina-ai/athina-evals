@@ -1,3 +1,5 @@
+import traceback
+from abc import ABC, abstractmethod
 import time
 from typing import List, Optional
 from athina.interfaces.result import EvalResult, EvalResultMetric
@@ -6,6 +8,8 @@ from athina.interfaces.model import Model
 from athina.llms.openai_service import OpenAiService
 from athina.helpers.logger import logger
 from athina.interfaces.data import DataPoint
+from athina.services.athina_api_service import AthinaApiService
+from athina.metrics.metric_type import MetricType
 from .example import FewShotExample
 from ..base_evaluator import BaseEvaluator
 
@@ -112,28 +116,29 @@ class LlmEvaluator(BaseEvaluator):
         start_time = time.time()
 
         # Validate that correct args were passed
-        self.validate_args(**kwargs)
+        self._validate_args(**kwargs)
 
         # Construct Prompt
         messages = self._prompt_messages(**kwargs)
 
         # Run the LLM Completion
+
         chat_completion_response_json: dict = self.llm_service.json_completion(
             model=self._model,
             messages=messages,
             temperature=self.TEMPERATURE,
         )
 
+        metrics = []
         try:
-            metric = None
             result = chat_completion_response_json["result"]
             explanation = chat_completion_response_json["explanation"]
             failure = bool(result == "Fail")
+            passed_value = 1 - float(failure)
+            metrics.append(EvalResultMetric(id=MetricType.PASSED.value, value=passed_value))
             if "score" in chat_completion_response_json:
                 score = chat_completion_response_json["score"]
-                metric = EvalResultMetric(id=self.metric_id, value=score)
-            else:
-                metric = EvalResultMetric(id=self.metric_id, value=float(not failure))
+                metrics.append(EvalResultMetric(id=self.metric_id, value=score))
 
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
@@ -149,6 +154,7 @@ class LlmEvaluator(BaseEvaluator):
             reason=explanation,
             runtime=eval_runtime_ms,
             model=self._model,
-            metric=metric,
+            metrics=metrics,
         )
         return {k: v for k, v in llm_eval_result.items() if v is not None}
+    
