@@ -1,25 +1,29 @@
-from typing import List
+from typing import List, Optional
 from ..llm_evaluator import LlmEvaluator
 from ..eval_type import AthinaEvalTypeId
 
 
-class CustomGrader(LlmEvaluator):
+class GradingCriteria(LlmEvaluator):
     """
     This evaluator checks if the response is correct according to a provided `grading_criteria`.
     """
 
     _examples = []
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if "grading_criteria" not in kwargs:
-            raise Exception("grading_criteria is required for CustomLlmEvaluator")
-        if "examples" in kwargs:
-            self._examples = kwargs["examples"]
+    def __init__(self, 
+        grading_criteria: str, 
+        model: Optional[str] = None,
+    ):
+        if grading_criteria is None:
+            raise Exception("Eval is incorrectly configured: grading_criteria is required for GradingCriteria evaluator")
+        super().__init__(
+            model=model,
+            grading_criteria=grading_criteria
+        )
 
     @property
     def name(self):
-        return AthinaEvalTypeId.CUSTOM.value
+        return AthinaEvalTypeId.GRADING_CRITERIA.value
 
     @property
     def metric_ids(self) -> str:
@@ -27,7 +31,7 @@ class CustomGrader(LlmEvaluator):
 
     @property
     def display_name(self):
-        return "Custom"
+        return "Response matches Grading Criteria"
 
     @property
     def default_model(self):
