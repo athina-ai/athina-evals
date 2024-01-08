@@ -27,11 +27,6 @@ class SummaryAccuracy(LlmEvaluator):
         n_questions: int = 10,
         model: str = "gpt-4-1106-preview",
         question_answerer: Optional[QuestionAnswerer] = None,
-        metrics: List[MetricType] = [
-            MetricType.AGREEMENT_SCORE,
-            MetricType.CONTRADICTION_SCORE,
-            MetricType.HALLUCINATION_SCORE
-        ],
     ):
         """
         Initialize the evaluator with given parameters.
@@ -56,9 +51,8 @@ class SummaryAccuracy(LlmEvaluator):
         else:
             self.question_answerer = question_answerer
         self.n_instances = 0
-        self.metrics: List[MetricType] = metrics
         self.label_counts = {}
-        for metric in metrics:
+        for metric in self.metric_ids:
             setattr(self, f"{metric}_scores", {})
 
     @property
@@ -66,8 +60,12 @@ class SummaryAccuracy(LlmEvaluator):
         return LlmEvalTypeId.CUSTOM.value
         
     @property
-    def metric_id(self) -> str:
-        return MetricType.AGREEMENT_SCORE.value
+    def metric_ids(self) -> str:
+        return [
+            MetricType.AGREEMENT_SCORE,
+            MetricType.CONTRADICTION_SCORE,
+            MetricType.HALLUCINATION_SCORE
+        ]
         
     @property
     def display_name(self):
@@ -92,7 +90,13 @@ class SummaryAccuracy(LlmEvaluator):
         return False
     
     def reason(self) -> str:
-        return ""
+        disagreement_answers = self._disagreement_answers()
+        if len(disagreement_answers) == 0:
+            return "No disagreement between document and summary."
+        reason_str = ""
+        for question, answer_doc, answer_sum in disagreement_answers:
+            reason_str += f"{question}\n- Document: {answer_doc}\n- Summary: {answer_sum}\n"
+        return reason_str
 
 
     def _evaluate(self, **instance) -> EvalResult:
@@ -112,6 +116,8 @@ class SummaryAccuracy(LlmEvaluator):
         end_time = time.time()
         eval_runtime_ms = int((end_time - start_time) * 1000)
         
+        metrics = [{ "id": metric_id.value, "value": summary_eval_result[metric_id.value] } for metric_id in self.metric_ids]
+
         llm_eval_result = EvalResult(
             name=self.name,
             display_name=self.display_name,
@@ -120,41 +126,59 @@ class SummaryAccuracy(LlmEvaluator):
             reason=self.reason(),
             runtime=eval_runtime_ms,
             model=self._model,
-            metric={
-                "id": self.metric_id,
-                "value": summary_eval_result[self.metric_id],
-            },
+            metrics=metrics,
         )
 
         return {k: v for k, v in llm_eval_result.items() if v is not None}
     
+    def _disagreement_answers(self):
+        """Return the questions for which the Y/N answers do not match between document and summary."""
+        disagreement_answers = []
+        for question in self.answers_doc:
+            answer_doc = self.answers_doc[question]
+            answer_sum = self.answers_sum[question]
+            if answer_doc != answer_sum:
+                disagreement_answers.append((question, answer_doc, answer_sum))
+        return disagreement_answers
 
     def _evaluate_element(self, instance: SummaryDataPoint):
         """Evaluate an instance for hallucination."""
         try:
+            # Parse instance
             document = instance["document"]
             summary = instance["response"]
             if "label" in instance:
                 label = instance["label"]
             else:
                 label = "overall"
+        except Exception as e:
+            print("Exception while parsing instance", e)
+            traceback.print_exc()
+            raise e
 
+        try:
             # Generate questions based on summary
             if self.questions is None or len(self.questions) == 0:
                 self.questions = self.question_generator.generate(summary)
 
-            answers_doc = self.question_answerer.answer(questions=self.questions, context=document)[1]
-            answers_sum = self.question_answerer.answer(questions=self.questions, context=summary)[1]
+            self.answers_doc = self.question_answerer.answer(questions=self.questions, context=document)[1]
+            self.answers_sum = self.question_answerer.answer(questions=self.questions, context=summary)[1]
             metric_results = {}
+        except Exception as e:
+            print("Exception while generating answers", e)
+            traceback.print_exc()
+            raise e
+
+        try:
             # Compute metrics
-            if answers_doc is None or answers_sum is None or self.questions is None:
+            if self.answers_doc is None or self.answers_sum is None or self.questions is None:
                 raise Exception("Validation error - unable to generate answers")
             else:
-                for metric in self.metrics:
+                for metric in self.metric_ids:
                     metric_name = metric.value
                     metric_class = metric.get_class()
                     metric_result, explanation = metric_class.compute(
-                        answers_doc, answers_sum, self.questions, self.n_questions
+                        self.answers_doc, self.answers_sum, self.questions, self.n_questions
                     )
                     metric_results[metric_name] = metric_result
                     metric_results[f"reason_{metric_name}"] = explanation
@@ -163,13 +187,13 @@ class SummaryAccuracy(LlmEvaluator):
                 self.label_counts[label] = self.label_counts.get(label, 0) + 1
             return {
                 "questions": self.questions,
-                "answers_doc": answers_doc,
-                "answers_sum": answers_sum,
+                "answers_doc": self.answers_doc,
+                "answers_sum": self.answers_sum,
                 "label": label,
                 **metric_results,
             }
         except Exception as e:
-            print("Exception in _evaluate_element", e)
+            print("Exception while computing metrics", e)
             traceback.print_exc()
             raise e
 
@@ -200,7 +224,7 @@ class SummaryAccuracy(LlmEvaluator):
     def compute_average_scores(self):
         """Compute average scores for each metric."""
         avg_scores = {}
-        for metric in self.metrics:
+        for metric in self.metric_ids:
             scores = getattr(self, f"{metric}_scores")
             avg_score = self.get_average_scores(scores)
             avg_scores[metric] = avg_score
