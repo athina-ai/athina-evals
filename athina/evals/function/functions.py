@@ -9,7 +9,7 @@ def _standardize_url(url):
     else:
         return "http://" + url
     
-def regex(pattern, response=None, context=None):
+def regex(pattern, response=None):
     match = re.search(pattern, response)
     if match:
         return {"result": True, "reason": f"regex pattern {pattern} found in output"}
@@ -19,7 +19,7 @@ def regex(pattern, response=None, context=None):
             "reason": f"regex pattern {pattern} not found in output",
         }
 
-def contains_any(keywords, response=None, case_sensitive=False, context=None):
+def contains_any(keywords, response=None, case_sensitive=False):
     if not case_sensitive:
         response = response.lower()
         keywords = list(map(lambda k: k.lower(), keywords))
@@ -40,7 +40,7 @@ def contains_any(keywords, response=None, case_sensitive=False, context=None):
 
     return {"result": result, "reason": reason}
 
-def contains_json(response=None, context=None):
+def contains_json(response=None):
     try:
         json.loads(response)
         result = True

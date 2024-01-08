@@ -97,7 +97,7 @@ class FunctionEvaluator(BaseEvaluator):
             # Evaluate the dataset using Function
             operator = operations.get(self._function_name)
             response = operator(**kwargs, **self._function_arguments)
-            metrics.append(EvalResultMetric(id=self.metric_id, value=float(not response["result"])))
+            metrics.append(EvalResultMetric(id=self.metric_id, value=float(response["result"])))
             explanation = response['reason']
 
         except Exception as e:
