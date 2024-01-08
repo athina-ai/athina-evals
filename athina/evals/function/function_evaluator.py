@@ -114,7 +114,7 @@ class FunctionEvaluator(BaseEvaluator):
             runtime=eval_runtime_ms,
             model=self._model,
             metrics=metrics,
-            failure=response["result"],
+            failure=not response["result"] if response is not None and "result" in response else None,
         )
         return {k: v for k, v in eval_result.items() if v is not None}
 
