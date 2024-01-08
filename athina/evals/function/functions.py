@@ -20,6 +20,9 @@ def regex(pattern, response=None):
         }
 
 def contains_any(keywords, response=None, case_sensitive=False):
+    if isinstance(keywords, str):
+        keywords = keywords.split(",")
+    keywords = list(map(lambda k: k.strip(), keywords))
     if not case_sensitive:
         response = response.lower()
         keywords = list(map(lambda k: k.lower(), keywords))
