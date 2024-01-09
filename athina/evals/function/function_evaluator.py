@@ -41,7 +41,7 @@ class FunctionEvaluator(BaseEvaluator):
         return "Function evaluator"
 
     @property
-    def metric_id(self) -> str:
+    def metric_ids(self) -> str:
         return MetricType.PASSED.value
 
     @property

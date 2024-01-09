@@ -10,12 +10,13 @@ from athina.helpers.logger import logger
 from athina.interfaces.data import DataPoint
 from athina.services.athina_api_service import AthinaApiService
 from athina.metrics.metric_type import MetricType
+from athina.llms.abstract_llm_service import AbstractLlmService
 from .example import FewShotExample
 from ..base_evaluator import BaseEvaluator
 
 
 class LlmEvaluator(BaseEvaluator):
-    llm_service: OpenAiService
+    llm_service: AbstractLlmService
     grading_criteria: str
     _model: str
     _experiment: Optional[AthinaExperiment] = None
@@ -33,9 +34,9 @@ class LlmEvaluator(BaseEvaluator):
 
     DEFAULT_SYSTEM_MESSAGE_TEMPLATE = f""" 
     ### INSTRUCTIONS ###
-    You are an expert at evaluating chatbot responses, according to some grading criteria.
+    You are an expert at evaluating responses by an AI.
 
-    If it passes the grading criteria, then your result is Pass, otherwise it is Fail.
+    Based on the instructions provided, you will evaluate the response and determine if it passes or fails.
     
     """
 
@@ -58,8 +59,12 @@ class LlmEvaluator(BaseEvaluator):
         grading_criteria: Optional[str] = None,
         system_message_template: Optional[str] = None,
         user_message_template: Optional[str] = None,
+        llm_service: Optional[AbstractLlmService] = None,
     ):
-        self.llm_service = OpenAiService()
+        if llm_service is not None and isinstance(llm_service, AbstractLlmService):
+            self.llm_service = llm_service
+        else:
+            self.llm_service = OpenAiService()
         self.grading_criteria = grading_criteria if grading_criteria else ""
         if model is None:
             self._model = self.default_model

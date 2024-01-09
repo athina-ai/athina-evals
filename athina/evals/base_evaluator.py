@@ -30,7 +30,7 @@ class BaseEvaluator(ABC):
 
     @property
     @abstractmethod
-    def metric_id(self) -> str:
+    def metric_ids(self) -> str:
         """The metric computed by the evaluator."""
         pass
 

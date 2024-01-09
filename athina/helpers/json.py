@@ -13,7 +13,6 @@ class JsonHelper:
             end_index = data_string.rfind("}")
             json_string = data_string[start_index : end_index + 1]
         except Exception as e:
-            print("Failed to extract json", e)
             json_string = data_string
         return json_string
 
@@ -25,7 +24,7 @@ class JsonHelper:
         try:
             data = json.loads(text)
         except json.decoder.JSONDecodeError:
-            data = None
+            raise ValueError("Failed to load JSON from text")
         return data
 
     @staticmethod

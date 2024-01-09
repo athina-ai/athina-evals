@@ -22,7 +22,7 @@ class ContextRelevancy(RagasEvaluator):
         return "Context Relevancy"
 
     @property
-    def metric_id(self) -> str:
+    def metric_ids(self) -> str:
         return MetricType.RAGAS_CONTEXT_RELEVANCY.value
     
     @property
