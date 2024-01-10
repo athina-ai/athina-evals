@@ -46,10 +46,7 @@ class DoesResponseAnswerQuery(LlmEvaluator):
 
     @property
     def required_args(self):
-        return {
-            "query": str,
-            "response": str
-        }
+        return ["query", "response"]
 
     @property
     def examples(self):

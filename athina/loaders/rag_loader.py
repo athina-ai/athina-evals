@@ -56,15 +56,11 @@ class RagLoader(Loader):
             if self.col_response not in raw_instance:
                 raise KeyError(f"'{self.col_response}' not found in provided data.")
             
-            # Check if context is a list of strings
-            context = raw_instance[self.col_context]
-            if not isinstance(context, list) or not all(isinstance(item, str) for item in context):
-                raise TypeError(f"'{self.col_context}' must be a list of strings.")
 
             # Create a processed instance with mandatory fields
             processed_instance = {
                 "query": raw_instance[self.col_query],
-                "context": context,  # Join strings in the list with a newline
+                "context": raw_instance[self.col_context],
                 "response": raw_instance[self.col_response],
             }
 

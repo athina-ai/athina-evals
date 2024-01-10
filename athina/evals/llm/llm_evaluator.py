@@ -120,6 +120,7 @@ class LlmEvaluator(BaseEvaluator):
         """
         start_time = time.time()
 
+        print(kwargs)
         # Validate that correct args were passed
         self.validate_args(**kwargs)
 
@@ -141,9 +142,6 @@ class LlmEvaluator(BaseEvaluator):
             failure = bool(result == "Fail")
             passed_value = 1 - float(failure)
             metrics.append(EvalResultMetric(id=MetricType.PASSED.value, value=passed_value))
-            if "score" in chat_completion_response_json:
-                score = chat_completion_response_json["score"]
-                metrics.append(EvalResultMetric(id=self.metric_id, value=score))
 
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")

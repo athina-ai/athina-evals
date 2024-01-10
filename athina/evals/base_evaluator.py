@@ -62,31 +62,19 @@ class BaseEvaluator(ABC):
         return self
 
     def validate_args(self, **kwargs) -> None:
-        for arg, expected_type in self.required_args.items():
+        for arg in self.required_args:
             if arg not in kwargs:
                 raise ValueError(f"Missing required argument: {arg}")
 
-            if not TypeCheckHelper.is_valid_type(kwargs[arg], expected_type):
-                expected_type_name = expected_type.__name__
-                actual_type_name = type(kwargs[arg]).__name__
-                raise TypeError(f"Incorrect type for argument '{arg}': "
-                                f"expected {expected_type_name}, got {actual_type_name}")
-
     def _validate_batch_args(self, data: List[DataPoint]) -> bool:
         """
-        Validates that each entry in the batch has all the required arguments and their types.
+        Validates that each entry in the batch has all the required arguments.
         """
-        print(data)
         for i, entry in enumerate(data):
-            for arg, expected_type in self.required_args.items():
+            for arg in self.required_args:
                 if arg not in entry:
-                    raise ValueError(f"Data at index {i} is missing required argument: {arg}")
-
-                if not TypeCheckHelper.is_valid_type(entry[arg], expected_type):
-                    expected_type_name = getattr(expected_type, '__origin__', expected_type).__name__
-                    raise TypeError(
-                        f"Incorrect type for argument '{arg}' at index {i}: "
-                        f"expected {expected_type_name}, got {type(entry[arg]).__name__}"
+                    raise ValueError(
+                        f"Data at index {i} is missing required argument: {arg}"
                     )
         return True
 

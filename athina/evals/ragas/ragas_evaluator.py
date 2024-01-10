@@ -34,6 +34,9 @@ class RagasEvaluator(BaseEvaluator):
         for arg in self.required_args:
             if arg not in kwargs:
                 raise ValueError(f"Missing required argument: {arg}")
+            
+    def _get_model(self):
+        return ChatOpenAI(model_name=self._model)
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
@@ -41,19 +44,13 @@ class RagasEvaluator(BaseEvaluator):
         """
         start_time = time.time()
         self._validate_args(**kwargs)
+        metrics = []
         try:
-            chat_model = ChatOpenAI(model_name=self._model)
-            self.ragas_metric.llm = LangchainLLM(llm=chat_model)
-            # data = self.generate_data_to_evaluate(**kwargs)
-            # print(data)
-            data = {
-                "contexts": [["France, in Western Europe, encompasses medieval cities, alpine villages and Mediterranean beaches. Paris, its capital, is famed for its fashion houses, classical art museums including the Louvre and monuments like the Eiffel Tower. The country is also renowned for its wines and sophisticated cuisine. Lascaux’s ancient cave drawings, Lyon’s Roman theater and the vast Palace of Versailles attest to its rich history"]],
-                "question": ["What is the capital of France?"],
-            }
+            self.ragas_metric.llm = LangchainLLM(llm=self._get_model())
+            data = self.generate_data_to_evaluate(**kwargs)
             dataset = Dataset.from_dict(data)
-            print(dataset)
             scores = evaluate(dataset, metrics=[self.ragas_metric])
-            metric = EvalResultMetric(id=self.metric_id, value=scores[self.ragas_metric_name])
+            metrics.append(EvalResultMetric(id=self.metric_ids[0], value=scores[self.ragas_metric_name]))
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
             raise e
@@ -68,7 +65,7 @@ class RagasEvaluator(BaseEvaluator):
             reason='',
             runtime=eval_runtime_ms,
             model=self._model,
-            metric=metric,
+            metrics=metrics,
         )
         return {k: v for k, v in llm_eval_result.items() if v is not None}
 
