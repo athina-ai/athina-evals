@@ -13,14 +13,17 @@ from datasets import Dataset
 from ragas.llms import LangchainLLM
 from langchain.chat_models import ChatOpenAI
 from ragas import evaluate
+from athina.keys import OpenAiApiKey
 
 
 class RagasEvaluator(BaseEvaluator):
     _model: str
+    _openai_api_key: str
     _experiment: Optional[AthinaExperiment] = None
 
     def __init__(
         self,
+        openai_api_key: Optional[str] = None,
         model: Optional[str] = None,
     ):
         if model is None:
@@ -29,6 +32,11 @@ class RagasEvaluator(BaseEvaluator):
             raise ValueError(f"Unsupported model: {model}")
         else:
             self._model = model
+        
+        if openai_api_key is None:
+            self._openai_api_key = OpenAiApiKey.get_key()
+        else:
+            self._openai_api_key = openai_api_key
 
     def _validate_args(self, **kwargs) -> None:
         for arg in self.required_args:
@@ -36,7 +44,7 @@ class RagasEvaluator(BaseEvaluator):
                 raise ValueError(f"Missing required argument: {arg}")
             
     def _get_model(self):
-        return ChatOpenAI(model_name=self._model)
+        return ChatOpenAI(model_name=self._model, api_key=self._openai_api_key)
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
