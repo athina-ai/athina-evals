@@ -5,6 +5,7 @@ from athina.evals.llm.does_response_answer_query.evaluator import (
 from athina.evals.llm.context_contains_enough_information.evaluator import (
     ContextContainsEnoughInformation,
 )
+from athina.evals.base_evaluator import BaseEvaluator
 from athina.evals.llm.faithfulness.evaluator import Faithfulness
 from athina.evals.llm.grading_criteria.evaluator import GradingCriteria
 from athina.evals.llm.custom_prompt.evaluator import CustomPrompt
@@ -17,6 +18,7 @@ from athina.evals.function.wrapper import ContainsAny
 from athina.evals.function.wrapper import Regex
 
 __all__ = [
+    "BaseEvaluator",
     "LlmEvaluator",
     "DoesResponseAnswerQuery",
     "SummaryAccuracy",

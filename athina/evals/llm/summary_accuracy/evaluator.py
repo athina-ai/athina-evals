@@ -10,6 +10,7 @@ from athina.evals.eval_type import LlmEvalTypeId
 from athina.llms.question_answerer import QuestionAnswerer
 from athina.llms.question_answerer_bulk import QuestionAnswererBulk
 from athina.llms.question_generator import QuestionGenerator
+from athina.interfaces.result import EvalResultMetric
 
 class SummaryAccuracy(LlmEvaluator):
     """
@@ -53,14 +54,14 @@ class SummaryAccuracy(LlmEvaluator):
 
     @property
     def name(self):
-        return LlmEvalTypeId.CUSTOM.value
+        return LlmEvalTypeId.SUMMARY_ACCURACY.value
         
     @property
-    def metric_ids(self) -> str:
+    def metric_ids(self) -> List[str]:
         return [
-            MetricType.AGREEMENT_SCORE,
-            MetricType.CONTRADICTION_SCORE,
-            MetricType.HALLUCINATION_SCORE
+            MetricType.AGREEMENT_SCORE.value,
+            MetricType.CONTRADICTION_SCORE.value,
+            MetricType.HALLUCINATION_SCORE.value
         ]
         
     @property
@@ -99,7 +100,7 @@ class SummaryAccuracy(LlmEvaluator):
         start_time = time.time()
 
         # Validate that correct args were passed
-        self._validate_args(**instance)
+        self.validate_args(**instance)
 
         summary_datapoint = SummaryDataPoint(**instance)
 
@@ -109,7 +110,7 @@ class SummaryAccuracy(LlmEvaluator):
         end_time = time.time()
         eval_runtime_ms = int((end_time - start_time) * 1000)
         
-        metrics = [{ "id": metric_id.value, "value": summary_eval_result[metric_id.value] } for metric_id in self.metric_ids]
+        metrics = [EvalResultMetric(id=metric_id, value=summary_eval_result[metric_id]) for metric_id in self.metric_ids]
 
         llm_eval_result = EvalResult(
             name=self.name,
@@ -168,8 +169,8 @@ class SummaryAccuracy(LlmEvaluator):
                 raise Exception("Validation error - unable to generate answers")
             else:
                 for metric in self.metric_ids:
-                    metric_name = metric.value
-                    metric_class = metric.get_class()
+                    metric_name = metric
+                    metric_class = MetricType.get_class(metric)
                     metric_result, explanation = metric_class.compute(
                         self.answers_doc, self.answers_sum, self.questions, self.n_questions
                     )

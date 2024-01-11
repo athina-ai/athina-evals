@@ -6,7 +6,7 @@ class Metric(ABC):
     """
 
     @abstractmethod
-    def compute(self):
+    def compute(self, *args, **kwargs):
         """
         Computes the metric.
         """

@@ -3,6 +3,7 @@ from ..ragas_evaluator import RagasEvaluator
 from athina.evals.eval_type import RagasEvalTypeId
 from athina.metrics.metric_type import MetricType
 from ragas.metrics import context_relevancy
+from typing import List
 
 """
 RAGAS Context Relevancy Docs: https://docs.ragas.io/en/latest/concepts/metrics/context_relevancy.html
@@ -21,7 +22,7 @@ class RagasContextRelevancy(RagasEvaluator):
         return "Context Relevancy"
 
     @property
-    def metric_ids(self) -> str:
+    def metric_ids(self) -> List[str]:
         return [MetricType.RAGAS_CONTEXT_RELEVANCY.value]
     
     @property
@@ -45,7 +46,7 @@ class RagasContextRelevancy(RagasEvaluator):
         return None
     
     @property
-    def grade_reason(self):
+    def grade_reason(self) -> str:
         return "This metric is calulated by dividing the number of sentences in context that are relevant for answering the given query by the total number of sentences in the retrieved context"
     
     def generate_data_to_evaluate(self, context, query, **kwargs) -> dict:

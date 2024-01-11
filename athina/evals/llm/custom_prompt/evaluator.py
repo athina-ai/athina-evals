@@ -52,7 +52,7 @@ class CustomPrompt(LlmEvaluator):
         return LlmEvalTypeId.CUSTOM_PROMPT.value
         
     @property
-    def metric_ids(self) -> str:
+    def metric_ids(self) -> List[str]:
         return self._metric_ids
         
     @property

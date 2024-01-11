@@ -41,7 +41,7 @@ class ContextContainsEnoughInformation(LlmEvaluator):
         return "Context Contains Enough Information"
 
     @property
-    def metric_ids(self) -> str:
+    def metric_ids(self) -> List[str]:
         return [MetricType.PASSED.value]
 
     @property

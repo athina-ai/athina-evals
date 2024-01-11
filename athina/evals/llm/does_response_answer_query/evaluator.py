@@ -53,7 +53,7 @@ class DoesResponseAnswerQuery(LlmEvaluator):
         return DOES_RESPONSE_ANSWER_QUERY_EVAL_EXAMPLES
 
     @property
-    def metric_ids(self) -> str:
+    def metric_ids(self) -> List[str]:
         return [MetricType.PASSED.value]
 
     def _user_message(

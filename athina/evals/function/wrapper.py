@@ -1,5 +1,5 @@
 
-from typing import Optional
+from typing import Optional, List
 from athina.evals.eval_type import FunctionEvalTypeId
 from athina.evals.function.function_evaluator import FunctionEvaluator
 
@@ -7,7 +7,7 @@ from athina.evals.function.function_evaluator import FunctionEvaluator
 class ContainsAny(FunctionEvaluator):
     def __init__(
         self,
-        keywords: dict,
+        keywords: List[str],
         case_sensitive: Optional[bool] = False,
     ):
         super().__init__(

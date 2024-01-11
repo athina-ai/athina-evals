@@ -1,5 +1,6 @@
 from typing import List, Optional
 from ..llm_evaluator import LlmEvaluator
+from athina.metrics.metric_type import MetricType
 from athina.evals.eval_type import LlmEvalTypeId
 
 
@@ -26,8 +27,8 @@ class GradingCriteria(LlmEvaluator):
         return LlmEvalTypeId.GRADING_CRITERIA.value
 
     @property
-    def metric_ids(self) -> str:
-        return []
+    def metric_ids(self) -> List[str]:
+        return [MetricType.PASSED.value]
 
     @property
     def display_name(self):

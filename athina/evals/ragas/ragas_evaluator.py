@@ -1,13 +1,13 @@
 
+from abc import abstractmethod
 from typing import Optional
 from athina.interfaces.athina import AthinaExperiment
 from athina.interfaces.model import Model
 import time
-from typing import Optional
+from typing import Optional, Any
 from athina.interfaces.result import EvalResult, EvalResultMetric
 from athina.interfaces.model import Model
 from athina.helpers.logger import logger
-
 from ..base_evaluator import BaseEvaluator
 from datasets import Dataset
 from ragas.llms import LangchainLLM
@@ -18,7 +18,7 @@ from athina.keys import OpenAiApiKey
 
 class RagasEvaluator(BaseEvaluator):
     _model: str
-    _openai_api_key: str
+    _openai_api_key: Optional[str]
     _experiment: Optional[AthinaExperiment] = None
 
     def __init__(
@@ -38,11 +38,21 @@ class RagasEvaluator(BaseEvaluator):
         else:
             self._openai_api_key = openai_api_key
 
-    def _validate_args(self, **kwargs) -> None:
-        for arg in self.required_args:
-            if arg not in kwargs:
-                raise ValueError(f"Missing required argument: {arg}")
-            
+    @property
+    def default_model(self) -> str:
+        return Model.GPT35_TURBO.value
+    
+    def generate_data_to_evaluate(self, **kwargs):
+        pass
+    
+    @abstractmethod
+    def ragas_metric(self) -> Any:
+        pass
+
+    @property
+    def grade_reason(self) -> str:
+        raise NotImplementedError
+    
     def _get_model(self):
         return ChatOpenAI(model_name=self._model, api_key=self._openai_api_key)
 
@@ -51,7 +61,7 @@ class RagasEvaluator(BaseEvaluator):
         Run the Ragas evaluator.
         """
         start_time = time.time()
-        self._validate_args(**kwargs)
+        self.validate_args(**kwargs)
         metrics = []
         try:
             self.ragas_metric.llm = LangchainLLM(llm=self._get_model())

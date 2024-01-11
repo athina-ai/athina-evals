@@ -1,6 +1,5 @@
 
-from typing import Optional
-
+from typing import Optional, List
 from athina.metrics.metric_type import MetricType
 import time
 from typing import Optional
@@ -32,8 +31,8 @@ class FunctionEvaluator(BaseEvaluator):
         return self._function_name
 
     @property
-    def metric_ids(self) -> str:
-        return MetricType.PASSED.value
+    def metric_ids(self) -> List[str]:
+        return [MetricType.PASSED.value]
 
     @property
     def default_function_arguments(self):

@@ -27,13 +27,13 @@ class BaseEvaluator(ABC):
 
     @property
     @abstractmethod
-    def metric_ids(self) -> str:
+    def metric_ids(self) -> List[str]:
         """The metric computed by the evaluator."""
         pass
 
     @property
     @abstractmethod
-    def required_args(self):
+    def required_args(self) -> List[str]:
         """A list of required arguments for the evaluator."""
         pass
 
