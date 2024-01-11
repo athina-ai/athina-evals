@@ -73,7 +73,7 @@ class AthinaLoggingHelper:
                     flakiness=0.0,
                     run_results=[
                         AthinaEvalRunResult(
-                            failed=eval_result["failure"],
+                            failed=eval_result["failure"] if "failure" in eval_result else None,
                             runtime=eval_result["runtime"],
                             reason=eval_result["reason"],
                         )

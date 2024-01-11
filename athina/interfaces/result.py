@@ -21,10 +21,10 @@ class EvalResult(TypedDict):
     name: str
     display_name: str
     data: DataPoint
-    failure: int
+    failure: Optional[bool]
     reason: str
     runtime: int
-    model: str
+    model: Optional[str]
     metrics: List[EvalResultMetric]
 
 @dataclass
@@ -50,7 +50,7 @@ class BatchRunResult:
             # Add fixed fields
             entry.update({
                 'display_name': item['display_name'],
-                'failed': item['failure'],
+                'failed': item['failure'] if 'failure' in item else None,
                 'grade_reason': item['reason'],
                 'runtime': item['runtime'],
                 'model': item['model'] if 'model' in item else None,

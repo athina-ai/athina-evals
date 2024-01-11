@@ -31,7 +31,7 @@ class AthinaFilters:
 
 
 class AthinaEvalRunResult(TypedDict):
-    failed: bool
+    failed: Optional[bool]
     runtime: float
     reason: str
 
