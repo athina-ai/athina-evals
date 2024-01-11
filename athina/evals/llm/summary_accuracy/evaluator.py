@@ -1,18 +1,14 @@
-from enum import Enum
-import pprint
 import time
 import traceback
 from typing import List, Optional
 from athina.interfaces.model import Model
-from athina.interfaces.result import EvalResult, EvalResultMetric, BatchRunResult
+from athina.interfaces.result import EvalResult
 from athina.loaders.summary_loader import SummaryDataPoint
 from athina.metrics.metric_type import MetricType
 from ..llm_evaluator import LlmEvaluator
 from athina.evals.eval_type import LlmEvalTypeId
-from ..example import FewShotExample
 from athina.llms.question_answerer import QuestionAnswerer
 from athina.llms.question_answerer_bulk import QuestionAnswererBulk
-from athina.llms.question_answerer_cot import QuestionAnswererChainOfThought
 from athina.llms.question_generator import QuestionGenerator
 
 class SummaryAccuracy(LlmEvaluator):
@@ -77,10 +73,7 @@ class SummaryAccuracy(LlmEvaluator):
         
     @property
     def required_args(self):
-        return {
-            "document": str,
-            "response": str,
-        }
+        return ["document", "response"]
         
     @property
     def examples(self):

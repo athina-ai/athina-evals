@@ -13,7 +13,7 @@ class CustomPrompt(LlmEvaluator):
     _display_name: str = None
     _metric_ids: List[str] = None
     _model: str = None
-    _required_args: Dict[str, Any] = None
+    _required_args: List[str] = None
     _examples: List[FewShotExample] = None
 
     def __init__(
@@ -22,7 +22,7 @@ class CustomPrompt(LlmEvaluator):
         display_name: str = None,
         metric_ids: List[str] = None,
         model: str = None,
-        required_args: Dict[str, Any] = {},
+        required_args: List[str] = [],
         examples: List[FewShotExample] = [],
         **kwargs
     ):
@@ -49,7 +49,7 @@ class CustomPrompt(LlmEvaluator):
 
     @property
     def name(self):
-        return LlmEvalTypeId.CUSTOM.value
+        return LlmEvalTypeId.CUSTOM_PROMPT.value
         
     @property
     def metric_ids(self) -> str:

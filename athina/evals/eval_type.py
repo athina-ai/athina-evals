@@ -11,6 +11,7 @@ class LlmEvalTypeId(Enum):
 
 class RagasEvalTypeId(Enum):
     RAGAS_CONTEXT_RELEVANCY = "RagasContextRelevancy"
+    RAGAS_ANSWER_RELEVANCY = "RagasAnswerRelevancy"
 
 class FunctionEvalTypeId(Enum):
     REGEX = "Regex"

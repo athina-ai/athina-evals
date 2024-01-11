@@ -23,7 +23,7 @@ class GradingCriteria(LlmEvaluator):
 
     @property
     def name(self):
-        return LlmEvalTypeId.CUSTOM.value
+        return LlmEvalTypeId.GRADING_CRITERIA.value
 
     @property
     def metric_ids(self) -> str:
@@ -39,9 +39,7 @@ class GradingCriteria(LlmEvaluator):
 
     @property
     def required_args(self):
-        return {
-            "response": str
-        }
+        return ["response"]
 
     @property
     def examples(self):

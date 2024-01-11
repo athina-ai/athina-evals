@@ -2,12 +2,13 @@ from typing import List
 from ..ragas_evaluator import RagasEvaluator
 from athina.evals.eval_type import RagasEvalTypeId
 from athina.metrics.metric_type import MetricType
-from ragas.metrics import context_relevancy
+from ragas.metrics import answer_relevancy
 
 
-class RagasContextRelevancy(RagasEvaluator):
+class RagasAnswerRelevancy(RagasEvaluator):
     """
-    This evaluator calculates the relevancy of the context with respect to the user query.
+    This evaluator focuses on assessing how pertinent the generated response is to the given prompt. 
+    A lower score is assigned to responses that are incomplete or contain redundant information.
     """
 
     def __init__(self, *args, **kwargs):
@@ -15,11 +16,11 @@ class RagasContextRelevancy(RagasEvaluator):
 
     @property
     def name(self):
-        return RagasEvalTypeId.RAGAS_CONTEXT_RELEVANCY.value
+        return RagasEvalTypeId.RAGAS_ANSWER_RELEVANCY.value
 
     @property
     def display_name(self):
-        return "Context Relevancy"
+        return "Answer Relevancy"
 
     @property
     def metric_ids(self) -> str:
@@ -27,11 +28,11 @@ class RagasContextRelevancy(RagasEvaluator):
     
     @property
     def ragas_metric(self):
-        return context_relevancy
+        return answer_relevancy
     
     @property
     def ragas_metric_name(self):
-        return "context_relevancy"
+        return "answer_relevancy"
 
     @property
     def default_model(self):
@@ -39,22 +40,24 @@ class RagasContextRelevancy(RagasEvaluator):
 
     @property
     def required_args(self):
-        return ["query", "context"]
+        return ["query", "context", "response"]
 
     @property
     def examples(self):
         return None
     
-    def generate_data_to_evaluate(self, context, query, **kwargs) -> dict:
+    def generate_data_to_evaluate(self, query, context, response,  **kwargs) -> dict:
         """
         Generates data for evaluation.
 
         :param context: context.
         :param query: query.
+        :param response: llm response
         :return: A dictionary with formatted data for evaluation.
         """
         data = {
             "contexts": [[str(context)]],
-            "question": [query]
+            "question": [query],
+            "answer": [response]
         }
         return data

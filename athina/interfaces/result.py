@@ -21,11 +21,11 @@ class EvalResult(TypedDict):
     name: str
     display_name: str
     data: DataPoint
-    failure: bool
+    failure: int
     reason: str
     runtime: int
     model: str
-    metric: Optional[EvalResultMetric]
+    metrics: List[EvalResultMetric]
 
 @dataclass
 class BatchRunResult:
