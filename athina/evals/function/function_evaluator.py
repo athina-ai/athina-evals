@@ -14,8 +14,6 @@ class FunctionEvaluator(BaseEvaluator):
 
     _function_name: str
     _function_arguments: dict
-    _experiment: Optional[AthinaExperiment] = None
-    _model: str
 
     """
     This evaluator runs the requested Function on the given data.
@@ -31,15 +29,11 @@ class FunctionEvaluator(BaseEvaluator):
 
     @property
     def display_name(self):
-        return "Function evaluator"
+        return self._function_name
 
     @property
     def metric_ids(self) -> str:
         return MetricType.PASSED.value
-
-    @property
-    def default_model(self):
-        return None
 
     @property
     def default_function(self):
@@ -101,7 +95,7 @@ class FunctionEvaluator(BaseEvaluator):
             data=kwargs,
             reason=explanation,
             runtime=eval_runtime_ms,
-            model=self._model,
+            model=None,
             metrics=metrics,
             failure=not response["result"] if response is not None and "result" in response else None,
         )

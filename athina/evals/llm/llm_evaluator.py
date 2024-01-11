@@ -19,7 +19,6 @@ class LlmEvaluator(BaseEvaluator):
     llm_service: AbstractLlmService
     grading_criteria: str
     _model: str
-    _experiment: Optional[AthinaExperiment] = None
     _system_message_template: Optional[str] = None
     _user_message_template: Optional[str] = None
 
@@ -87,10 +86,16 @@ class LlmEvaluator(BaseEvaluator):
             self._user_message_template = user_message_template
 
 
+    @property
+    @abstractmethod
+    def default_model(self):
+        """The default model for the evaluator."""
+        pass
+
     def __str__(self):
-        formatted_args = {key: value.__name__ if hasattr(value, '__name__') else str(value)
-                          for key, value in self.required_args.items()}
-        return f"Docstring: {self.__doc__.strip()}\nRequired Arguments: {formatted_args}"
+        formatted_args = [str(value) for value in self.required_args]
+        return f"Docstring: {self.__doc__}\nRequired Arguments: {formatted_args}"
+
     
     def _system_message(self) -> str:
         return self._system_message_template
@@ -119,8 +124,6 @@ class LlmEvaluator(BaseEvaluator):
         Run the LLM evaluator.
         """
         start_time = time.time()
-
-        print(kwargs)
         # Validate that correct args were passed
         self.validate_args(**kwargs)
 

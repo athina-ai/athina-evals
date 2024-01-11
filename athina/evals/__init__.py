@@ -17,10 +17,9 @@ from athina.evals.function.wrapper import ContainsAny
 from athina.evals.function.wrapper import Regex
 
 __all__ = [
-    "LlmEvaluator"
+    "LlmEvaluator",
     "DoesResponseAnswerQuery",
     "SummaryAccuracy",
-    "LlmEvaluator",
     "ContextContainsEnoughInformation",
     "Faithfulness",
     "RagasContextRelevancy",

@@ -1,18 +1,17 @@
-from typing import List
+from athina.interfaces.model import Model
 from ..ragas_evaluator import RagasEvaluator
 from athina.evals.eval_type import RagasEvalTypeId
 from athina.metrics.metric_type import MetricType
 from ragas.metrics import context_relevancy
 
-
+"""
+RAGAS Context Relevancy Docs: https://docs.ragas.io/en/latest/concepts/metrics/context_relevancy.html
+RAGAS Context Relevancy Github: https://github.com/explodinggradients/ragas/blob/main/src/ragas/metrics/_context_relevancy.py
+"""
 class RagasContextRelevancy(RagasEvaluator):
     """
     This evaluator calculates the relevancy of the context with respect to the user query.
     """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     @property
     def name(self):
         return RagasEvalTypeId.RAGAS_CONTEXT_RELEVANCY.value
@@ -35,7 +34,7 @@ class RagasContextRelevancy(RagasEvaluator):
 
     @property
     def default_model(self):
-        return "gpt-4-1106-preview"
+        return Model.GPT4_1106_PREVIEW.value
 
     @property
     def required_args(self):

@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Dict, List
+from typing import List, Optional
 from athina.helpers.logger import logger
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
-from athina.helpers.type_check_helper import TypeCheckHelper
 from athina.interfaces.athina import AthinaExperiment
 
 from athina.interfaces.data import DataPoint
@@ -12,9 +11,7 @@ from athina.services.athina_api_service import AthinaApiService
 
 
 class BaseEvaluator(ABC):
-    def __init__(self):
-        pass    
-
+    _experiment: Optional[AthinaExperiment] = None
     # Abstract properties
     @property
     @abstractmethod
@@ -42,19 +39,13 @@ class BaseEvaluator(ABC):
 
     @property
     @abstractmethod
-    def default_model(self):
-        """The default model for the evaluator."""
-        pass
-
-    @property
-    @abstractmethod
     def examples(self):
         """A list of examples for the evaluator."""
         pass
 
     # Common methods
     def _examples_str(self) -> str:
-        return None if self.examples is None else "\n".join(map(str, self.examples))
+        return "" if self.examples is None else "\n".join(map(str, self.examples))
     
     def configure_experiment(self, experiment: AthinaExperiment):
         """Configured metadata parameters to log an experiment to Athina"""

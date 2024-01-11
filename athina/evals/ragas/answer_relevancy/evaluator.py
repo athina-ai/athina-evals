@@ -4,16 +4,15 @@ from athina.evals.eval_type import RagasEvalTypeId
 from athina.metrics.metric_type import MetricType
 from ragas.metrics import answer_relevancy
 
-
+"""
+RAGAS Answer Relevancy Docs: https://docs.ragas.io/en/latest/concepts/metrics/answer_relevance.html
+RAGAS Answer Relevancy Github: https://github.com/explodinggradients/ragas/blob/main/src/ragas/metrics/_answer_relevance.py
+"""
 class RagasAnswerRelevancy(RagasEvaluator):
     """
     This evaluator focuses on assessing how pertinent the generated response is to the given prompt. 
     A lower score is assigned to responses that are incomplete or contain redundant information.
     """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     @property
     def name(self):
         return RagasEvalTypeId.RAGAS_ANSWER_RELEVANCY.value
@@ -45,6 +44,7 @@ class RagasAnswerRelevancy(RagasEvaluator):
     @property
     def grade_reason(self):
         return "A response is deemed relevant when it directly and appropriately addresses the original query. Importantly, our assessment of answer relevance does not consider factuality but instead penalizes cases where the response lacks completeness or contains redundant details"
+    
     @property
     def examples(self):
         return None
