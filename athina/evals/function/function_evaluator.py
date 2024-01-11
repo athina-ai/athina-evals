@@ -36,10 +36,6 @@ class FunctionEvaluator(BaseEvaluator):
         return MetricType.PASSED.value
 
     @property
-    def default_function(self):
-        return "contains_any"
-
-    @property
     def default_function_arguments(self):
         return {}
 
@@ -57,7 +53,7 @@ class FunctionEvaluator(BaseEvaluator):
         function_arguments: Optional[dict] = None,
     ):
         if function_name is None:
-            function_name = self.default_function
+            raise ValueError(f"function_name is a required argument")
         if function_arguments is None:
             function_arguments = self.default_function_arguments
         if function_name not in operations.keys():
@@ -71,7 +67,7 @@ class FunctionEvaluator(BaseEvaluator):
         """
         Run the Function evaluator.
         """
-        start_time = time.time()
+        start_time = time.perf_counter()
 
         # Validate that correct args were passed
         self.validate_args(**kwargs)
@@ -87,7 +83,7 @@ class FunctionEvaluator(BaseEvaluator):
             logger.error(f"Error occurred during eval: {e}")
             raise e
 
-        end_time = time.time()
+        end_time = time.perf_counter()
         eval_runtime_ms = int((end_time - start_time) * 1000)
         eval_result = EvalResult(
             name=self.name,
