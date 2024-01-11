@@ -24,7 +24,7 @@ class RagasAnswerRelevancy(RagasEvaluator):
 
     @property
     def metric_ids(self) -> str:
-        return [MetricType.RAGAS_CONTEXT_RELEVANCY.value]
+        return [MetricType.RAGAS_ANSWER_RELEVANCY.value]
     
     @property
     def ragas_metric(self):
@@ -41,7 +41,10 @@ class RagasAnswerRelevancy(RagasEvaluator):
     @property
     def required_args(self):
         return ["query", "context", "response"]
-
+    
+    @property
+    def grade_reason(self):
+        return "A response is deemed relevant when it directly and appropriately addresses the original query. Importantly, our assessment of answer relevance does not consider factuality but instead penalizes cases where the response lacks completeness or contains redundant details"
     @property
     def examples(self):
         return None

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List
-from athina.helpers import logger
+from athina.helpers.logger import logger
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.helpers.type_check_helper import TypeCheckHelper
 from athina.interfaces.athina import AthinaExperiment

@@ -45,6 +45,10 @@ class RagasContextRelevancy(RagasEvaluator):
     def examples(self):
         return None
     
+    @property
+    def grade_reason(self):
+        return "This metric is calulated by dividing the number of sentences in context that are relevant for answering the given query by the total number of sentences in the retrieved context"
+    
     def generate_data_to_evaluate(self, context, query, **kwargs) -> dict:
         """
         Generates data for evaluation.
