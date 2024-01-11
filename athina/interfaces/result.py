@@ -53,7 +53,7 @@ class BatchRunResult:
                 'failed': item['failure'],
                 'grade_reason': item['reason'],
                 'runtime': item['runtime'],
-                'model': item['model']
+                'model': item['model'] if 'model' in item else None,
             })
 
             # Add dynamic metrics

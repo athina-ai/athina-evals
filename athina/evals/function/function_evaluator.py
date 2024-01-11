@@ -30,7 +30,7 @@ class FunctionEvaluator(BaseEvaluator):
 
     @property
     def _model(self):
-        return ""
+        return None
     
     @property
     def name(self):

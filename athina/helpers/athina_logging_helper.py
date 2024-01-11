@@ -89,7 +89,7 @@ class AthinaLoggingHelper:
                     AthinaInterfaceHelper.eval_result_to_create_request(
                         eval_request_id=eval_request_id,
                         eval_type=eval_result["name"],
-                        language_model_id=eval_result["model"],
+                        language_model_id=eval_result["model"] if "model" in eval_result else None,
                         eval_result=athina_eval_result,
                     )
                 )
