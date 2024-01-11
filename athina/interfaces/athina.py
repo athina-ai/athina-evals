@@ -3,7 +3,7 @@ from enum import Enum
 from dataclasses import dataclass, asdict
 from typing import Optional, Dict, List, TypedDict, Any
 from .openai import OpenAiPromptMessage
-from .result import LlmEvalResultMetric
+from .result import EvalResultMetric
 
 
 @dataclass
@@ -31,7 +31,7 @@ class AthinaFilters:
 
 
 class AthinaEvalRunResult(TypedDict):
-    failed: bool
+    failed: Optional[bool]
     runtime: float
     reason: str
 
@@ -45,7 +45,7 @@ class AthinaEvalResult(TypedDict):
     runtime: float
     data: Dict
     display_name: str
-    metrics: List[LlmEvalResultMetric]
+    metrics: List[EvalResultMetric]
 
 
 class AthinaEvalRequestSource(Enum):
@@ -77,7 +77,7 @@ class AthinaEvalResultCreateRequest(TypedDict):
     runtime: int
     failed_percent: Optional[float]
     eval_label: str
-    metrics: List[LlmEvalResultMetric]
+    metrics: List[EvalResultMetric]
 
 
 class AthinaJobType(Enum):

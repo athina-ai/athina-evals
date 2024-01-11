@@ -1,8 +1,9 @@
 from typing import List
 from ..llm_evaluator import LlmEvaluator
 from .examples import FAITHFULNESS_EVAL_EXAMPLES
-from ..eval_type import AthinaEvalTypeId
+from athina.evals.eval_type import LlmEvalTypeId
 from athina.metrics.metric_type import MetricType
+
 
 class Faithfulness(LlmEvaluator):
     """
@@ -33,14 +34,14 @@ class Faithfulness(LlmEvaluator):
 
     @property
     def name(self):
-        return AthinaEvalTypeId.FAITHFULNESS.value
+        return LlmEvalTypeId.FAITHFULNESS.value
 
     @property
     def display_name(self):
         return "Faithfulness"
 
     @property
-    def metric_ids(self) -> str:
+    def metric_ids(self) -> List[str]:
         return [MetricType.PASSED.value]
 
     @property
@@ -62,7 +63,7 @@ class Faithfulness(LlmEvaluator):
         **kwargs,
     ) -> str:
         return self.USER_MESSAGE_TEMPLATE.format(
-            context=context,
+            context='\n'.join(context),
             response=response,
             examples=self._examples_str(),
         )

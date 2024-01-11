@@ -45,6 +45,7 @@ class RagLoader(Loader):
 
         Raises:
             KeyError: If mandatory columns (query, context or response) are missing in the raw dataset.
+            TypeError: If context is not a list of strings.
         """
         for raw_instance in self._raw_dataset:
             # Check for mandatory columns in raw_instance
@@ -54,12 +55,15 @@ class RagLoader(Loader):
                 raise KeyError(f"'{self.col_context}' not found in provided data.")
             if self.col_response not in raw_instance:
                 raise KeyError(f"'{self.col_response}' not found in provided data.")
+            
+
             # Create a processed instance with mandatory fields
             processed_instance = {
                 "query": raw_instance[self.col_query],
                 "context": raw_instance[self.col_context],
                 "response": raw_instance[self.col_response],
             }
+
 
             # Store the results
             self._processed_dataset.append(processed_instance)

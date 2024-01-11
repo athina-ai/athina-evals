@@ -1,7 +1,7 @@
 from typing import List, TypedDict, Optional
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
-from athina.evals.llm.llm_evaluator import LlmEvaluator, LlmEvalResult
-from athina.interfaces.result import LlmEvalResult, LlmEvalResultMetric, BatchRunResult
+from athina.evals.llm.llm_evaluator import LlmEvaluator
+from athina.interfaces.result import EvalResult, BatchRunResult
 from athina.interfaces.data import DataPoint
 from athina.interfaces.athina import AthinaExperiment
 from athina.services.athina_api_service import AthinaApiService
@@ -11,7 +11,7 @@ class DataPointWithEvalResults(TypedDict):
     """A data point with its evaluation results."""
 
     data_point: DataPoint
-    eval_results: List[LlmEvalResult]
+    eval_results: List[EvalResult]
 
 
 class LlmEvaluatorDescription(TypedDict):
@@ -24,7 +24,7 @@ class LlmEvaluatorDescription(TypedDict):
 class LlmBatchEvalResult(TypedDict):
     """Result of running a batch of LLM evaluations."""
 
-    results: List[LlmEvalResult]
+    results: List[EvalResult]
     total_runtime: float
     passed_evals: int
     failed_evals: int
@@ -35,7 +35,7 @@ class LlmBatchEvalResult(TypedDict):
 class EvalRunner:
     @staticmethod
     def batch_eval_result(
-        eval_results: List[LlmEvalResult],
+        eval_results: List[EvalResult],
     ) -> LlmBatchEvalResult:
         """
         Calculate metrics for a batch of LLM evaluations.

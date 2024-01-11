@@ -1,8 +1,7 @@
 import pkg_resources
 import requests
 from retrying import retry
-from typing import List, Optional, Any
-from athina.constants.messages import AthinaMessages
+from typing import List, Optional
 from athina.errors.exceptions import NoAthinaApiKeyException
 from athina.interfaces.athina import (
     AthinaFilters,

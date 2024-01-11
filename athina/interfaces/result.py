@@ -4,7 +4,7 @@ from typing import TypedDict, List, Optional
 from athina.interfaces.data import DataPoint
 
 
-class LlmEvalResultMetric(TypedDict):
+class EvalResultMetric(TypedDict):
     """
     Represents the LLM evaluation result metric.
     """
@@ -13,7 +13,7 @@ class LlmEvalResultMetric(TypedDict):
     value: float
 
 
-class LlmEvalResult(TypedDict):
+class EvalResult(TypedDict):
     """
     Represents the LLM evaluation result.
     """
@@ -21,11 +21,11 @@ class LlmEvalResult(TypedDict):
     name: str
     display_name: str
     data: DataPoint
-    failure: int
+    failure: Optional[bool]
     reason: str
     runtime: int
-    model: str
-    metrics: List[LlmEvalResultMetric]
+    model: Optional[str]
+    metrics: List[EvalResultMetric]
 
 @dataclass
 class BatchRunResult:
@@ -34,7 +34,7 @@ class BatchRunResult:
     """
 
     eval_request_id: str
-    eval_results: List[LlmEvalResult]
+    eval_results: List[EvalResult]
 
     def to_df(self):
         """
@@ -50,10 +50,10 @@ class BatchRunResult:
             # Add fixed fields
             entry.update({
                 'display_name': item['display_name'],
-                'failed': item['failure'],
+                'failed': item['failure'] if 'failure' in item else None,
                 'grade_reason': item['reason'],
                 'runtime': item['runtime'],
-                'model': item['model']
+                'model': item['model'] if 'model' in item else None,
             })
 
             # Add dynamic metrics

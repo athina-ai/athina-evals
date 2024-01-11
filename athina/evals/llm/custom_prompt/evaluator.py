@@ -1,6 +1,6 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from ..llm_evaluator import LlmEvaluator
-from ..eval_type import AthinaEvalTypeId
+from athina.evals.eval_type import LlmEvalTypeId
 from ..example import FewShotExample
 
 
@@ -49,10 +49,10 @@ class CustomPrompt(LlmEvaluator):
 
     @property
     def name(self):
-        return AthinaEvalTypeId.CUSTOM_PROMPT.value
+        return LlmEvalTypeId.CUSTOM_PROMPT.value
         
     @property
-    def metric_ids(self) -> str:
+    def metric_ids(self) -> List[str]:
         return self._metric_ids
         
     @property

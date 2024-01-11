@@ -8,7 +8,7 @@ from athina.interfaces.athina import (
     AthinaEvalRunResult,
     AthinaInterfaceHelper,
 )
-from athina.interfaces.result import LlmEvalResult
+from athina.interfaces.result import EvalResult
 from athina.services.athina_api_service import AthinaApiService
 from athina.keys import AthinaApiKey
 from athina.constants.messages import AthinaMessages
@@ -55,7 +55,7 @@ class AthinaLoggingHelper:
 
     def log_eval_results(
         eval_request_id: str,
-        eval_results: List[LlmEvalResult],
+        eval_results: List[EvalResult],
     ):
         try:
             if not AthinaApiKey.is_set():
@@ -73,7 +73,7 @@ class AthinaLoggingHelper:
                     flakiness=0.0,
                     run_results=[
                         AthinaEvalRunResult(
-                            failed=eval_result["failure"],
+                            failed=eval_result["failure"] if "failure" in eval_result else None,
                             runtime=eval_result["runtime"],
                             reason=eval_result["reason"],
                         )
@@ -89,7 +89,7 @@ class AthinaLoggingHelper:
                     AthinaInterfaceHelper.eval_result_to_create_request(
                         eval_request_id=eval_request_id,
                         eval_type=eval_result["name"],
-                        language_model_id=eval_result["model"],
+                        language_model_id=eval_result["model"] if "model" in eval_result else None,
                         eval_result=athina_eval_result,
                     )
                 )
