@@ -7,7 +7,6 @@ from athina.helpers.config import ConfigHelper
 from athina.helpers.loader_helper import LoaderHelper
 from athina.keys import OpenAiApiKey, AthinaApiKey
 
-
 class RunHelper:
     @staticmethod
     def all_evals():
@@ -99,17 +98,9 @@ class RunHelper:
             # Handle invalid arguments, either by raising an exception or returning an error
             raise ValueError("Invalid arguments for the evaluation.")
 
-        # Retrieve the evaluation class based on eval_name
-        evaluator = RunHelper.get_evaluator(eval_name, model=model)
-
         # Run the evaluation
-        result = evaluator.run(**kwargs)
-
-        # Return or handle the result as needed
-        runtime = float(result["runtime"] / 1000)
-        print(f"Completed running eval {eval_name} on {model} in {runtime} seconds\n")
-        print(result)
-        return result
+        dataset = [kwargs]
+        return RunHelper.run_eval_on_dataset(eval_name, model, dataset)
 
     @staticmethod
     def run_eval_on_batch(eval_name, model, format, **kwargs):
@@ -121,7 +112,11 @@ class RunHelper:
         # Load dataset
         loader = LoaderHelper.get_loader(eval_name)()
         dataset = loader.load(format, **kwargs)
+        
+        return RunHelper.run_eval_on_dataset(eval_name, model, dataset)
 
+    @staticmethod
+    def run_eval_on_dataset(eval_name, model, dataset, **kwargs):
         # Retrieve evaluator
         evaluator = RunHelper.get_evaluator(eval_name, model=model)
 
@@ -134,21 +129,19 @@ class RunHelper:
         # Output formatting
         print(f"\nEvaluation: {eval_name}")
         print(f"Model: {model}")
-        print(f"Format: {format}")
-        print(f"Filename: {kwargs.get('filename', 'Not provided')}")
         print(f"Runtime: {runtime // 60} minutes and {runtime % 60:.2f} seconds\n")
 
         # Error handling and output
         print("\nResults:")
         for eval_result in result.eval_results:
-            pass_fail_text = "FAILED" if eval_result["failure"] else "PASSED"
-            print(f"- Query: {eval_result['data']['query']}")
-            print(f"  Response: {eval_result['data']['response']}")
-            print(f"  Reason: {eval_result['reason']}")
-            print(f"  Metrics: {eval_result['metrics']}\n")
-            print(f" --------")
-            print(f" {pass_fail_text}")
-            print(f" --------\n")
+            pass_fail_text = "❌ FAILED" if eval_result["failure"] else "✅ PASSED"
+            
+            # Printing data with structured formatting
+            print(f"\n{'————' * 8}")
+            print(f"\nData: {eval_result['data']}\n")
+            print(f"{pass_fail_text}\n")
+            print(f"Reason: {eval_result['reason']}\n")
+            print(f"Metrics: {eval_result['metrics']}")
 
         return result
 
