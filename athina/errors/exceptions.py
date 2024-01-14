@@ -22,5 +22,5 @@ class NoAthinaApiKeyException(CustomException):
 
 
 class NoOpenAiApiKeyException(CustomException):
-    def __init__(self, message: str = AthinaMessages.SIGN_UP_FOR_BEST_EXPERIENCE):
+    def __init__(self, message: str = AthinaMessages.NO_OPENAI_API_KEY):
         super().__init__(message)

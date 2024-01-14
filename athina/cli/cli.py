@@ -134,22 +134,24 @@ def run_delegator(args):
     if args.model is not None:
         model = args.model
 
+    filename = args.filename if args.filename else None
+
     # Check if format is 'athina'
     if args.format == "athina":
         run_batch(args.eval_name, model, format="athina")
         return
 
     # Check if both format and filename are set
-    elif args.format is not None and args.filename is not None:
-        run_batch(args.eval_name, model, format=args.format, filename=args.filename)
+    elif args.format is not None and filename is not None:
+        run_batch(args.eval_name, model, format=args.format, filename=filename)
         return
 
     # If format and filename are both None, call run_datapoint with kwargs
-    elif args.format is None and args.filename is None:
+    elif args.format is None and filename is None:
         run_datapoint(args.eval_name, model, **dict(args.kwargs))
         return
 
-    elif args.format is not None and args.filename is None:
+    elif args.format is not None and filename is None:
         raise Exception("Filename must be specified for batch process")
         return
 
@@ -168,7 +170,11 @@ def run_batch(
         )
 
         RunHelper.run_eval_on_batch(
-            eval_name=eval_name, model=model, format=format, **kwargs
+            eval_name=eval_name,
+            model=model,
+            format=format,
+            filename=filename,
+            **kwargs
         )
     except Exception as e:
         print(f"{e}")

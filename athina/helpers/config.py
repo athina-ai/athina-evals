@@ -22,8 +22,6 @@ class ConfigHelper:
             config = ConfigHelper.load_config()
             return config[field]
         except Exception as e:
-            print("Error loading config field")
-            print(e)
             return None
 
     @staticmethod
