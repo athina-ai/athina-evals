@@ -1,7 +1,8 @@
 import numpy as np
 import pprint
 from abc import ABC, abstractmethod
-from typing import List, Tuple
+from typing import List, Tuple, Optional
+from athina.llms.abstract_llm_service import AbstractLlmService
 from athina.llms.openai_service import OpenAiService
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from .question_answerer import QuestionAnswerer, QuestionAnswererResponse
@@ -50,6 +51,8 @@ class EmbeddingBasedContextFinder(ContextFinderStrategy):
 
 class QuestionAnswererWithRetrieval(QuestionAnswerer):
 
+    _llm_service: AbstractLlmService
+
     SYSTEM_MESSAGE = """ 
         You are an expert at responding to closed-ended (Yes/No) questions using ONLY the provided context.
         You MUST return the response as a JSON object with 3 fields: question, answer, and explanation
@@ -66,11 +69,20 @@ class QuestionAnswererWithRetrieval(QuestionAnswerer):
         5. Return a JSON object in the following format: "answer": "answer", "explanation": "explanation"
     """
 
-    def __init__(self, context, model: str = "gpt-4-1106-preview", context_chunk_size=128):
+    def __init__(self, 
+        context, 
+        model: str = "gpt-4-1106-preview", 
+        llm_service: Optional[AbstractLlmService] = None,
+        context_chunk_size=128
+    ):
         self._model = model
-        self.openai_service = OpenAiService()
         self.context_chunks, self.context_embeddings = self._preprocess_context(context, context_chunk_size)
         self.context_finder = EmbeddingBasedContextFinder(self.context_embeddings)
+        
+        if llm_service is None:
+            self._llm_service = OpenAiService()
+        else:
+            self._llm_service = llm_service
 
     def _preprocess_context(self, context, chunk_size):
         # Split context into chunks of specified size
@@ -78,12 +90,12 @@ class QuestionAnswererWithRetrieval(QuestionAnswerer):
         context_chunks = [context[i:i+chunk_size] for i in range(0, len(context), chunk_size)]
         
         # Generate embeddings for each context chunk
-        context_embeddings = [self.openai_service.embeddings(chunk) for chunk in context_chunks]
+        context_embeddings = [self._llm_service.embeddings(chunk) for chunk in context_chunks]
         return context_chunks, context_embeddings
 
     def _get_relevant_chunks(self, question):
         ADJACENT_CHUNKS = 1
-        question_embedding = self.openai_service.embeddings(question)
+        question_embedding = self._llm_service.embeddings(question)
         relevant_context_indices = self.context_finder.find_relevant_context_indices(question_embedding, self.context_embeddings, num_relevant=3)
         relevant_context_chunks = []
         for idx in relevant_context_indices:
@@ -104,7 +116,7 @@ class QuestionAnswererWithRetrieval(QuestionAnswerer):
         ]
 
         # Extract JSON object from LLM response for a single question
-        json_completion = self.openai_service.json_completion(
+        json_completion = self._llm_service.json_completion(
             model=self._model,
             messages=messages,
         )
