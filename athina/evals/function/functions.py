@@ -200,18 +200,6 @@ def contains_email(response):
     """
     return regex(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', response)
 
-def contains_phone_number(response):
-    """
-    Check if the response contains a phone number.
-
-    Args:
-        response (str): The response string to check for a phone number.
-
-    Returns:
-        dict: A dictionary containing the result of the phone number check and the reason for the result.
-    """
-    return regex(r'\+?1?\d{9,15}', response)
-
 def is_json(response):
     """
     Check if the response contains valid JSON.
@@ -249,18 +237,6 @@ def is_email(response):
         dict: A dictionary containing the result of the email address check and the reason for the result.
     """
     return regex(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', response)
-
-def is_phone_number(response):
-    """
-    Check if the response is a valid phone number.
-
-    Args:
-        response (str): The response string to check for a valid phone number.
-
-    Returns:
-        dict: A dictionary containing the result of the phone number check and the reason for the result.
-    """
-    return regex(r'^\+?1?\d{9,15}$', response)
 
 def contains_link(response):
     """
@@ -521,10 +497,8 @@ operations = {
     "ContainsNone": contains_none,
     "ContainsJson": contains_json,
     "ContainsEmail": contains_email,
-    "ContainsPhoneNumber": contains_phone_number,
     "IsJson": is_json,
     "IsEmail": is_email,
-    "IsPhoneNumber": is_phone_number,
     "NoInvalidLinks": no_invalid_links,
     "ContainsLink": contains_link,
     "ContainsValidLink": contains_valid_link,
