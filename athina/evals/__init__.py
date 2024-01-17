@@ -14,7 +14,7 @@ from athina.evals.ragas.context_relevancy.evaluator import RagasContextRelevancy
 from athina.evals.ragas.answer_relevancy.evaluator import RagasAnswerRelevancy
 from athina.evals.function.function_evaluator import FunctionEvaluator
 from athina.evals.llm.llm_evaluator import LlmEvaluator
-from athina.evals.function.wrapper import ContainsAny, Regex, ContainsAll, Contains, ContainsNone, ContainsJson, ContainsEmail, ContainsPhoneNumber, IsJson, IsEmail, IsPhoneNumber, NoInvalidLinks, ContainsLink, ContainsValidLink, Equals, StartsWith, EndsWith, LengthLessThan, LengthGreaterThan, ApiCall
+from athina.evals.function.wrapper import ContainsAny, Regex, ContainsAll, Contains, ContainsNone, ContainsJson, ContainsEmail, IsJson, IsEmail, NoInvalidLinks, ContainsLink, ContainsValidLink, Equals, StartsWith, EndsWith, LengthLessThan, LengthGreaterThan, ApiCall
 
 __all__ = [
     "BaseEvaluator",

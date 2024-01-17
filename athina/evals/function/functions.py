@@ -368,10 +368,34 @@ def api_call(
         dict: A dictionary containing the result and reason of the API call.
     """
     payload["response"] = response
-    api_response = requests.post(url, json=payload, headers=headers)
-    # TODO: Add support to json path way of extracting result and reason
-    result = api_response.json().get("result")
-    reason = api_response.json().get("reason") 
+    # Check the status code and set the reason accordingly
+    try:
+        api_response = requests.post(url, json=payload, headers=headers)
+        if api_response.status_code == 200:
+            # Success
+            result = api_response.json().get("result")
+            reason = api_response.json().get("reason")
+        elif api_response.status_code == 400:
+            # Bad Request
+            result = False
+            reason = "Bad Request: The server could not understand the request due to invalid syntax."
+        elif api_response.status_code == 401:
+            # Unauthorized
+            result = False
+            reason = "Unauthorized: Authentication is required and has failed or has not been provided."
+        elif api_response.status_code == 500:
+            # Internal Server Error
+            result = False
+            reason = "Internal Server Error: The server encountered an unexpected condition."
+        else:
+            # Other error codes
+            result = False
+            reason = f"An error occurred: {api_response.status_code}"
+    except Exception as e:
+        # Handle any exceptions that occur during the API call
+        result = False
+        reason = f"API Request Exception: {e}"
+        
     return {
         "result": result,
         "reason": reason,

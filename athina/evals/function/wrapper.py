@@ -39,7 +39,7 @@ class Regex(FunctionEvaluator):
         )
 
 class ContainsNone(FunctionEvaluator):
-    def __init__(self, keywords, case_sensitive=False):
+    def __init__(self, keywords: List[str], case_sensitive: bool = False):
         """
         Initialize the ContainsNone function evaluator.
 
@@ -56,7 +56,7 @@ class ContainsNone(FunctionEvaluator):
         )
 
 class Contains(FunctionEvaluator):
-    def __init__(self, keyword, case_sensitive=False):
+    def __init__(self, keyword: str, case_sensitive: bool = False):
         """
         Initialize the Contains function evaluator.
 
@@ -73,7 +73,7 @@ class Contains(FunctionEvaluator):
         )
 
 class ContainsAll(FunctionEvaluator):
-    def __init__(self, keywords, case_sensitive=False):
+    def __init__(self, keywords: List[str], case_sensitive: bool = False):
         """
         Initialize the ContainsAll function evaluator.
 
@@ -109,16 +109,6 @@ class ContainsEmail(FunctionEvaluator):
             function_arguments={},
         )
 
-class ContainsPhoneNumber(FunctionEvaluator):
-    def __init__(self):
-        """
-        Initialize the ContainsPhoneNumber function evaluator.
-        """
-        super().__init__(
-            function_name=FunctionEvalTypeId.CONTAINS_PHONE_NUMBER.value,
-            function_arguments={},
-        )
-
 class IsJson(FunctionEvaluator):
     def __init__(self):
         """
@@ -136,16 +126,6 @@ class IsEmail(FunctionEvaluator):
         """
         super().__init__(
             function_name=FunctionEvalTypeId.IS_EMAIL.value,
-            function_arguments={},
-        )
-
-class IsPhoneNumber(FunctionEvaluator):
-    def __init__(self):
-        """
-        Initialize the IsPhoneNumber function evaluator.
-        """
-        super().__init__(
-            function_name=FunctionEvalTypeId.IS_PHONE_NUMBER.value,
             function_arguments={},
         )
 
@@ -180,7 +160,7 @@ class ContainsValidLink(FunctionEvaluator):
         )
 
 class Equals(FunctionEvaluator):
-    def __init__(self, expected_response, case_sensitive=False):
+    def __init__(self, expected_response: str, case_sensitive: bool = False):
         """
         Initialize the Equals function evaluator.
 
@@ -191,13 +171,13 @@ class Equals(FunctionEvaluator):
         super().__init__(
             function_name=FunctionEvalTypeId.EQUALS.value,
             function_arguments={
-                "expected_output": expected_response,
+                "expected_response": expected_response,
                 "case_sensitive": case_sensitive,
             },
         )
 
 class StartsWith(FunctionEvaluator):
-    def __init__(self, substring, case_sensitive=False):
+    def __init__(self, substring: str, case_sensitive: bool = False):
         """
         Initialize the StartsWith function evaluator.
 
@@ -214,7 +194,7 @@ class StartsWith(FunctionEvaluator):
         )
 
 class EndsWith(FunctionEvaluator):
-    def __init__(self, substring, case_sensitive=False):
+    def __init__(self, substring: str, case_sensitive:bool = False):
         """
         Initialize the EndsWith function evaluator.
 
@@ -231,7 +211,7 @@ class EndsWith(FunctionEvaluator):
         )
 
 class LengthLessThan(FunctionEvaluator):
-    def __init__(self, max_length):
+    def __init__(self, max_length: int):
         """
         Initialize the LengthLessThan function evaluator.
 
@@ -244,7 +224,7 @@ class LengthLessThan(FunctionEvaluator):
         )
 
 class LengthGreaterThan(FunctionEvaluator):
-    def __init__(self, min_length):
+    def __init__(self, min_length: int):
         """
         Initialize the LengthGreaterThan function evaluator.
 
@@ -257,7 +237,7 @@ class LengthGreaterThan(FunctionEvaluator):
         )
 
 class ApiCall(FunctionEvaluator):
-    def __init__(self, url, payload, headers=None):
+    def __init__(self, url: str, payload: dict, headers: dict=None):
         """
         Initialize the ApiCall function evaluator.
 
