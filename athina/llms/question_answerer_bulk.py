@@ -1,8 +1,11 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from athina.llms.openai_service import OpenAiService
+from athina.llms.abstract_llm_service import AbstractLlmService
 from .question_answerer import QuestionAnswerer
 
 class QuestionAnswererBulk(QuestionAnswerer):
+
+    _llm_service: AbstractLlmService
 
     """
     This class responds to a list of closed-ended (Y/N) questions based on a provided context.
@@ -27,12 +30,19 @@ class QuestionAnswererBulk(QuestionAnswerer):
             ...
     """
 
-    def __init__(self, model: str = "gpt-4-1106-preview"):
+    def __init__(
+        self, 
+        model: str = "gpt-4-1106-preview",
+        llm_service: Optional[AbstractLlmService] = None
+    ):
         """
         Initialize the QuestionAnswerer class.
         """
         self._model = model
-        self.openai_service = OpenAiService()
+        if llm_service is None:
+            self._llm_service = OpenAiService()
+        else:
+            self._llm_service = llm_service
 
     def answer(self, questions: List[str], context: str) -> Tuple[dict, dict]:
         """
@@ -47,7 +57,7 @@ class QuestionAnswererBulk(QuestionAnswerer):
         ]
 
         # Extract JSON object from LLM response
-        json_response = self.openai_service.json_completion(
+        json_response = self._llm_service.json_completion(
             model=self._model,
             messages=messages,
         )

@@ -1,9 +1,11 @@
-from typing import List
+from typing import List, Optional
+from athina.llms.abstract_llm_service import AbstractLlmService
 from athina.llms.openai_service import OpenAiService
 from athina.interfaces.model import Model
 
 class QuestionGenerator:
     _model: str
+    _llm_service: AbstractLlmService
 
     """
     Generates closed-ended (Yes/No) questions given a  text.
@@ -25,13 +27,22 @@ class QuestionGenerator:
         3. Return a JSON object in the following format: "question 1": 'Your question', "question 2": 'Your next question', ...
     """
 
-    def __init__(self, model: str, n_questions: int):
+    def __init__(
+        self, 
+        model: str,
+        n_questions: int,
+        llm_service: Optional[AbstractLlmService] = None
+    ):
         """
         Initialize the QuestionGenerator.
         """
         self._model = model
         self.n_questions = n_questions
-        self.openai_service = OpenAiService()
+        
+        if llm_service is None:
+            self._llm_service = OpenAiService()
+        else:
+            self._llm_service = llm_service
 
     def generate(self, text: str) -> List[str]:
         """
@@ -50,7 +61,7 @@ class QuestionGenerator:
         ]
 
         # Extract JSON object from LLM response
-        json_response = self.openai_service.json_completion(
+        json_response = self._llm_service.json_completion(
             model=self._model,
             messages=messages,
         )

@@ -1,4 +1,6 @@
 from typing import List, Optional
+
+from athina.llms.abstract_llm_service import AbstractLlmService
 from ..llm_evaluator import LlmEvaluator
 from athina.metrics.metric_type import MetricType
 from athina.evals.eval_type import LlmEvalTypeId
@@ -14,12 +16,14 @@ class GradingCriteria(LlmEvaluator):
     def __init__(self, 
         grading_criteria: str, 
         model: Optional[str] = None,
+        llm_service: Optional[AbstractLlmService] = None
     ):
         if grading_criteria is None:
             raise Exception("Eval is incorrectly configured: grading_criteria is required for GradingCriteria evaluator")
         super().__init__(
             model=model,
-            grading_criteria=grading_criteria
+            grading_criteria=grading_criteria,
+            llm_service=llm_service
         )
 
     @property

@@ -64,6 +64,6 @@ class ContextContainsEnoughInformation(LlmEvaluator):
     ) -> str:
         return self.USER_MESSAGE_TEMPLATE.format(
             query=query,
-            context='\n'.join(context),
+            context=context,
             examples=self.examples,
         )

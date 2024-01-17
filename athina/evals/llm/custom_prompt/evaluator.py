@@ -1,4 +1,6 @@
 from typing import List, Optional, Dict, Any
+
+from athina.llms.abstract_llm_service import AbstractLlmService
 from ..llm_evaluator import LlmEvaluator
 from athina.evals.eval_type import LlmEvalTypeId
 from ..example import FewShotExample
@@ -24,6 +26,7 @@ class CustomPrompt(LlmEvaluator):
         model: str = None,
         required_args: List[str] = [],
         examples: List[FewShotExample] = [],
+        llm_service: Optional[AbstractLlmService] = None,
         **kwargs
     ):
         if eval_prompt is None:
@@ -44,6 +47,7 @@ class CustomPrompt(LlmEvaluator):
             model=self._model,
             system_message_template=self._system_message_template,
             user_message_template=self._eval_prompt,
+            llm_service=llm_service,
             **kwargs
         )
 

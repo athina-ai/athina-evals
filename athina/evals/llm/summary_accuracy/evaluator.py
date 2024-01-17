@@ -3,6 +3,7 @@ import traceback
 from typing import List, Optional
 from athina.interfaces.model import Model
 from athina.interfaces.result import EvalResult
+from athina.llms.abstract_llm_service import AbstractLlmService
 from athina.loaders.summary_loader import SummaryDataPoint
 from athina.metrics.metric_type import MetricType
 from ..llm_evaluator import LlmEvaluator
@@ -17,6 +18,7 @@ class SummaryAccuracy(LlmEvaluator):
     This evaluator can be configured with custom examples and instructions.
     """
     questions: List[str] = []
+    _llm_service: AbstractLlmService
 
     def __init__(
         self,
@@ -24,6 +26,7 @@ class SummaryAccuracy(LlmEvaluator):
         n_questions: int = 10,
         model: str = "gpt-4-1106-preview",
         question_answerer: Optional[QuestionAnswerer] = None,
+        llm_service: Optional[AbstractLlmService] = None,
     ):
         """
         Initialize the evaluator with given parameters.
@@ -41,10 +44,15 @@ class SummaryAccuracy(LlmEvaluator):
         if questions is not None:
             self.questions = questions
         self.question_generator = QuestionGenerator(
-            self._model, n_questions
+            self._model,
+            n_questions,
+            llm_service=llm_service
         )
         if question_answerer is None:
-            self.question_answerer = QuestionAnswererBulk(model=self._model)
+            self.question_answerer = QuestionAnswererBulk(
+                model=self._model,
+                llm_service=llm_service
+            )
         else:
             self.question_answerer = question_answerer
         self.n_instances = 0

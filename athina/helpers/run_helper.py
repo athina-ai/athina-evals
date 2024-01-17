@@ -1,10 +1,11 @@
+import time
 import inspect
 from athina import evals
+from athina.errors.exceptions import NoOpenAiApiKeyException
 from athina.interfaces.model import Model
 from athina.helpers.config import ConfigHelper
 from athina.helpers.loader_helper import LoaderHelper
 from athina.keys import OpenAiApiKey, AthinaApiKey
-
 
 class RunHelper:
     @staticmethod
@@ -77,6 +78,8 @@ class RunHelper:
     @staticmethod
     def _set_keys():
         openai_api_key = ConfigHelper.load_openai_api_key()
+        if (openai_api_key is None):
+            raise NoOpenAiApiKeyException
         OpenAiApiKey.set_key(openai_api_key)
 
         athina_api_key = ConfigHelper.load_athina_api_key()
@@ -95,40 +98,50 @@ class RunHelper:
             # Handle invalid arguments, either by raising an exception or returning an error
             raise ValueError("Invalid arguments for the evaluation.")
 
-        # Retrieve the evaluation class based on eval_name
-        evaluator = RunHelper.get_evaluator(eval_name, model=model)
-
         # Run the evaluation
-        result = evaluator.run(**kwargs)
-
-        # Return or handle the result as needed
-        runtime = float(result["runtime"] / 1000)
-        print(f"Completed running eval {eval_name} on {model} in {runtime} seconds\n")
-        print(result)
-        return result
+        dataset = [kwargs]
+        return RunHelper.run_eval_on_dataset(eval_name, model, dataset)
 
     @staticmethod
     def run_eval_on_batch(eval_name, model, format, **kwargs):
-        """Runs an eval on a batch dataset"""
+        """Runs an eval on a batch dataset and outputs results in a user-friendly format"""
 
-        print(f"Running eval {eval_name} on dataset using {model}...\n")
         # Set the keys globally
         RunHelper._set_keys()
 
-        # TODO: Validate the arguments for the eval
-
-        # Get loader
+        # Load dataset
         loader = LoaderHelper.get_loader(eval_name)()
         dataset = loader.load(format, **kwargs)
+        
+        return RunHelper.run_eval_on_dataset(eval_name, model, dataset)
 
-        # Retrieve the evaluation class based on eval_name
+    @staticmethod
+    def run_eval_on_dataset(eval_name, model, dataset, **kwargs):
+        # Retrieve evaluator
         evaluator = RunHelper.get_evaluator(eval_name, model=model)
 
-        # Run the batch evaluation
-        result = evaluator.run_batch(data=dataset)
+        # Run batch evaluation and measure time
+        start = time.perf_counter()
+        result = evaluator.run_batch(data=dataset, max_parallel_evals=5)
+        end = time.perf_counter()
+        runtime = end - start
 
-        # Return or handle the result as needed
-        runtime = float(result["runtime"] / 1000)
-        print(f"Completed running eval {eval_name} on {model} in {runtime} seconds\n")
-        print(result)
+        # Output formatting
+        print(f"\nEvaluation: {eval_name}")
+        print(f"Model: {model}")
+        print(f"Runtime: {runtime // 60} minutes and {runtime % 60:.2f} seconds\n")
+
+        # Error handling and output
+        print("\nResults:")
+        for eval_result in result.eval_results:
+            pass_fail_text = "❌ FAILED" if eval_result["failure"] else "✅ PASSED"
+            
+            # Printing data with structured formatting
+            print(f"\n{'————' * 8}")
+            print(f"\nData: {eval_result['data']}\n")
+            print(f"{pass_fail_text}\n")
+            print(f"Reason: {eval_result['reason']}\n")
+            print(f"Metrics: {eval_result['metrics']}")
+
         return result
+
