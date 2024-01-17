@@ -39,7 +39,7 @@ class RagasContextRelevancy(RagasEvaluator):
 
     @property
     def required_args(self):
-        return ["query", "context"]
+        return ["query", "contexts"]
 
     @property
     def examples(self):
@@ -49,16 +49,16 @@ class RagasContextRelevancy(RagasEvaluator):
     def grade_reason(self) -> str:
         return "This metric is calulated by dividing the number of sentences in context that are relevant for answering the given query by the total number of sentences in the retrieved context"
     
-    def generate_data_to_evaluate(self, context, query, **kwargs) -> dict:
+    def generate_data_to_evaluate(self, contexts, query, **kwargs) -> dict:
         """
         Generates data for evaluation.
 
-        :param context: context.
-        :param query: query.
-        :return: A dictionary with formatted data for evaluation.
+        :param context: list of strings of retrieved context
+        :param query: user query
+        :return: A dictionary with formatted data for evaluation
         """
         data = {
-            "contexts": [[str(context)]],
+            "contexts": [contexts],
             "question": [query]
         }
         return data

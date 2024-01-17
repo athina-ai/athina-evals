@@ -1,9 +1,9 @@
 from .metric import Metric
 
 
-class RagasAnswerRelevancy(Metric):
+class RagasMetric(Metric):
     """
-    Float metric indicating the ragas answer relevancy metric score.
+    Float ragas metric
     """
 
     @staticmethod

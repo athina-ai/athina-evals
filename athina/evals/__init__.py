@@ -12,6 +12,10 @@ from athina.evals.llm.custom_prompt.evaluator import CustomPrompt
 from athina.evals.llm.summary_accuracy.evaluator import SummaryAccuracy
 from athina.evals.ragas.context_relevancy.evaluator import RagasContextRelevancy
 from athina.evals.ragas.answer_relevancy.evaluator import RagasAnswerRelevancy
+from athina.evals.ragas.context_precision.evaluator import RagasContextPrecision
+from athina.evals.ragas.faithfulness.evaluator import RagasFaithfulness
+from athina.evals.ragas.context_recall.evaluator import RagasContextRecall
+from athina.evals.ragas.answer_semantic_similarity.evaluator import RagasAnswerSemanticSimilarity
 from athina.evals.function.function_evaluator import FunctionEvaluator
 from athina.evals.llm.llm_evaluator import LlmEvaluator
 from athina.evals.function.wrapper import ContainsAny
@@ -25,7 +29,11 @@ __all__ = [
     "ContextContainsEnoughInformation",
     "Faithfulness",
     "RagasContextRelevancy",
-    "RagasAnswerRelevancy"
+    "RagasAnswerRelevancy",
+    "RagasContextPrecision",
+    "RagasFaithfulness",
+    "RagasContextRecall",
+    "RagasAnswerSemanticSimilarity",
     "FunctionEvaluator",
     "GradingCriteria",
     "CustomPrompt",
