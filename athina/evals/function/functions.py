@@ -378,12 +378,12 @@ def api_call(
         "reason": reason,
     }
 
-def equals(expected_output, response, case_sensitive=False):
+def equals(expected_response, response, case_sensitive=False):
     """
-    Check if the response exactly matches the expected output.
+    Check if the response exactly matches the expected response.
 
     Args:
-        expected_output (str): The expected output to compare against.
+        expected_response (str): The expected response to compare against.
         response (str): The response to compare with the expected output.
         case_sensitive (bool, optional): If True, the comparison is case-sensitive. Defaults to False.
 
@@ -392,13 +392,13 @@ def equals(expected_output, response, case_sensitive=False):
     """
     if case_sensitive == False:
         response = response.lower()
-        expected_output = expected_output.lower()
-    if response == expected_output:
+        expected_response = expected_response.lower()
+    if response == expected_response:
         result = True
-        reason = "✅ output exactly matches expected output"
+        reason = "✅ output exactly matches expected response"
     else:
         result = False
-        reason = "output does not exactly match expected output"
+        reason = "output does not exactly match expected response"
     return {"result": result, "reason": reason}
 
 def starts_with(substring, response, case_sensitive=False):
