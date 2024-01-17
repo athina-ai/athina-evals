@@ -176,7 +176,6 @@ def contains_json(response):
         results = []
         errors = []
         for potential_json_string in matches:
-            print(potential_json_string)
             try:
                 parsed_json = json.loads(potential_json_string)
                 results.append({"json": parsed_json, "valid": True})
