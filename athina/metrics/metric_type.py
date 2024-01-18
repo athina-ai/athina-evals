@@ -15,6 +15,7 @@ class MetricType(Enum):
     RAGAS_ANSWER_RELEVANCY = "ragas_answer_relevancy"
     RAGAS_FAITHFULNESS = "ragas_faithfulness"
     RAGAS_HARMFULNESS = "ragas_harmfulness"
+    RAGAS_MALICIOUSNESS = "ragas_maliciousness"
     RAGAS_CONTEXT_RECALL = "ragas_context_recall"
     RAGAS_ANSWER_SEMANTIC_SIMILARITY = "ragas_answer_semantic_similarity"
     RAGAS_ANSWER_CORRECTNESS = "ragas_answer_correctness"
