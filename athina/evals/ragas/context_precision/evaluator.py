@@ -49,7 +49,7 @@ class RagasContextPrecision(RagasEvaluator):
     
     @property
     def grade_reason(self) -> str:
-        return "This metric evaluates whether all of the ground-truth relevant items present in the context are ranked higher or not. Ideally all the relevant chunks must appear at the top ranks."
+        return "This metric evaluates whether all of the ground-truth relevant items present in the context are ranked higher or not. Ideally all the relevant chunks must appear at the top ranks"
     
     def generate_data_to_evaluate(self, contexts, query, expected_response, **kwargs) -> dict:
         """

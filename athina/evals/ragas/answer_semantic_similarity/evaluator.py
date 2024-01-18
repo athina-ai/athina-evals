@@ -47,7 +47,7 @@ class RagasAnswerSemanticSimilarity(RagasEvaluator):
     
     @property
     def grade_reason(self) -> str:
-        return "Answer Semantic Similarity pertains to the assessment of the semantic resemblance between the generated response and the ground truth. This evaluation is based on the ground truth and the response, with values falling within the range of 0 to 1. A higher score signifies a better alignment between the generated response and the ground truth."
+        return "Answer Semantic Similarity pertains to the assessment of the semantic resemblance between the generated response and the ground truth. This evaluation is based on the ground truth and the response, with values falling within the range of 0 to 1. A higher score signifies a better alignment between the generated response and the ground truth"
     
     def generate_data_to_evaluate(self, response, expected_response, **kwargs) -> dict:
         """

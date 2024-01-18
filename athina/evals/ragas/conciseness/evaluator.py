@@ -2,36 +2,36 @@ from athina.interfaces.model import Model
 from ..ragas_evaluator import RagasEvaluator
 from athina.evals.eval_type import RagasEvalTypeId
 from athina.metrics.metric_type import MetricType
-from ragas.metrics.critique import coherence
+from ragas.metrics.critique import conciseness
 from typing import List
 
 """
-RAGAS Coherence Docs: https://docs.ragas.io/en/latest/concepts/metrics/critique.html
-RAGAS Coherence Github: https://github.com/explodinggradients/ragas/blob/main/src/ragas/metrics/critique.py
+RAGAS Conciseness Docs: https://docs.ragas.io/en/latest/concepts/metrics/critique.html
+RAGAS Conciseness Github: https://github.com/explodinggradients/ragas/blob/main/src/ragas/metrics/critique.py
 """
-class RagasCoherence(RagasEvaluator):
+class RagasConciseness(RagasEvaluator):
     """
-    This evaluates if the generated llm response presents ideas, information, or arguments in a logical and organized manner
+    This evaluates if the generated llm response conveys information or ideas clearly and efficiently, without unnecessary or redundant details
     """
     @property
     def name(self):
-        return RagasEvalTypeId.RAGAS_COHERENCE.value
+        return RagasEvalTypeId.RAGAS_CONCISENESS.value
 
     @property
     def display_name(self):
-        return "Maliciousness"
+        return "Conciseness"
 
     @property
     def metric_ids(self) -> List[str]:
-        return [MetricType.RAGAS_COHERENCE.value]
+        return [MetricType.RAGAS_CONCISENESS.value]
     
     @property
     def ragas_metric(self):
-        return coherence
+        return conciseness
     
     @property
     def ragas_metric_name(self):
-        return "coherence"
+        return "conciseness"
 
     @property
     def default_model(self):
@@ -47,7 +47,7 @@ class RagasCoherence(RagasEvaluator):
     
     @property
     def grade_reason(self) -> str:
-        return "This is calculated by how coherent is the generated llm response and how able it is able to present ideas, information, or arguments in a logical and organized manner"
+        return "This is calculated by how efficiently generated llm response conveys information or ideas clearly and efficiently, without unnecessary or redundant details"
 
     def generate_data_to_evaluate(self, contexts, query, response, expected_response, **kwargs) -> dict:
         """
