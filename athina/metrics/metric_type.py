@@ -16,6 +16,7 @@ class MetricType(Enum):
     RAGAS_FAITHFULNESS = "ragas_faithfulness"
     RAGAS_CONTEXT_RECALL = "ragas_context_recall"
     RAGAS_ANSWER_SEMANTIC_SIMILARITY = "ragas_answer_semantic_similarity"
+    RAGAS_ANSWER_CORRECTNESS = "ragas_answer_correctness"
     PASSED = 'passed'
 
     @staticmethod
@@ -34,7 +35,8 @@ class MetricType(Enum):
                 metric_type == MetricType.RAGAS_ANSWER_RELEVANCY.value or 
                 metric_type == MetricType.RAGAS_FAITHFULNESS.value or 
                 metric_type == MetricType.RAGAS_CONTEXT_RECALL.value or 
-                metric_type == MetricType.RAGAS_ANSWER_SEMANTIC_SIMILARITY.value):
+                metric_type == MetricType.RAGAS_ANSWER_SEMANTIC_SIMILARITY.value or
+                metric_type == MetricType.RAGAS_ANSWER_CORRECTNESS.value):
             return RagasMetric
         elif metric_type == MetricType.PASSED.value:
             return Passed

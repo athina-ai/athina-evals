@@ -48,6 +48,7 @@ class RagasContextRecall(RagasEvaluator):
     @property
     def grade_reason(self) -> str:
         return "Context Recall metric is calculated by dividing the number of sentences in the ground truth that can be attributed to retrieved context by the total number of sentences in the grouund truth"
+    
     def generate_data_to_evaluate(self, contexts, query, expected_response, **kwargs) -> dict:
         """
         Generates data for evaluation.

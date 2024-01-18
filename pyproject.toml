@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "athina"
-version = "0.1.9"
+version = "0.2.0"
 description = "Python SDK to configure and run evaluations for your LLM-based application"
-authors = ["Shiv Sakhuja <shiv@athina.ai>"]
+authors = ["Shiv Sakhuja <shiv@athina.ai>", "Akshat Gupta <akshat@athina.ai>", "Vivek Aditya <vivek@athina.ai>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
