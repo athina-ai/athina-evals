@@ -19,6 +19,7 @@ class RagasEvalTypeId(Enum):
     RAGAS_ANSWER_CORRECTNESS = "RagasAnswerCorrectness"
     RAGAS_HARMFULNESS = "RagasHarmfulness"
     RAGAS_MALICIOUSNESS = "RagasMaliciousness"
+    RAGAS_COHERENCE = "RagasCoherence"
 
 class FunctionEvalTypeId(Enum):
     REGEX = "Regex"
