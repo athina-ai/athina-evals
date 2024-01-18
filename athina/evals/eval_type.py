@@ -17,6 +17,7 @@ class RagasEvalTypeId(Enum):
     RAGAS_CONTEXT_RECALL = "RagasContextRecall"
     RAGAS_ANSWER_SEMANTIC_SIMILARITY = "RagasAnswerSemanticSimilarity"
     RAGAS_ANSWER_CORRECTNESS = "RagasAnswerCorrectness"
+    RAGAS_HARMFULNESS = "RagasHarmfulness"
 
 class FunctionEvalTypeId(Enum):
     REGEX = "Regex"

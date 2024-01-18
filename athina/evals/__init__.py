@@ -17,6 +17,7 @@ from athina.evals.ragas.faithfulness.evaluator import RagasFaithfulness
 from athina.evals.ragas.context_recall.evaluator import RagasContextRecall
 from athina.evals.ragas.answer_semantic_similarity.evaluator import RagasAnswerSemanticSimilarity
 from athina.evals.ragas.answer_correctness.evaluator import RagasAnswerCorrectness
+from athina.evals.ragas.harmfulness.evaluator import RagasHarmfulness
 from athina.evals.function.function_evaluator import FunctionEvaluator
 from athina.evals.llm.llm_evaluator import LlmEvaluator
 from athina.evals.function.wrapper import ContainsAny, Regex, ContainsAll, Contains, ContainsNone, ContainsJson, ContainsEmail, IsJson, IsEmail, NoInvalidLinks, ContainsLink, ContainsValidLink, Equals, StartsWith, EndsWith, LengthLessThan, LengthGreaterThan, ApiCall
@@ -35,6 +36,7 @@ __all__ = [
     "RagasContextRecall",
     "RagasAnswerSemanticSimilarity",
     "RagasAnswerCorrectness",
+    "RagasHarmfulness",
     "FunctionEvaluator",
     "GradingCriteria",
     "CustomPrompt",
