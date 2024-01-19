@@ -1,4 +1,6 @@
 from enum import Enum
+
+from athina.metrics.groundedness import GroundednessScore
 from .agreement_score import AgreementScore
 from .hallucination_score import HallucinationScore
 from .contradiction_score import ContradictionScore
@@ -13,6 +15,7 @@ class MetricType(Enum):
     CONTRADICTION_SCORE = "contradiction_score"
     RAGAS_CONTEXT_RELEVANCY = "ragas_context_relevancy"
     RAGAS_ANSWER_RELEVANCY = "ragas_answer_relevancy"
+    GROUNDEDNESS = "groundedness"
     PASSED = 'passed'
 
     @staticmethod
@@ -22,6 +25,8 @@ class MetricType(Enum):
         """
         if metric_type == MetricType.AGREEMENT_SCORE.value:
             return AgreementScore
+        if metric_type == MetricType.AGREEMENT_SCORE.value:
+            return GroundednessScore
         elif metric_type == MetricType.HALLUCINATION_SCORE.value:
             return HallucinationScore
         elif metric_type == MetricType.CONTRADICTION_SCORE.value:
