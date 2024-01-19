@@ -25,7 +25,7 @@ class MetricType(Enum):
         """
         if metric_type == MetricType.AGREEMENT_SCORE.value:
             return AgreementScore
-        if metric_type == MetricType.AGREEMENT_SCORE.value:
+        if metric_type == MetricType.GROUNDEDNESS.value:
             return GroundednessScore
         elif metric_type == MetricType.HALLUCINATION_SCORE.value:
             return HallucinationScore

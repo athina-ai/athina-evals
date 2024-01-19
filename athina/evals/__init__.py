@@ -28,6 +28,7 @@ __all__ = [
     "RagasAnswerRelevancy",
     "FunctionEvaluator",
     "GradingCriteria",
+    "Groundedness",
     "CustomPrompt",
     "ContainsAny",
     "Regex",
