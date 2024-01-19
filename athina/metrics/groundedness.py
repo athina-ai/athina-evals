@@ -22,6 +22,7 @@ class GroundednessScore(ABC):
             supported_evidence_for_sentence = sentence.get('supporting_evidence', [])
             if len(supported_evidence_for_sentence) != 0:
                 supported_sentences += 1
+            else:
                 unsupported_sentences.append(sentence.get('sentence'))
         score = supported_sentences / total_sentences
         precision = 4

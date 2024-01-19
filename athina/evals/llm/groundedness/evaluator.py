@@ -49,7 +49,8 @@ class Groundedness(LlmEvaluator):
     
     def reason(self, unsupported_sentences: List[str]) -> str:
         if (len(unsupported_sentences) > 0):
-            return f"The following sentences don't have any supporting evidence: {'\n-'.join(unsupported_sentences)}"
+            unsupported_sentences_str = "\n- ".join(unsupported_sentences)
+            return f"The following sentences don't have any supporting evidence:\n- {unsupported_sentences_str}"
         else:
             return f"All sentences have sufficient supporting evidence. The answer is grounded."
 
