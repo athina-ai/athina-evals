@@ -254,3 +254,16 @@ class ApiCall(FunctionEvaluator):
                 "headers": headers,
             },
         )
+
+class AnswerSimilarity(FunctionEvaluator):
+    def __init__(self, min_length: int):
+        """
+        Initialize the grounded evaluator with a particular compare function.
+
+        Args:
+            min_length (int): The minimum length that the response should have.
+        """
+        super().__init__(
+            function_name=FunctionEvalTypeId.LENGTH_GREATER_THAN.value,
+            function_arguments={"min_length": min_length, },
+        )
