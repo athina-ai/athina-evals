@@ -64,7 +64,7 @@ class AthinaLoggingHelper:
 
             for eval_result in eval_results:
                 # Construct eval result object
-                failed_percent = float(eval_result.get("failure", 0.0))
+                failed_percent = float(eval_result.get("failure")) if "failure" in eval_result else None
                 metrics = eval_result.get("metrics", [])
                 athina_eval_result = AthinaEvalResult(
                     job_type=AthinaJobType.LLM_EVAL.value,
