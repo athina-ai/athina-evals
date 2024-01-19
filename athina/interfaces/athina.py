@@ -3,7 +3,7 @@ from enum import Enum
 from dataclasses import dataclass, asdict
 from typing import Optional, Dict, List, TypedDict, Any
 from .openai import OpenAiPromptMessage
-from .result import EvalResultMetric
+from .result import EvalResultMetric, ResponseAnnotation
 
 
 @dataclass
@@ -34,6 +34,7 @@ class AthinaEvalRunResult(TypedDict):
     failed: Optional[bool]
     runtime: float
     reason: str
+    response_annotations: Optional[List[ResponseAnnotation]]
 
 
 class AthinaEvalResult(TypedDict):
