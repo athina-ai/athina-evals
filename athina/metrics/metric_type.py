@@ -46,8 +46,8 @@ class MetricType(Enum):
                 metric_type == MetricType.RAGAS_CONTEXT_RECALL.value or 
                 metric_type == MetricType.RAGAS_ANSWER_SEMANTIC_SIMILARITY.value or
                 metric_type == MetricType.RAGAS_ANSWER_CORRECTNESS.value or
-                metric_type == MetricType.RAGAS_HARMFULNESS or
-                metric_type == MetricType.RAGAS_COHERENCE):
+                metric_type == MetricType.RAGAS_HARMFULNESS.value or
+                metric_type == MetricType.RAGAS_COHERENCE.value):
             return RagasMetric
         elif metric_type == MetricType.PASSED.value:
             return Passed
