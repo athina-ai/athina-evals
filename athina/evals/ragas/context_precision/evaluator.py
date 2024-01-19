@@ -21,7 +21,7 @@ class RagasContextPrecision(RagasEvaluator):
 
     @property
     def display_name(self):
-        return "Context Precision"
+        return "Ragas Context Precision"
 
     @property
     def metric_ids(self) -> List[str]:

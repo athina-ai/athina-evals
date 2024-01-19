@@ -19,7 +19,7 @@ class RagasConciseness(RagasEvaluator):
 
     @property
     def display_name(self):
-        return "Conciseness"
+        return "Ragas Conciseness"
 
     @property
     def metric_ids(self) -> List[str]:

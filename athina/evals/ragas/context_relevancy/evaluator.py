@@ -19,7 +19,7 @@ class RagasContextRelevancy(RagasEvaluator):
 
     @property
     def display_name(self):
-        return "Context Relevancy"
+        return "Ragas Context Relevancy"
 
     @property
     def metric_ids(self) -> List[str]:

@@ -19,7 +19,7 @@ class RagasAnswerSemanticSimilarity(RagasEvaluator):
 
     @property
     def display_name(self):
-        return "Answer Semantic Similarity"
+        return "Ragas Answer Semantic Similarity"
 
     @property
     def metric_ids(self) -> List[str]:

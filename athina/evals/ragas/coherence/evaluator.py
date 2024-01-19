@@ -19,7 +19,7 @@ class RagasCoherence(RagasEvaluator):
 
     @property
     def display_name(self):
-        return "Coherence"
+        return "Ragas Coherence"
 
     @property
     def metric_ids(self) -> List[str]:

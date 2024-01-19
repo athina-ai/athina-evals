@@ -19,7 +19,7 @@ class RagasMaliciousness(RagasEvaluator):
 
     @property
     def display_name(self):
-        return "Maliciousness"
+        return "Ragas Maliciousness"
 
     @property
     def metric_ids(self) -> List[str]:
