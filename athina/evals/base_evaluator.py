@@ -138,7 +138,7 @@ class BaseEvaluator(ABC):
                 yield None
 
     def run_batch(
-        self, data: List[DataPoint], max_parallel_evals: int = 1
+        self, data: List[DataPoint], max_parallel_evals: int = 5
     ) -> BatchRunResult:
         """
         Runs the evaluator on a batch of data.

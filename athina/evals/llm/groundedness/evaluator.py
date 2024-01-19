@@ -107,7 +107,6 @@ class Groundedness(LlmEvaluator):
             metrics.append(EvalResultMetric(id=MetricType.GROUNDEDNESS.value, value=groundedness_score))
             reason = self.reason(unsupported_sentences)
             response_annotations = self.response_annotations(supported_sentences_with_evidence, unsupported_sentences)
-            print("response_annotations: ", response_annotations)
 
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
