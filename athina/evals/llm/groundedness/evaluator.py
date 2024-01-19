@@ -1,7 +1,10 @@
 import time
 from typing import List, Tuple
 
-from athina.interfaces.result import EvalResult, EvalResultMetric, ResponseAnnotation
+from attr import field
+from pydantic import field_serializer
+
+from athina.interfaces.result import EvalResult, EvalResultMetric, DatapointFieldAnnotation
 from athina.metrics.groundedness import GroundednessScore
 from athina.helpers.logger import logger
 from ....metrics.metric_type import MetricType
@@ -54,27 +57,29 @@ class Groundedness(LlmEvaluator):
         else:
             return f"All sentences have sufficient supporting evidence in the context. The answer is grounded."
 
-    def response_annotations(
+    def datapoint_field_annotations(
         self, 
         supported_sentences_with_evidence: List[Tuple[str, List[str]]],
         unsupported_sentences: List[str]
-    ) -> List[ResponseAnnotation]:
-        response_annotations = []
+    ) -> List[DatapointFieldAnnotation]:
+        datapoint_field_annotations = []
         for sentence, evidence in supported_sentences_with_evidence:
             evidences_str = "\n- ".join(evidence)
-            response_annotations.append(ResponseAnnotation(
-                response_text=sentence,
+            datapoint_field_annotations.append(DatapointFieldAnnotation(
+                field_name="response",
+                text=sentence,
                 annotation_type="pass",
                 annotation_note=f"Supporting evidence:\n- {evidences_str}"
             ))
         for sentence in unsupported_sentences:
-            response_annotations.append(ResponseAnnotation(
-                response_text=sentence,
+            datapoint_field_annotations.append(DatapointFieldAnnotation(
+                field_name="response",
+                text=sentence,
                 annotation_type="fail",
                 annotation_note="Not supported by any evidence in the context."
             ))
         
-        return response_annotations
+        return datapoint_field_annotations
         
 
     def _evaluate(self, **kwargs) -> EvalResult:
@@ -106,7 +111,7 @@ class Groundedness(LlmEvaluator):
             failure = groundedness_score < self._failure_threshold
             metrics.append(EvalResultMetric(id=MetricType.GROUNDEDNESS.value, value=groundedness_score))
             reason = self.reason(unsupported_sentences)
-            response_annotations = self.response_annotations(supported_sentences_with_evidence, unsupported_sentences)
+            datapoint_field_annotations = self.datapoint_field_annotations(supported_sentences_with_evidence, unsupported_sentences)
 
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
@@ -123,7 +128,7 @@ class Groundedness(LlmEvaluator):
             runtime=eval_runtime_ms,
             model=self._model,
             metrics=metrics,
-            response_annotations=response_annotations,
+            datapoint_field_annotations=datapoint_field_annotations,
         )
         return {k: v for k, v in llm_eval_result.items() if v is not None}
     
