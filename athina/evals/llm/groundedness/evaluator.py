@@ -1,7 +1,7 @@
 import time
-from typing import List
+from typing import List, Tuple
 
-from athina.interfaces.result import EvalResult, EvalResultMetric
+from athina.interfaces.result import EvalResult, EvalResultMetric, ResponseAnnotation
 from athina.metrics.groundedness import GroundednessScore
 from athina.helpers.logger import logger
 from ....metrics.metric_type import MetricType
@@ -50,9 +50,32 @@ class Groundedness(LlmEvaluator):
     def reason(self, unsupported_sentences: List[str]) -> str:
         if (len(unsupported_sentences) > 0):
             unsupported_sentences_str = "\n- ".join(unsupported_sentences)
-            return f"The following sentences don't have any supporting evidence:\n- {unsupported_sentences_str}"
+            return f"The following sentences don't have sufficient supporting evidence in the context:\n- {unsupported_sentences_str}"
         else:
-            return f"All sentences have sufficient supporting evidence. The answer is grounded."
+            return f"All sentences have sufficient supporting evidence in the context. The answer is grounded."
+
+    def response_annotations(
+        self, 
+        supported_sentences_with_evidence: List[Tuple[str, List[str]]],
+        unsupported_sentences: List[str]
+    ) -> List[ResponseAnnotation]:
+        response_annotations = []
+        for sentence, evidence in supported_sentences_with_evidence:
+            evidences_str = "\n- ".join(evidence)
+            response_annotations.append(ResponseAnnotation(
+                response_text=sentence,
+                annotation_type="pass",
+                annotation_note=f"Supporting evidence:\n- {evidences_str}"
+            ))
+        for sentence in unsupported_sentences:
+            response_annotations.append(ResponseAnnotation(
+                response_text=sentence,
+                annotation_type="fail",
+                annotation_note="Not supported by any evidence in the context."
+            ))
+        
+        return response_annotations
+        
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
@@ -79,9 +102,12 @@ class Groundedness(LlmEvaluator):
             groundedness_score_with_reason = GroundednessScore.compute(explanation)
             groundedness_score = groundedness_score_with_reason[0]
             unsupported_sentences = groundedness_score_with_reason[1]
+            supported_sentences_with_evidence = groundedness_score_with_reason[2] # list of (sentices, evidence) pairs
             failure = groundedness_score < self._failure_threshold
             metrics.append(EvalResultMetric(id=MetricType.GROUNDEDNESS.value, value=groundedness_score))
             reason = self.reason(unsupported_sentences)
+            response_annotations = self.response_annotations(supported_sentences_with_evidence, unsupported_sentences)
+            print("response_annotations: ", response_annotations)
 
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
@@ -98,6 +124,7 @@ class Groundedness(LlmEvaluator):
             runtime=eval_runtime_ms,
             model=self._model,
             metrics=metrics,
+            response_annotations=response_annotations,
         )
         return {k: v for k, v in llm_eval_result.items() if v is not None}
     

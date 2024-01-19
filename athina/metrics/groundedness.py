@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, TypedDict
+from typing import List, TypedDict, Tuple
 
 class GroundednessEvidence(TypedDict):
     sentence: str
@@ -15,17 +15,19 @@ class GroundednessScore(ABC):
         """
         Computes the metric.
         """
-        supported_sentences = 0
         total_sentences = len(sentences_with_evidence)
-        unsupported_sentences: List[str] = []
-        for sentence in sentences_with_evidence:
-            supported_evidence_for_sentence = sentence.get('supporting_evidence', [])
+        unsupported_sentences: List[str] = [] # List of unsupported sentences
+        supported_sentences: List[Tuple[str, List[str]]] = [] # List of (sentence, evidences) pairs
+        for sentence_with_evidence in sentences_with_evidence:
+            sentence_str = sentence_with_evidence.get('sentence')
+            supported_evidence_for_sentence = sentence_with_evidence.get('supporting_evidence', [])
             if len(supported_evidence_for_sentence) != 0:
-                supported_sentences += 1
+                supported_sentences.append((sentence_str, supported_evidence_for_sentence))
             else:
-                unsupported_sentences.append(sentence.get('sentence'))
-        score = supported_sentences / total_sentences
+                unsupported_sentences.append(sentence_str)
+        num_supported_sentences = len(supported_sentences)
+        score = num_supported_sentences / total_sentences
         precision = 4
         score = round(score, precision)
-        return score, unsupported_sentences
+        return score, unsupported_sentences, supported_sentences
             
