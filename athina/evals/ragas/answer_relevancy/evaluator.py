@@ -19,7 +19,7 @@ class RagasAnswerRelevancy(RagasEvaluator):
 
     @property
     def display_name(self):
-        return "Answer Relevancy"
+        return "Ragas Answer Relevancy"
 
     @property
     def metric_ids(self) -> List[str]:
@@ -39,27 +39,27 @@ class RagasAnswerRelevancy(RagasEvaluator):
 
     @property
     def required_args(self):
-        return ["query", "context", "response"]
+        return ["query", "contexts", "response"]
+
+    @property
+    def examples(self):
+        return None
     
     @property
     def grade_reason(self) -> str:
         return "A response is deemed relevant when it directly and appropriately addresses the original query. Importantly, our assessment of answer relevance does not consider factuality but instead penalizes cases where the response lacks completeness or contains redundant details"
     
-    @property
-    def examples(self):
-        return None
-    
-    def generate_data_to_evaluate(self, query, context, response,  **kwargs) -> dict:
+    def generate_data_to_evaluate(self, query, contexts, response, **kwargs) -> dict:
         """
         Generates data for evaluation.
 
-        :param context: context.
-        :param query: query.
+        :param contexts: list of strings of retrieved context
+        :param query: user query
         :param response: llm response
-        :return: A dictionary with formatted data for evaluation.
+        :return: A dictionary with formatted data for evaluation
         """
         data = {
-            "contexts": [[str(context)]],
+            "contexts": [contexts],
             "question": [query],
             "answer": [response]
         }
