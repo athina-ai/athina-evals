@@ -12,6 +12,14 @@ class EvalResultMetric(TypedDict):
     id: str
     value: float
 
+class ResponseAnnotation(TypedDict):
+    """
+    Represents the LLM evaluation response annotation.
+    """
+
+    response_text: str
+    annotation_type: str
+    annotation_note: str
 
 class EvalResult(TypedDict):
     """
@@ -26,6 +34,7 @@ class EvalResult(TypedDict):
     runtime: int
     model: Optional[str]
     metrics: List[EvalResultMetric]
+    response_annotations: Optional[List[ResponseAnnotation]]
 
 @dataclass
 class BatchRunResult:

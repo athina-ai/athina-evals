@@ -10,6 +10,7 @@ from athina.evals.llm.faithfulness.evaluator import Faithfulness
 from athina.evals.llm.grading_criteria.evaluator import GradingCriteria
 from athina.evals.llm.custom_prompt.evaluator import CustomPrompt
 from athina.evals.llm.summary_accuracy.evaluator import SummaryAccuracy
+from athina.evals.llm.groundedness.evaluator  import Groundedness
 from athina.evals.ragas.context_relevancy.evaluator import RagasContextRelevancy
 from athina.evals.ragas.answer_relevancy.evaluator import RagasAnswerRelevancy
 from athina.evals.ragas.context_precision.evaluator import RagasContextPrecision
@@ -45,6 +46,7 @@ __all__ = [
     "RagasConciseness",
     "FunctionEvaluator",
     "GradingCriteria",
+    "Groundedness",
     "CustomPrompt",
     "ContainsAny",
     "Regex",
