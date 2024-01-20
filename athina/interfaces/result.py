@@ -12,6 +12,15 @@ class EvalResultMetric(TypedDict):
     id: str
     value: float
 
+class DatapointFieldAnnotation(TypedDict):
+    """
+    The annotations to be logged for the datapoint field.
+    """
+
+    field_name: str
+    text: str
+    annotation_type: str
+    annotation_note: str
 
 class EvalResult(TypedDict):
     """
@@ -26,6 +35,7 @@ class EvalResult(TypedDict):
     runtime: int
     model: Optional[str]
     metrics: List[EvalResultMetric]
+    datapoint_field_annotations: Optional[List[DatapointFieldAnnotation]]
 
 @dataclass
 class BatchRunResult:

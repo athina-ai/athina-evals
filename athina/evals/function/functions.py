@@ -20,6 +20,31 @@ def _standardize_url(url):
     else:
         return "http://" + url
 
+def _preprocess_strings(keywords, response, case_sensitive):
+    """
+    Preprocess the keywords based on the case_sensitive flag.
+
+    Args:
+        keywords (str or List[str]): The keyword(s) to preprocess.
+        case_sensitive (bool): Whether the preprocessing should be case-sensitive.
+
+    Returns:
+        List[str]: The preprocessed keywords.
+    """
+    # If keywords is a string, convert it to a list
+    if isinstance(keywords, str):
+        keywords = [keywords]
+
+    # Strip leading and spaces from the keywords
+    keywords = list(map(lambda k: k.strip(), keywords))
+
+    # If case_sensitive is False, convert all keywords and response to lowercase
+    if not case_sensitive:
+        keywords = [keyword.lower() for keyword in keywords]
+        response = response.lower()
+
+    return keywords, response
+
 def regex(pattern, response):
     """
     Perform a regex search on the response and return a dictionary indicating whether the pattern was found.
@@ -52,13 +77,7 @@ def contains_any(keywords, response, case_sensitive=False):
     Returns:
         dict: A dictionary containing the result of the search and the reason for the result.
     """
-    if isinstance(keywords, str):
-        keywords = keywords.split(",")
-    keywords = list(map(lambda k: k.strip(), keywords))
-    if not case_sensitive:
-        response = response.lower()
-        keywords = list(map(lambda k: k.lower(), keywords))
-
+    keywords, response = _preprocess_strings(keywords, response, case_sensitive)
     found_keywords = []
     for keyword in keywords:
         if keyword in response:
@@ -87,9 +106,7 @@ def contains_all(keywords, response, case_sensitive=False):
     Returns:
         dict: A dictionary containing the result of the keyword search and the reason for the result.
     """
-    if case_sensitive == False:
-        response = response.lower()
-        keywords = list(map(lambda k: k.lower(), keywords))
+    keywords, response = _preprocess_strings(keywords, response, case_sensitive)
     missing_keywords = []
     for keyword in keywords:
         if keyword not in response:
@@ -140,10 +157,7 @@ def contains_none(keywords, response, case_sensitive=False):
     Returns:
         dict: A dictionary containing the result of the check and the reason for the result.
     """
-    if not case_sensitive:
-        response = response.lower()
-        keywords = list(map(lambda k: k.lower(), keywords))
-
+    keywords, response = _preprocess_strings(keywords, response, case_sensitive)
     found_keywords = []
     for keyword in keywords:
         if keyword in response:

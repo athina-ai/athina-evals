@@ -45,7 +45,6 @@ class RagLoader(Loader):
 
         Raises:
             KeyError: If mandatory columns (query, context or response) are missing in the raw dataset.
-            TypeError: If context is not a list of strings.
         """
         for raw_instance in self._raw_dataset:
             # Check for mandatory columns in raw_instance

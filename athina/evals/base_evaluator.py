@@ -74,11 +74,11 @@ class BaseEvaluator(ABC):
         Run the LLM evaluator, and log results to Athina.
         """
         # Log usage to Athina for analytics
-        AthinaApiService.log_usage(eval_name=self.name, run_type="single")
+        AthinaApiService.log_usage(eval_name=self.name, run_type="batch")
 
         # Create eval request
         eval_request_id = AthinaLoggingHelper.create_eval_request(
-            eval_name=self.name, request_data=kwargs, request_type="single"
+            eval_name=self.name, request_data={"data": [kwargs]}, request_type="batch"
         )
 
         # Log experiment
@@ -138,7 +138,7 @@ class BaseEvaluator(ABC):
                 yield None
 
     def run_batch(
-        self, data: List[DataPoint], max_parallel_evals: int = 1
+        self, data: List[DataPoint], max_parallel_evals: int = 5
     ) -> BatchRunResult:
         """
         Runs the evaluator on a batch of data.
