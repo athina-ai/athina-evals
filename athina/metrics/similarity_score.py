@@ -9,7 +9,7 @@ class SimilarityScore(Metric):
     """
 
     @staticmethod
-    def compute(similarity_score: Union[int, float, Decimal]):
+    def compute(similarity_score: Union[int, float, Decimal]) -> Decimal:
         """
         Computes the result.
 
