@@ -109,16 +109,3 @@ class SorensenDiceSimilarity(Comparator):
         str1_tokens = set(str1.split())
         str2_tokens = set(str2.split())
         return 2 * len(str1_tokens.intersection(str2_tokens)) / (len(str1_tokens) + len(str2_tokens))
-
-
-
-
-# Example strings
-string1 = "Short text"
-string2 = "Another short text"
-
-comparator: Comparator = CosineSimilarity()
-# Compute cosine similarity
-cosine_similarity = comparator.compare(string1, string2)
-print("cosine_similarity")
-print(cosine_similarity) 
