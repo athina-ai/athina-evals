@@ -12,6 +12,7 @@ from ..base_evaluator import BaseEvaluator
 class GroundedEvaluator(BaseEvaluator):
 
     _comparator: Comparator
+    _failure_threshold: Optional[float] = None
 
     """
     This evaluator runs the requested grounded evaluator on the given data.
@@ -40,11 +41,14 @@ class GroundedEvaluator(BaseEvaluator):
     def __init__(
         self,
         comparator: Comparator = None,
+        failure_threshold: Optional[float] = None,
     ):
         if comparator is None:
             raise ValueError(f"comparator is a required argument") 
         else:
             self._comparator = comparator
+        if failure_threshold is not None:
+            self._failure_threshold = failure_threshold
 
     def _process_kwargs(self, required_args, **kwargs):
         required_args_map = {key: kwargs[key] for key in required_args}
@@ -70,8 +74,8 @@ class GroundedEvaluator(BaseEvaluator):
         try: 
             string1, string2 = self._process_kwargs(self.required_args, **kwargs)
             # Calculate the similarity score using the comparator
-            response = self._comparator.compare(string1, string2)
-            metrics.append(EvalResultMetric(id=MetricType.SIMILARITY_SCORE.value, value=response))
+            similarity_score = self._comparator.compare(string1, string2)
+            metrics.append(EvalResultMetric(id=MetricType.SIMILARITY_SCORE.value, value=similarity_score))
             explanation = f"Successfully calculated similarity score using {self.display_name}"
 
         except Exception as e:
@@ -88,7 +92,7 @@ class GroundedEvaluator(BaseEvaluator):
             runtime=eval_runtime_ms,
             model=None,
             metrics=metrics,
-            failure=None,
+            failure=None if self._failure_threshold is None else similarity_score < self._failure_threshold,
         )
         return {k: v for k, v in eval_result.items() if v is not None}
 

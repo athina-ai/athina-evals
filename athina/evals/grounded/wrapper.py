@@ -9,19 +9,20 @@ class AnswerSimilarity(GroundedEvaluator):
         return ["response", "expected_response"]
 
 
-    def __init__(self, comparator: Comparator):
+    def __init__(self, comparator: Comparator, failure_threshold: float = None):
         """
         Initialize the grounded evaluator with a particular comparator.
 
         Args:
             comparator (Comparator): Concrete comparator to be used for comparison.
-        
+            failure_threshold (float): Threshold for failure. If the similarity score is below this threshold it's marked as failed.
         Example:
             >>> AnswerSimilarity(comparator=CosineSimilarity())
+            >>> AnswerSimilarity(comparator=CosineSimilarity(), failure_threshold=0.8)
 
         """
         super().__init__(
-            comparator=comparator,
+            comparator=comparator, failure_threshold=failure_threshold
         )
 
 class ContextSimilarity(GroundedEvaluator):
@@ -31,17 +32,18 @@ class ContextSimilarity(GroundedEvaluator):
         return ["response", "context"]
 
 
-    def __init__(self, comparator: Comparator):
+    def __init__(self, comparator: Comparator, failure_threshold: float = None):
         """
         Initialize the grounded evaluator with a particular comparator.
 
         Args:
             comparator (Comparator): Concrete comparator to be used for comparison.
+            failure_threshold (float): Threshold for failure. If the similarity score is below this threshold it's marked as failed.
         
         Example:
             >>> ContextSimilarity(comparator=NormalisedLevenshteinSimilarity())
 
         """
         super().__init__(
-            comparator=comparator,
+            comparator=comparator, failure_threshold=failure_threshold
         )
