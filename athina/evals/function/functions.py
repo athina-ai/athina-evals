@@ -3,8 +3,6 @@ import json
 import requests
 from typing import Any
 
-from athina.evals.function.similarity import cosine_similarity, normalised_levenshtein_similarity
-
 def _standardize_url(url):
     """
     Generate a standardized URL by adding 'http://' if it's missing.
@@ -491,21 +489,6 @@ def length_greater_than(min_length, response):
     Returns:
         dict: A dictionary containing the result of the length check and the reason for the result.
     """
-    if len(response) > min_length:
-        return {
-            "result": True,
-            "reason": f"output length is greater than {min_length} characters",
-        }
-    else:
-        return {
-            "result": False,
-            "reason": f"output length is less than {min_length} characters",
-        }
-
-
-CompareFunctions = {cosine_similarity, normalised_levenshtein_similarity}
-
-def compare_using_function(compari, response, expected_response, threshold=0.5):
     if len(response) > min_length:
         return {
             "result": True,

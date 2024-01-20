@@ -1,7 +1,7 @@
 from typing import List, Optional, TypedDict
 from athina.interfaces.athina import AthinaFilters
 from athina.interfaces.data import DataPoint
-from .loader import Loader
+from .base_loader import Loader
 
 
 class RagasDataPoint(TypedDict):
@@ -10,7 +10,7 @@ class RagasDataPoint(TypedDict):
     query: Optional[str]
     contexts: Optional[List[str]]
     response: Optional[str]
-    expected_response = Optional[str]
+    expected_response: Optional[str]
 
 
 class RagasLoader(Loader):
