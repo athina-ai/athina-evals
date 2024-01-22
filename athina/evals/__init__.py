@@ -24,6 +24,7 @@ from athina.evals.ragas.coherence.evaluator import RagasCoherence
 from athina.evals.ragas.conciseness.evaluator import RagasConciseness
 from athina.evals.function.function_evaluator import FunctionEvaluator
 from athina.evals.llm.llm_evaluator import LlmEvaluator
+from athina.evals.grounded.grounded_evaluator import GroundedEvaluator
 from athina.evals.function.wrapper import ContainsAny, Regex, ContainsAll, Contains, ContainsNone, ContainsJson, ContainsEmail, IsJson, IsEmail, NoInvalidLinks, ContainsLink, ContainsValidLink, Equals, StartsWith, EndsWith, LengthLessThan, LengthGreaterThan, ApiCall
 from athina.evals.grounded.wrapper import AnswerSimilarity, ContextSimilarity
 
@@ -67,6 +68,7 @@ __all__ = [
     "LengthLessThan",
     "LengthGreaterThan",
     "ApiCall",
+    "GroundedEvaluator",
     "AnswerSimilarity",
     "ContextSimilarity",
 ]

@@ -76,8 +76,12 @@ class GroundedEvaluator(BaseEvaluator):
             # Calculate the similarity score using the comparator
             similarity_score = self._comparator.compare(string1, string2)
             metrics.append(EvalResultMetric(id=MetricType.SIMILARITY_SCORE.value, value=similarity_score))
-            explanation = f"Successfully calculated similarity score using {self.display_name}"
-
+            if self._failure_threshold is None:
+                explanation = f"Successfully calculated similarity score of {similarity_score} using {self.display_name}"
+            elif similarity_score < self._failure_threshold:
+                explanation = f"Evaluation failed as similarity score of {similarity_score} is below the failure threshold of {self._failure_threshold} using {self.display_name}"
+            else:
+                explanation = f"Evaluation succeeded as similarity score of {similarity_score} is above the failure threshold of {self._failure_threshold} using {self.display_name}"
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
             raise e
