@@ -11,7 +11,7 @@ from athina.helpers.logger import logger
 from ..base_evaluator import BaseEvaluator
 from datasets import Dataset
 from ragas.llms import LangchainLLM
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai.chat_models import ChatOpenAI
 from ragas import evaluate
 from athina.keys import OpenAiApiKey
 
