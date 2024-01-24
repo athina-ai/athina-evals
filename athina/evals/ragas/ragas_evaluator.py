@@ -1,5 +1,4 @@
 
-import tiktoken
 from abc import abstractmethod
 from typing import Optional
 from athina.interfaces.athina import AthinaExperiment
@@ -11,8 +10,8 @@ from athina.interfaces.model import Model
 from athina.helpers.logger import logger
 from ..base_evaluator import BaseEvaluator
 from datasets import Dataset
-from ragas.llms import LangchainLLM
 from langchain_openai.chat_models import ChatOpenAI
+from ragas.llms import LangchainLLM
 from ragas import evaluate
 from athina.keys import OpenAiApiKey
 
