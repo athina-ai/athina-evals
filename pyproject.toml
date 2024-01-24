@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "athina"
-version = "0.3.4"
+version = "0.3.5"
 description = "Python SDK to configure and run evaluations for your LLM-based application"
 authors = ["Shiv Sakhuja <shiv@athina.ai>", "Akshat Gupta <akshat@athina.ai>", "Vivek Aditya <vivek@athina.ai>"]
 readme = "README.md"
@@ -19,7 +19,6 @@ datasets = "^2.16.0"
 python-dotenv = "^1.0.0"
 requests = "^2.31.0"
 langchain-openai = "^0.0.3"
-pyarrow = "14.0.2"
 
 
 [tool.poetry.group.dev.dependencies]
