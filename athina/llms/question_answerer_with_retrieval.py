@@ -76,13 +76,13 @@ class QuestionAnswererWithRetrieval(QuestionAnswerer):
         context_chunk_size=128
     ):
         self._model = model
-        self.context_chunks, self.context_embeddings = self._preprocess_context(context, context_chunk_size)
-        self.context_finder = EmbeddingBasedContextFinder(self.context_embeddings)
-        
         if llm_service is None:
             self._llm_service = OpenAiService()
         else:
             self._llm_service = llm_service
+            
+        self.context_chunks, self.context_embeddings = self._preprocess_context(context, context_chunk_size)
+        self.context_finder = EmbeddingBasedContextFinder(self.context_embeddings)
 
     def _preprocess_context(self, context, chunk_size):
         # Split context into chunks of specified size

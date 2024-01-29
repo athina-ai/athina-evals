@@ -111,6 +111,7 @@ class AthinaApiService:
                 headers=AthinaApiService._headers(),
                 json=athina_eval_request_create_request,
             )
+            print(response.json())
             return response.json()
         except Exception as e:
             print(
