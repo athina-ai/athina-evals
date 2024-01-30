@@ -16,7 +16,6 @@ pandas = "^2.1.4"
 datasets = "^2.16.0"
 python-dotenv = "^1.0.0"
 requests = "^2.31.0"
-pyarrow = "14.0.2"
 
 
 [tool.poetry.group.dev.dependencies]
