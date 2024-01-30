@@ -1,9 +1,6 @@
 import time
 from typing import List, Tuple
 
-from attr import field
-from pydantic import field_serializer
-
 from athina.interfaces.result import EvalResult, EvalResultMetric, DatapointFieldAnnotation
 from athina.metrics.groundedness import GroundednessScore
 from athina.helpers.logger import logger
