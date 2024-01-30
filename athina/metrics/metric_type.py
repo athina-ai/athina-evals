@@ -6,6 +6,7 @@ from .hallucination_score import HallucinationScore
 from .contradiction_score import ContradictionScore
 from .ragas_metric import RagasMetric
 from .passed import Passed
+from .similarity_score import SimilarityScore
 from .metric import Metric
 
 class MetricType(Enum):
@@ -25,6 +26,7 @@ class MetricType(Enum):
     RAGAS_ANSWER_CORRECTNESS = "ragas_answer_correctness"
     GROUNDEDNESS = "groundedness"
     PASSED = 'passed'
+    SIMILARITY_SCORE = 'similarity_score'
 
     @staticmethod
     def get_class(metric_type):
@@ -51,5 +53,7 @@ class MetricType(Enum):
             return RagasMetric
         elif metric_type == MetricType.PASSED.value:
             return Passed
+        elif metric_type == MetricType.SIMILARITY_SCORE.value:
+            return SimilarityScore
         else:
             raise NotImplementedError(f"Metric type {metric_type} not implemented.")

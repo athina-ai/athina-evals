@@ -1,7 +1,7 @@
 from typing import List, Optional
 from athina.interfaces.athina import AthinaFilters
 from athina.interfaces.data import DataPoint
-from .loader import Loader
+from .base_loader import Loader
 
 
 class RagDataPoint(DataPoint):

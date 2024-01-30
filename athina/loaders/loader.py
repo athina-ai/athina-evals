@@ -1,94 +1,76 @@
-from abc import ABC, abstractmethod
-from enum import Enum
-from typing import TypedDict, List
-import json
-from athina.interfaces.data import DataPoint
+from typing import List, Optional
+from athina.interfaces.athina import AthinaFilters
+from athina.interfaces.data import DataPoint as BaseDataPoint
+from .base_loader import Loader as BaseLoader
 
 
-class LoadFormat(Enum):
-    """Supported load formats."""
+class DataPoint(BaseDataPoint):
+    """Data point for a single inference."""
 
-    JSON = "json"
-    CSV = "csv"
-    DICT = "dict"
-    ATHINA = "athina"
+    query: Optional[str]
+    context: Optional[str]
+    response: Optional[str]
+    expected_response: Optional[str]
 
 
-class Loader(ABC):
-    """Abstract base class for data loaders."""
+class Loader(BaseLoader):
+    """
+    This class is a generic data loader for evals
 
-    @property
-    def processed_dataset(self) -> List[DataPoint]:
+    Attributes:
+        col_query (str): The column name corresponding to the user's query.
+        col_context (str): The column name corresponding to the retrieved context.
+        col_response (str): The column name corresponding to the response.
+        col_expected_response (str): The column name corresponding to the expected response.
+        raw_dataset (dict): The raw dataset as loaded from the source.
+        processed_dataset (list): The processed dataset with queries, context, response and other attributes if present.
+    """
+
+    def __init__(
+        self,
+        col_query="query",
+        col_context="context",
+        col_response="response",
+        col_expected_response="expected_response",
+    ):
         """
-        Returns the processed dataset.
+        Initializes the loader with specified or default column names.
         """
-        return self._processed_dataset
+        self.col_query = col_query
+        self.col_context = col_context
+        self.col_response = col_response
+        self.col_expected_response = col_expected_response
+        self._raw_dataset = {}
+        self._processed_dataset: List[DataPoint] = []
 
-    @property
-    def raw_dataset(self):
+    def process(self) -> None:
         """
-        Returns the raw dataset.
+        Transforms the raw data into a structured format. Processes each entry from the raw dataset, and extracts attributes.
         """
-        return self._raw_dataset
+        for raw_instance in self._raw_dataset:
+            # Create a processed instance with mandatory fields
+            processed_instance = {}
+            # add only if the key is present in the raw instance
+            if self.col_query in raw_instance:
+                processed_instance["query"] = raw_instance[self.col_query]
+            if self.col_context in raw_instance:
+                processed_instance["context"] = raw_instance[self.col_context]
+            if self.col_response in raw_instance:
+                processed_instance["response"] = raw_instance[self.col_response]
+            if self.col_expected_response in raw_instance:
+                processed_instance["expected_response"] = raw_instance[self.col_expected_response]
+            # Store the results
+            processed_data_point = DataPoint(**processed_instance)
+            self._processed_dataset.append(processed_data_point)
 
-    @abstractmethod
-    def process(self) -> List[DataPoint]:
-        """Prepare dataset to be consumed by evaluators."""
+    def load_athina_inferences(
+        self,
+        filters: Optional[AthinaFilters] = None,
+        limit: int = 10,
+        context_key: Optional[str] = None,
+    ):
+        """
+        Load data from Athina API.
+        By default, this will fetch the last 10 inferences from the API.
+        """
         pass
-
-    def load(self, format: str, **kwargs) -> List[DataPoint]:
-        """
-        Loads data based on the format specified.
-        """
-        if format == LoadFormat.JSON.value:
-            return self.load_json(**kwargs)
-        elif format == LoadFormat.DICT.value:
-            return self.load_dict(**kwargs)
-        elif format == LoadFormat.CSV.value:
-            return self.load_csv(**kwargs)
-        elif format == LoadFormat.ATHINA.value:
-            return self.load_athina_inferences(**kwargs)
-        else:
-            raise NotImplementedError("This file format has not been supported yet.")
-
-    def load_json(self, filename: str) -> List[DataPoint]:
-        """
-        Loads and processes data from a JSON file.
-
-        Raises:
-            FileNotFoundError: If the specified JSON file is not found.
-            json.JSONDecodeError: If there's an issue decoding the JSON.
-        """
-        try:
-            with open(filename, "r") as f:
-                self._raw_dataset = json.load(f)
-                self.process()
-                return self._processed_dataset
-        except (FileNotFoundError, json.JSONDecodeError) as e:
-            print(f"Error loading JSON: {e}")
-
-    def load_dict(self, data: list) -> List[DataPoint]:
-        """
-        Loads and processes data from a list of dictionaries.
-        """
-        self._raw_dataset = data
-        self.process()
-        return self._processed_dataset
-
-    def load_csv(self) -> List[DataPoint]:
-        """
-        Placeholder for loading data from a CSV file.
-
-        Raises:
-            NotImplementedError: This method has not been implemented yet.
-        """
-        raise NotImplementedError("This method has not been implemented yet.")
-
-    def load_pandas(self) -> List[DataPoint]:
-        """
-        Placeholder for loading data from a pandas DataFrame.
-
-        Raises:
-            NotImplementedError: This method has not been implemented yet.
-        """
-        raise NotImplementedError("This method has not been implemented yet.")
