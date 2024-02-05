@@ -37,7 +37,7 @@ class RagasContextPrecision(RagasEvaluator):
 
     @property
     def default_model(self):
-        return Model.GPT4_1106_PREVIEW.value
+        return Model.GPT35_TURBO.value
 
     @property
     def required_args(self):
