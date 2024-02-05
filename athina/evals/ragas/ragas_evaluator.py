@@ -1,4 +1,4 @@
-
+import math
 from abc import abstractmethod
 from typing import Optional
 from athina.interfaces.athina import AthinaExperiment
@@ -68,7 +68,11 @@ class RagasEvaluator(BaseEvaluator):
             data = self.generate_data_to_evaluate(**kwargs)
             dataset = Dataset.from_dict(data)
             scores = evaluate(dataset, metrics=[self.ragas_metric])
-            metrics.append(EvalResultMetric(id=self.metric_ids[0], value=scores[self.ragas_metric_name]))
+            metric_value = scores[self.ragas_metric_name]
+            if isinstance(metric_value, (int, float)) and not math.isnan(metric_value):
+                metrics.append(EvalResultMetric(id=self.metric_ids[0], value=metric_value))
+            else:
+                logger.warn(f"Invalid metric value: {metric_value}")
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
             raise e
