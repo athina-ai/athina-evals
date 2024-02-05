@@ -1,4 +1,6 @@
 from typing import List
+
+from athina.interfaces.model import Model
 from ..ragas_evaluator import RagasEvaluator
 from athina.evals.eval_type import RagasEvalTypeId
 from athina.metrics.metric_type import MetricType
@@ -35,7 +37,7 @@ class RagasAnswerRelevancy(RagasEvaluator):
 
     @property
     def default_model(self):
-        return "gpt-4-1106-preview"
+        return Model.GPT35_TURBO.value
 
     @property
     def required_args(self):
