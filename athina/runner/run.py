@@ -5,6 +5,9 @@ from athina.interfaces.result import EvalResult, BatchRunResult
 from athina.interfaces.data import DataPoint
 from athina.interfaces.athina import AthinaExperiment
 from athina.services.athina_api_service import AthinaApiService
+import pandas as pd
+import json
+import hashlib
 
 
 class DataPointWithEvalResults(TypedDict):
@@ -33,6 +36,48 @@ class LlmBatchEvalResult(TypedDict):
 
 
 class EvalRunner:
+    @staticmethod
+    def eval_results_link(eval_request_id: str):
+        return f"https://app.athina.ai/develop/request/{eval_request_id}"
+
+    @staticmethod
+    def flatten_eval_results(batch_eval_results):
+        # Flatten the list of lists into a single list of evaluation results
+        flattened_results = [item for sublist in batch_eval_results for item in sublist]
+        return flattened_results
+
+    @staticmethod
+    def to_df(batch_eval_results):
+        # Initialize a dictionary to hold the aggregated data
+        aggregated_data = {}
+        flattened_results = EvalRunner.flatten_eval_results(
+            batch_eval_results=batch_eval_results
+        )
+
+        # Process each evaluation result
+        for eval_result in flattened_results:
+            # Serialize and hash the datapoint dictionary to create a unique identifier
+            datapoint_hash = hashlib.md5(
+                json.dumps(eval_result["data"], sort_keys=True).encode()
+            ).hexdigest()
+
+            # Initialize the datapoint in the aggregated data if not already present
+            if datapoint_hash not in aggregated_data:
+                aggregated_data[datapoint_hash] = eval_result[
+                    "data"
+                ]  # Include datapoint details
+
+            # Update the aggregated data with metrics from this evaluation
+            for metric in eval_result["metrics"]:
+                metric_name = metric["id"]
+                metric_value = metric["value"]
+                aggregated_data[datapoint_hash][metric_name] = metric_value
+
+        # Convert the aggregated data into a DataFrame
+        df = pd.DataFrame(list(aggregated_data.values()))
+
+        return df
+
     @staticmethod
     def batch_eval_result(
         eval_results: List[EvalResult],
@@ -109,8 +154,6 @@ class EvalRunner:
 
         batch_results = []
         for eval in evals:
-            # Log usage to Athina for analytics
-
             # Validate the dataset against the required args
             eval._validate_batch_args(data)
 
@@ -126,9 +169,9 @@ class EvalRunner:
                 eval_results=eval_results,
             )
 
-            batch_results.append(BatchRunResult(
-                eval_request_id=eval_request_id,
-                eval_results=eval_results,
-            ))
+            batch_results.append(eval_results)
 
-        return EvalRunner.batch_eval_result(eval_results=eval_results)
+        print(
+            f"You can view the evaluation results at {EvalRunner.eval_results_link(eval_request_id)}"
+        )
+        return EvalRunner.to_df(batch_results)
