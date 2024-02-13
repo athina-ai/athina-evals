@@ -19,6 +19,7 @@ datasets = "^2.16.0"
 python-dotenv = "^1.0.0"
 requests = "^2.31.0"
 langchain-openai = "^0.0.3"
+llama-index = "^0.9.40"
 
 
 [tool.poetry.group.dev.dependencies]
