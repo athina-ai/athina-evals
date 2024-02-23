@@ -50,6 +50,10 @@ from athina.evals.function.wrapper import (
 from athina.evals.grounded.wrapper import AnswerSimilarity, ContextSimilarity
 from athina.evals.guardrails.gibberish_text.evaluator import GibberishText
 
+from athina.evals.conversation.conversation_resolution.evaluator import (
+    ConversationResolution,
+)
+
 __all__ = [
     "BaseEvaluator",
     "LlmEvaluator",
@@ -94,4 +98,5 @@ __all__ = [
     "AnswerSimilarity",
     "ContextSimilarity",
     "GibberishText",
+    "ConversationResolution",
 ]

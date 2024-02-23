@@ -31,6 +31,8 @@ class MetricType(Enum):
 
     # GUARDRAILS
     SENSIBLE_TEXT = "sensible_text"
+    # Conversation Metrics
+    CONVERSATION_RESOLUTION = "conversation_resolution"
 
     @staticmethod
     def get_class(metric_type):
@@ -61,5 +63,9 @@ class MetricType(Enum):
             return Passed
         elif metric_type == MetricType.SIMILARITY_SCORE.value:
             return SimilarityScore
+        elif metric_type == MetricType.CONVERSATION_RESOLUTION.value:
+            raise NotImplementedError(
+                f"Metric class is not implemented for {metric_type}"
+            )
         else:
             raise NotImplementedError(f"Metric type {metric_type} not implemented.")
