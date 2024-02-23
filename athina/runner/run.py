@@ -71,7 +71,7 @@ class EvalRunner:
             for metric in eval_result["metrics"]:
                 metric_name = metric["id"]
                 metric_value = metric["value"]
-                aggregated_data[datapoint_hash][metric_name] = metric_value
+                aggregated_data[datapoint_hash][eval_result["display_name"] + " " + metric_name] = metric_value
 
         # Convert the aggregated data into a DataFrame
         df = pd.DataFrame(list(aggregated_data.values()))
