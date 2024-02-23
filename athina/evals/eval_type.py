@@ -1,6 +1,10 @@
 from enum import Enum
 
 
+class ConversationEvalTypeId(Enum):
+    CONVERSATION_RESOLUTION = "ConversationResolution"
+
+
 class LlmEvalTypeId(Enum):
     CONTEXT_CONTAINS_ENOUGH_INFORMATION = "Ccei"
     DOES_RESPONSE_ANSWER_QUERY = "Draq"
@@ -8,6 +12,7 @@ class LlmEvalTypeId(Enum):
     GRADING_CRITERIA = "GradingCriteria"
     CUSTOM_PROMPT = "CustomPrompt"
     SUMMARY_ACCURACY = "SummaryAccuracy"
+
 
 class RagasEvalTypeId(Enum):
     RAGAS_CONTEXT_RELEVANCY = "RagasContextRelevancy"
@@ -21,6 +26,7 @@ class RagasEvalTypeId(Enum):
     RAGAS_MALICIOUSNESS = "RagasMaliciousness"
     RAGAS_COHERENCE = "RagasCoherence"
     RAGAS_CONCISENESS = "RagasConciseness"
+
 
 class FunctionEvalTypeId(Enum):
     REGEX = "Regex"

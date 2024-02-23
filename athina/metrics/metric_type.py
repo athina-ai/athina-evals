@@ -9,6 +9,7 @@ from .passed import Passed
 from .similarity_score import SimilarityScore
 from .metric import Metric
 
+
 class MetricType(Enum):
     AGREEMENT_SCORE = "agreement_score"
     HALLUCINATION_SCORE = "hallucination_score"
@@ -25,8 +26,11 @@ class MetricType(Enum):
     RAGAS_ANSWER_SEMANTIC_SIMILARITY = "ragas_answer_semantic_similarity"
     RAGAS_ANSWER_CORRECTNESS = "ragas_answer_correctness"
     GROUNDEDNESS = "groundedness"
-    PASSED = 'passed'
-    SIMILARITY_SCORE = 'similarity_score'
+    PASSED = "passed"
+    SIMILARITY_SCORE = "similarity_score"
+
+    # Conversation Metrics
+    CONVERSATION_RESOLUTION = "conversation_resolution"
 
     @staticmethod
     def get_class(metric_type):
@@ -41,19 +45,25 @@ class MetricType(Enum):
             return HallucinationScore
         elif metric_type == MetricType.CONTRADICTION_SCORE.value:
             return ContradictionScore
-        elif (metric_type == MetricType.RAGAS_CONTEXT_RELEVANCY.value or
-                metric_type == MetricType.RAGAS_CONTEXT_PRECISION.value or
-                metric_type == MetricType.RAGAS_ANSWER_RELEVANCY.value or 
-                metric_type == MetricType.RAGAS_FAITHFULNESS.value or 
-                metric_type == MetricType.RAGAS_CONTEXT_RECALL.value or 
-                metric_type == MetricType.RAGAS_ANSWER_SEMANTIC_SIMILARITY.value or
-                metric_type == MetricType.RAGAS_ANSWER_CORRECTNESS.value or
-                metric_type == MetricType.RAGAS_HARMFULNESS.value or
-                metric_type == MetricType.RAGAS_COHERENCE.value):
+        elif (
+            metric_type == MetricType.RAGAS_CONTEXT_RELEVANCY.value
+            or metric_type == MetricType.RAGAS_CONTEXT_PRECISION.value
+            or metric_type == MetricType.RAGAS_ANSWER_RELEVANCY.value
+            or metric_type == MetricType.RAGAS_FAITHFULNESS.value
+            or metric_type == MetricType.RAGAS_CONTEXT_RECALL.value
+            or metric_type == MetricType.RAGAS_ANSWER_SEMANTIC_SIMILARITY.value
+            or metric_type == MetricType.RAGAS_ANSWER_CORRECTNESS.value
+            or metric_type == MetricType.RAGAS_HARMFULNESS.value
+            or metric_type == MetricType.RAGAS_COHERENCE.value
+        ):
             return RagasMetric
         elif metric_type == MetricType.PASSED.value:
             return Passed
         elif metric_type == MetricType.SIMILARITY_SCORE.value:
             return SimilarityScore
+        elif metric_type == MetricType.CONVERSATION_RESOLUTION.value:
+            raise NotImplementedError(
+                f"Metric class is not implemented for {metric_type}"
+            )
         else:
             raise NotImplementedError(f"Metric type {metric_type} not implemented.")
