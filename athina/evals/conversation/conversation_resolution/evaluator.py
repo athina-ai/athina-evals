@@ -1,11 +1,8 @@
 import time
 from typing import List
+
 from athina.interfaces.model import Model
-from athina.interfaces.result import (
-    EvalResult,
-    EvalResultMetric,
-    DatapointFieldAnnotation,
-)
+from athina.interfaces.result import EvalResult, EvalResultMetric
 from athina.evals.llm.llm_evaluator import LlmEvaluator
 from athina.evals.eval_type import ConversationEvalTypeId
 from athina.metrics.metric_type import MetricType
@@ -33,7 +30,7 @@ class ConversationResolution(LlmEvaluator):
 
     @property
     def metric_ids(self) -> List[str]:
-        return [MetricType.PASSED.value]
+        return [MetricType.CONVERSATION_RESOLUTION.value]
 
     @property
     def default_model(self):
@@ -53,24 +50,18 @@ class ConversationResolution(LlmEvaluator):
         return self._user_message_template.format(**kwargs)
 
     def reason(self, messages_with_resolution_status: List[dict]) -> str:
-        # Initialize an empty list to store explanations for better readability
-        explanations = []
-        number_of_unresolved_messages = 0
-        # Iterate through each item in the 'details' list
-        for item in messages_with_resolution_status:
-            # Check if the resolution status is not 'Resolved'
-            if item["resolution"] != "Resolved":
-                # Format the explanation with the message and its explanation, adding it to the list
-                number_of_unresolved_messages += 1
-                explanation = f"\n-\"{item['message']}\" (Resolution: {item['resolution']})\n: {item['explanation']}\n"
-                explanations.append(explanation)
-        # Join all explanations with a line break for separation, ensuring readability
-        if number_of_unresolved_messages == 0:
-            combined_explanation = "All messages were resolved"
-        else:
-            combined_explanation = "The following messages were not resolved:\n"
-            combined_explanation += "\n".join(explanations)
-        return combined_explanation
+        unresolved_messages = [
+            f"\n-\"{item['message']}\" (Resolution: {item['resolution']})\n: {item['explanation']}\n"
+            for item in messages_with_resolution_status
+            if item["resolution"] != "Resolved"
+        ]
+
+        if not unresolved_messages:
+            return "All messages were resolved"
+
+        return "The following messages were not resolved:\n" + "\n".join(
+            unresolved_messages
+        )
 
     def _evaluate(self, conversation_messages: List[str]) -> EvalResult:
         """
