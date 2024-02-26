@@ -14,16 +14,21 @@ from athina.helpers.logger import logger
 from ...base_evaluator import BaseEvaluator
 from datasets import Dataset
 from athina.keys import OpenAiApiKey
-from guardrails.hub import GibberishText
+from guardrails.hub import GibberishText as GuardrailsGibberishText
 from guardrails import Guard
+from athina.metrics.metric_type import MetricType
 
 
 # Passes when the text is sensible, fails when the text is gibberish.
-class GibberishTextEvaluator(BaseEvaluator):
+class GibberishText(BaseEvaluator):
     _validation_method: str
     _threshold: float
 
-    def __init__(self, validation_method: str = "sentence", threshold: float = 0.75):
+    def __init__(
+        self,
+        validation_method: str = "sentence",
+        threshold: float = 0.75,
+    ):
         self._validation_method = validation_method
         self._threshold = threshold
 
@@ -37,7 +42,7 @@ class GibberishTextEvaluator(BaseEvaluator):
 
     @property
     def metric_ids(self) -> List[str]:
-        return ["SensibleText"]
+        return [MetricType.SENSIBLE_TEXT.value]
 
     @property
     def required_args(self) -> List[str]:
@@ -59,7 +64,7 @@ class GibberishTextEvaluator(BaseEvaluator):
             text = kwargs["response"]
 
             # Initialize Validator
-            val = GibberishText(
+            val = GuardrailsGibberishText(
                 threshold=self._threshold,
                 validation_method=self._validation_method,
                 on_fail="noop",
@@ -76,7 +81,8 @@ class GibberishTextEvaluator(BaseEvaluator):
             # Boolean evaluator
             metrics.append(
                 EvalResultMetric(
-                    id="SensibleText", value=guard_result.validation_passed
+                    id=MetricType.SENSIBLE_TEXT.value,
+                    value=guard_result.validation_passed,
                 )
             )
 

@@ -48,7 +48,7 @@ from athina.evals.function.wrapper import (
     ApiCall,
 )
 from athina.evals.grounded.wrapper import AnswerSimilarity, ContextSimilarity
-from athina.evals.guardrails.gibberish_text.evaluator import GibberishTextEvaluator
+from athina.evals.guardrails.gibberish_text.evaluator import GibberishText
 
 __all__ = [
     "BaseEvaluator",
@@ -93,5 +93,5 @@ __all__ = [
     "GroundedEvaluator",
     "AnswerSimilarity",
     "ContextSimilarity",
-    "GibberishTextEvaluator",
+    "GibberishText",
 ]
