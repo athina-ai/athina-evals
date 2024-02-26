@@ -31,6 +31,7 @@ class MetricType(Enum):
 
     # Conversation Metrics
     CONVERSATION_RESOLUTION = "conversation_resolution"
+    CONVERSATION_COHERENCE = "conversation_coherence"
 
     @staticmethod
     def get_class(metric_type):

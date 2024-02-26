@@ -52,6 +52,9 @@ from athina.evals.grounded.wrapper import AnswerSimilarity, ContextSimilarity
 from athina.evals.conversation.conversation_resolution.evaluator import (
     ConversationResolution,
 )
+from athina.evals.conversation.conversation_coherence.evaluator import (
+    ConversationCoherence,
+)
 
 __all__ = [
     "BaseEvaluator",
@@ -97,4 +100,5 @@ __all__ = [
     "AnswerSimilarity",
     "ContextSimilarity",
     "ConversationResolution",
+    "ConversationCoherence",
 ]
