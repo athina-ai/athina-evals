@@ -41,3 +41,13 @@ class FunctionEvalTypeId(Enum):
     LENGTH_LESS_THAN = "LengthLessThan"
     LENGTH_GREATER_THAN = "LengthGreaterThan"
     API_CALL = "ApiCall"
+
+
+def is_llm_eval(evaluator_type: str) -> bool:
+    return any(evaluator_type == member.value for member in LlmEvalTypeId)
+
+def is_ragas_eval(evaluator_type: str) -> bool:
+    return any(evaluator_type == member.value for member in RagasEvalTypeId)
+
+def is_function_eval(evaluator_type: str) -> bool:
+    return any(evaluator_type == member.value for member in FunctionEvalTypeId)
