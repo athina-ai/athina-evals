@@ -48,6 +48,11 @@ from athina.evals.function.wrapper import (
     ApiCall,
 )
 from athina.evals.grounded.wrapper import AnswerSimilarity, ContextSimilarity
+from athina.evals.guardrails.gibberish_text.evaluator import GibberishText
+
+from athina.evals.conversation.conversation_resolution.evaluator import (
+    ConversationResolution,
+)
 
 from athina.evals.conversation.conversation_resolution.evaluator import (
     ConversationResolution,
@@ -101,4 +106,5 @@ __all__ = [
     "ContextSimilarity",
     "ConversationResolution",
     "ConversationCoherence",
+    "GibberishText",
 ]

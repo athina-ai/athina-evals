@@ -2,7 +2,7 @@
 name = "athina"
 version = "1.1.0"
 description = "Python SDK to configure and run evaluations for your LLM-based application"
-authors = ["Shiv Sakhuja <shiv@athina.ai>", "Akshat Gupta <akshat@athina.ai>", "Vivek Aditya <vivek@athina.ai>"]
+authors = ["Shiv Sakhuja <shiv@athina.ai>", "Akshat Gupta <akshat@athina.ai>", "Vivek Aditya <vivek@athina.ai>", "Akhil Bisht <akhil@athina.ai>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -20,6 +20,8 @@ python-dotenv = "^1.0.0"
 requests = "^2.31.0"
 langchain-openai = "^0.0.3"
 llama-index = "^0.9.40"
+guardrails-ai = "^0.4.0"
+torch = "^2.2.0"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -23,7 +23,7 @@ class ContextContainsEnoughInformation(LlmEvaluator):
         context: {context}.
         2. Determine if the chatbot can answer the user's query with nothing but the "context" information provided to you.
         3. Provide a brief explanation of why the context does or does not contain sufficient information, labeled as 'explanation', leading up to a verdict (Pass/Fail) labeled as 'result'.
-        4. Return a JSON object in the following format: "result": 'result', "explanation": 'explanation'.
+        4. Always return a JSON object in the following format: "result": 'result', "explanation": 'explanation'.
 
         Here's are some examples: 
         {examples}
