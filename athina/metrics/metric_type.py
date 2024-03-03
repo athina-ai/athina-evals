@@ -29,10 +29,12 @@ class MetricType(Enum):
     PASSED = "passed"
     SIMILARITY_SCORE = "similarity_score"
 
-    # GUARDRAILS
-    SENSIBLE_TEXT = "sensible_text"
     # Conversation Metrics
     CONVERSATION_RESOLUTION = "conversation_resolution"
+    CONVERSATION_COHERENCE = "conversation_coherence"
+
+    # GUARDRAILS
+    SENSIBLE_TEXT = "sensible_text"
 
     @staticmethod
     def get_class(metric_type):

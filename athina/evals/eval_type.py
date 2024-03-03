@@ -3,6 +3,10 @@ from enum import Enum
 
 class ConversationEvalTypeId(Enum):
     CONVERSATION_RESOLUTION = "ConversationResolution"
+<<<<<<< HEAD
+    CONVERSATION_COHERENCE = "ConversationCoherence"
+=======
+>>>>>>> main
 
 
 class LlmEvalTypeId(Enum):

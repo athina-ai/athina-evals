@@ -54,6 +54,13 @@ from athina.evals.conversation.conversation_resolution.evaluator import (
     ConversationResolution,
 )
 
+from athina.evals.conversation.conversation_resolution.evaluator import (
+    ConversationResolution,
+)
+from athina.evals.conversation.conversation_coherence.evaluator import (
+    ConversationCoherence,
+)
+
 __all__ = [
     "BaseEvaluator",
     "LlmEvaluator",
@@ -97,6 +104,7 @@ __all__ = [
     "GroundedEvaluator",
     "AnswerSimilarity",
     "ContextSimilarity",
-    "GibberishText",
     "ConversationResolution",
+    "ConversationCoherence",
+    "GibberishText",
 ]
