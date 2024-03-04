@@ -341,8 +341,6 @@ def no_invalid_links(response):
 
 def api_call(
     url: str,
-def api_call(
-    url: str,
     response: str,
     query: Optional[str],
     context: Optional[str],
@@ -360,21 +358,6 @@ def api_call(
         context (Optional[str]): The context parameter to be added to the payload.
         expected_response (Optional[str]): The expected response parameter to be added to the payload.
         payload (dict, optional): The payload to be sent in the API call. Defaults to None.
-        headers (dict, optional): The headers to be included in the API call. Defaults to None.
-
-    Returns:
-        dict: A dictionary containing the result and reason of the API call.
-    """
-    payload: dict = None,
-    headers: dict = None,
-):
-    """
-    Make an API call with payload to the specified URL.
-
-    Args:
-        url (str): The URL to make the API call to.
-        payload (dict): The payload to be sent in the API call.
-        response: The response to be added to the payload.
         headers (dict, optional): The headers to be included in the API call. Defaults to None.
 
     Returns:
