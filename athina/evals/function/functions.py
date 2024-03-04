@@ -1,7 +1,7 @@
 import re
 import json
 import requests
-from typing import Any
+from typing import Any, Optional
 
 def _standardize_url(url):
     """
@@ -341,8 +341,11 @@ def no_invalid_links(response):
 
 def api_call(
     url: str,
-    payload: dict,
-    response,
+    response: str,
+    query: Optional[str],
+    context: Optional[str],
+    expected_response: Optional[str],
+    payload: dict = None,
     headers: dict = None,
 ):
     """
@@ -357,7 +360,17 @@ def api_call(
     Returns:
         dict: A dictionary containing the result and reason of the API call.
     """
+    if payload is None:
+        payload = {}
+    if headers is None:
+        headers = {}
     payload["response"] = response
+    if query:
+        payload["query"] = query
+    if context:
+        payload["context"] = context
+    if expected_response:
+        payload["expected_response"] = expected_response
     # Check the status code and set the reason accordingly
     try:
         api_response = requests.post(url, json=payload, headers=headers)
@@ -388,7 +401,7 @@ def api_call(
         
     return {
         "result": result,
-        "reason": reason,
+        "reason": reason
     }
 
 def equals(expected_response, response, case_sensitive=False):
