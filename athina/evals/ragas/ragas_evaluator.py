@@ -4,7 +4,7 @@ from typing import Optional
 from athina.interfaces.athina import AthinaExperiment
 from athina.interfaces.model import Model
 import time
-from typing import Optional, Any
+from typing import Optional, Any, List
 from athina.interfaces.result import EvalResult, EvalResultMetric
 from athina.interfaces.model import Model
 from athina.helpers.logger import logger
@@ -25,6 +25,7 @@ class RagasEvaluator(BaseEvaluator):
         self,
         openai_api_key: Optional[str] = None,
         model: Optional[str] = None,
+        pass_criteria: Optional[List] = None
     ):
         if model is None:
             self._model = self.default_model
@@ -73,6 +74,7 @@ class RagasEvaluator(BaseEvaluator):
                 metrics.append(EvalResultMetric(id=self.metric_ids[0], value=metric_value))
             else:
                 logger.warn(f"Invalid metric value: {metric_value}")
+            failure = self.check_metrics_failure(metrics, self.pass_criteria)
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
             raise e
@@ -83,7 +85,7 @@ class RagasEvaluator(BaseEvaluator):
             name=self.name,
             display_name=self.display_name,
             data=kwargs,
-            failure=None,
+            failure=failure,
             reason=self.grade_reason,
             runtime=eval_runtime_ms,
             model=self._model,

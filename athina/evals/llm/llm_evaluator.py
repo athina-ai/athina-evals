@@ -59,6 +59,7 @@ class LlmEvaluator(BaseEvaluator):
         system_message_template: Optional[str] = None,
         user_message_template: Optional[str] = None,
         llm_service: Optional[AbstractLlmService] = None,
+        pass_criteria: Optional[List] = None,
     ):
         if llm_service is not None and isinstance(llm_service, AbstractLlmService):
             self.llm_service = llm_service
@@ -72,6 +73,7 @@ class LlmEvaluator(BaseEvaluator):
         else:
             self._model = model
 
+        self.pass_criteria = pass_criteria
         # Initialize message templates
         if system_message_template is None:
             self._system_message_template = (
@@ -137,14 +139,14 @@ class LlmEvaluator(BaseEvaluator):
             messages=messages,
             temperature=self.TEMPERATURE,
         )
-
+    
         metrics = []
         try:
             result = chat_completion_response_json["result"]
             explanation = chat_completion_response_json["explanation"]
-            failure = bool(result == "Fail")
             passed_value = 1 - float(failure)
             metrics.append(EvalResultMetric(id=MetricType.PASSED.value, value=passed_value))
+            failure = self.check_metrics_failure(metrics, self.pass_criteria)
 
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")

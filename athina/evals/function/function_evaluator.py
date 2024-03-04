@@ -50,6 +50,7 @@ class FunctionEvaluator(BaseEvaluator):
         self,
         function_name: Optional[str] = None,
         function_arguments: Optional[dict] = None,
+        pass_criteria: Optional[List] = None,
     ):
         if function_name is None:
             raise ValueError(f"function_name is a required argument")
@@ -76,6 +77,7 @@ class FunctionEvaluator(BaseEvaluator):
             operator = operations.get(self._function_name)
             response = operator(**kwargs, **self._function_arguments)
             metrics.append(EvalResultMetric(id=MetricType.PASSED.value, value=float(response["result"])))
+            failure = self.check_metrics_failure(metrics, self.pass_criteria)
             explanation = response['reason']
 
         except Exception as e:
@@ -92,7 +94,7 @@ class FunctionEvaluator(BaseEvaluator):
             runtime=eval_runtime_ms,
             model=None,
             metrics=metrics,
-            failure=not response["result"] if response is not None and "result" in response else None,
+            failure=failure
         )
         return {k: v for k, v in eval_result.items() if v is not None}
 
