@@ -61,6 +61,7 @@ class FunctionEvaluator(BaseEvaluator):
         else:
             self._function_name = function_name
             self._function_arguments = function_arguments
+        self.pass_criteria = pass_criteria
 
 
     def _evaluate(self, **kwargs) -> EvalResult:
@@ -77,7 +78,7 @@ class FunctionEvaluator(BaseEvaluator):
             operator = operations.get(self._function_name)
             response = operator(**kwargs, **self._function_arguments)
             metrics.append(EvalResultMetric(id=MetricType.PASSED.value, value=float(response["result"])))
-            failure = self.check_metrics_failure(metrics, self.pass_criteria)
+            failure = self.is_eval_failed(metrics, self.pass_criteria)
             explanation = response['reason']
 
         except Exception as e:

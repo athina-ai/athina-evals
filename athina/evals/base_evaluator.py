@@ -178,13 +178,18 @@ class BaseEvaluator(ABC):
             eval_request_id=eval_request_id,
             eval_results=eval_results,
         )
-    def check_metrics_failure(metrics: List[EvalResultMetric], pass_criteria: List[Dict]) -> bool:
+    def is_eval_failed(metrics: List[EvalResultMetric], pass_criteria: Optional[List[Dict]]) -> bool:
         """
         :param metrics: List of metrics calculated by the evaluator
         :param pass_criteria: Criteria to pass or fail the metric
         """
+        if pass_criteria is None:
+            pass_criteria = []
         metrics_status = []
         for metric in metrics:
+            if metric.id == "passed" and isinstance(metric.value, bool):
+                metric_passes = metric.value
+                metric_status.append(metric_passes)
             criteria = next((c for c in pass_criteria if c["metric_id"] == metric.id), None)
             if criteria:
                 metric_passes = False
@@ -194,11 +199,9 @@ class BaseEvaluator(ABC):
                 elif criteria["polarity"] == "negative":
                     if metric.value < criteria["threshold"]:
                         metric_passes = True
-                if metric.id == "passed" and isinstance(metric.value, bool):
-                    metric_passes = metric.value
                 metrics_status.append(metric_passes)
             else:
-                metrics_status.append(True)
+                continue
         
         if any(not status for status in metrics_status):
             return True 

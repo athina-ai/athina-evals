@@ -18,7 +18,6 @@ class ConversationResolution(LlmEvaluator):
         super().__init__(*args, **kwargs)
         self._system_message_template = SYSTEM_MESSAGE
         self._user_message_template = USER_MESSAGE
-        self._failure_threshold = 0.75  # 75% of the messages must be resolved to pass
 
     @property
     def name(self):
@@ -97,14 +96,13 @@ class ConversationResolution(LlmEvaluator):
                     reasons.append(message)
             score = number_resolved_messages / len(messages_with_resolution_status)
             reason = self.reason(messages_with_resolution_status)
-            failure = score < self._failure_threshold
 
             metrics.append(
                 EvalResultMetric(
                     id=MetricType.CONVERSATION_RESOLUTION.value, value=score
                 )
             )
-
+            failure = self.is_eval_failed(metrics, self.pass_criteria)
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
             raise e

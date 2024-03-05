@@ -146,7 +146,7 @@ class LlmEvaluator(BaseEvaluator):
             explanation = chat_completion_response_json["explanation"]
             passed_value = 1 - float(failure)
             metrics.append(EvalResultMetric(id=MetricType.PASSED.value, value=passed_value))
-            failure = self.check_metrics_failure(metrics, self.pass_criteria)
+            failure = self.is_eval_failed(metrics, self.pass_criteria)
 
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
