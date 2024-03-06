@@ -201,7 +201,7 @@ class BaseEvaluator(ABC):
                         metric_passes = True
                 metrics_status.append(metric_passes)
             else:
-                continue
+                continuela
         
         if any(not status for status in metrics_status):
             return True 
