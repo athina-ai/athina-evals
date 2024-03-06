@@ -342,9 +342,9 @@ def no_invalid_links(response):
 def api_call(
     url: str,
     response: str,
-    query: Optional[str],
-    context: Optional[str],
-    expected_response: Optional[str],
+    query: Optional[str] = None,
+    context: Optional[str] = None,
+    expected_response: Optional[str] = None,
     payload: dict = None,
     headers: dict = None,
 ):
