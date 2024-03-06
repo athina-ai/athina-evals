@@ -237,19 +237,25 @@ class LengthGreaterThan(FunctionEvaluator):
         )
 
 class ApiCall(FunctionEvaluator):
-    def __init__(self, url: str, payload: dict, headers: dict=None):
+    def __init__(self, url: str, query: Optional[str] = None, context: Optional[str] = None, expected_response: Optional[str] = None, payload: dict = None, headers: dict = None):
         """
         Initialize the ApiCall function evaluator.
 
         Args:
             url (str): The URL to make the API call to.
             payload (dict): The payload to be sent in the API call. Response will be added to the dict as "response".
+            query (Optional[str]): The query parameter to be added to the payload. Defaults to None.
+            context (Optional[str]): The context parameter to be added to the payload. Defaults to None.
+            expected_response (Optional[str]): The expected response parameter to be added to the payload. Defaults to None.
             headers (dict, optional): The headers to be included in the API call. Defaults to None.
         """
         super().__init__(
             function_name=FunctionEvalTypeId.API_CALL.value,
             function_arguments={
                 "url": url,
+                "query": query,
+                "context": context,
+                "expected_response": expected_response,
                 "payload": payload,
                 "headers": headers,
             },
