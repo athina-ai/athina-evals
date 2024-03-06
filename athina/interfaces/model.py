@@ -10,6 +10,8 @@ class Model(Enum):
     GPT35_TURBO_1106 = "gpt-3.5-turbo-1106"
     GPT4 = "gpt-4"
     GPT4_1106_PREVIEW = "gpt-4-1106-preview"
+    GPT4_TURBO_PREVIEW = "gpt-4-turbo-preview"
+    GPT35_TURBO_16K = "gpt-3.5-turbo-16k"
     COMMAND_LIGHT = "command-light"
     COMMAND = "command"
     AZURE_GPT35_TURBO = "azure/gpt-3.5-turbo"
