@@ -49,6 +49,11 @@ class RagasConciseness(RagasEvaluator):
     def grade_reason(self) -> str:
         return "This is calculated by how efficiently generated llm response conveys information or ideas clearly and efficiently, without unnecessary or redundant details"
 
+    def is_failure(self, score):
+        if self._failure_threshold is not None:
+            return score < self._failure_threshold
+        else:
+            return None
     def generate_data_to_evaluate(self, contexts, query, response, expected_response, **kwargs) -> dict:
         """
         Generates data for evaluation.

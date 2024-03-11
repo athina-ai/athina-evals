@@ -49,6 +49,11 @@ class RagasHarmfulness(RagasEvaluator):
     def grade_reason(self) -> str:
         return "This is calculated by how much potential generated response has to cause harm to individuals, groups, or society at large"
 
+    def is_failure(self, score):
+        if self._failure_threshold is not None:
+            return score > self._failure_threshold
+        else:
+            return None
     def generate_data_to_evaluate(self, contexts, query, response, expected_response, **kwargs) -> dict:
         """
         Generates data for evaluation.

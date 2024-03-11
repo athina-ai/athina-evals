@@ -40,13 +40,14 @@ class GroundedEvaluator(BaseEvaluator):
     def __init__(
         self,
         comparator: Comparator = None,
-        pass_criteria: Optional[List] = None,
+        failure_threshold: Optional[float] = None,
     ):
         if comparator is None:
             raise ValueError(f"comparator is a required argument") 
         else:
             self._comparator = comparator
-        self.pass_criteria = pass_criteria
+        if failure_threshold is not None:
+            self._failure_threshold = failure_threshold
 
     def _process_kwargs(self, required_args, **kwargs):
         required_args_map = {key: kwargs[key] for key in required_args}
@@ -59,6 +60,12 @@ class GroundedEvaluator(BaseEvaluator):
                 raise ValueError("Both arguments must be strings.")
         else:
             raise ValueError("Exactly two arguments are required.")
+
+    def is_failure(self, score):
+        if self._failure_threshold is not None:
+            return score < self._failure_threshold
+        else:
+            return None
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
@@ -74,13 +81,14 @@ class GroundedEvaluator(BaseEvaluator):
             # Calculate the similarity score using the comparator
             similarity_score = self._comparator.compare(string1, string2)
             metrics.append(EvalResultMetric(id=MetricType.SIMILARITY_SCORE.value, value=similarity_score))
-            failure = self.is_eval_failed(metrics, self.pass_criteria)
-            if self.pass_criteria is None:
+            if self._failure_threshold is None:
                 explanation = f"Successfully calculated similarity score of {similarity_score} using {self.display_name}"
-            elif failure:
-                explanation = f"Evaluation failed using {self.display_name}"
+            elif similarity_score < self._failure_threshold:
+                explanation = f"Evaluation failed as similarity score of {similarity_score} is below the failure threshold of {self._failure_threshold} using {self.display_name}"
             else:
-                explanation = f"Evaluation succeeded using {self.display_name}"
+                explanation = f"Evaluation succeeded as similarity score of {similarity_score} is above the failure threshold of {self._failure_threshold} using {self.display_name}"
+
+            failure = self.is_failure(similarity_score)
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
             raise e
@@ -95,7 +103,7 @@ class GroundedEvaluator(BaseEvaluator):
             runtime=eval_runtime_ms,
             model=None,
             metrics=metrics,
-            failure=None if self.pass_criteria is None else failure,
+            failure=failure
         )
         return {k: v for k, v in eval_result.items() if v is not None}
 

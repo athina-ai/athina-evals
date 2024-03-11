@@ -13,7 +13,7 @@ class ConversationResolution(LlmEvaluator):
     """
     This evaluator checks if the conversation was resolved or not.
     """
-
+    _default_failure_threshold = 0.75
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._system_message_template = SYSTEM_MESSAGE
@@ -44,6 +44,12 @@ class ConversationResolution(LlmEvaluator):
     @property
     def examples(self):
         return []
+
+    def is_failure(self, score):
+        if self._failure_threshold is not None:
+            return score < self._failure_threshold
+        else:
+            return score < self._default_failure_threshold
 
     def _user_message(self, **kwargs) -> str:
         return self._user_message_template.format(**kwargs)
@@ -102,7 +108,7 @@ class ConversationResolution(LlmEvaluator):
                     id=MetricType.CONVERSATION_RESOLUTION.value, value=score
                 )
             )
-            failure = self.is_eval_failed(metrics, self.pass_criteria)
+            failure = self.is_failure(score=score)
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
             raise e

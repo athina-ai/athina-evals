@@ -13,12 +13,11 @@ class ConversationCoherence(LlmEvaluator):
     """
     This evaluator checks if the conversation was resolved or not.
     """
-
+    _default_failure_threshold = 0.75
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._system_message_template = SYSTEM_MESSAGE
         self._user_message_template = USER_MESSAGE
-        self._failure_threshold = 0.75  # 75% of the messages must be resolved to pass
 
     @property
     def name(self):
@@ -48,6 +47,12 @@ class ConversationCoherence(LlmEvaluator):
 
     def _user_message(self, **kwargs) -> str:
         return self._user_message_template.format(**kwargs)
+
+    def is_failure(self, score):
+        if self._failure_threshold is not None:
+            return score < self._failure_threshold
+        else:
+            return score < self._default_failure_threshold
 
     def score(self, details):
         """Calculate the percentage of coherent messages."""
@@ -79,7 +84,6 @@ class ConversationCoherence(LlmEvaluator):
         start_time = time.perf_counter()
 
         print("evaluating conversation messages")
-        print(conversation_messages)
         # Construct Prompt
         prompt_messages = self._prompt_messages(
             messages="\n".join(conversation_messages)
@@ -94,18 +98,17 @@ class ConversationCoherence(LlmEvaluator):
 
         metrics = []
         try:
-            print(chat_completion_response_json)
             messages_with_coherence_status = chat_completion_response_json["details"]
 
             score = self.score(messages_with_coherence_status)
             reason = self.reason(messages_with_coherence_status)
-            failure = score < self._failure_threshold
 
             metrics.append(
                 EvalResultMetric(
                     id=MetricType.CONVERSATION_COHERENCE.value, value=score
                 )
             )
+            failure = self.is_failure(score=score)
 
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")

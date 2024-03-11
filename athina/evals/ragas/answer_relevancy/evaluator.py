@@ -50,7 +50,12 @@ class RagasAnswerRelevancy(RagasEvaluator):
     @property
     def grade_reason(self) -> str:
         return "A response is deemed relevant when it directly and appropriately addresses the original query. Importantly, our assessment of answer relevance does not consider factuality but instead penalizes cases where the response lacks completeness or contains redundant details"
-    
+
+    def is_failure(self, score):
+        if self._failure_threshold is not None:
+            return score < self._failure_threshold
+        else:
+            return None
     def generate_data_to_evaluate(self, query, contexts, response, **kwargs) -> dict:
         """
         Generates data for evaluation.

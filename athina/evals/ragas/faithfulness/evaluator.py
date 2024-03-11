@@ -49,6 +49,11 @@ class RagasFaithfulness(RagasEvaluator):
     def grade_reason(self) -> str:
         return "The generated answer is regarded as faithful if all the claims that are made in the answer can be inferred from the given context. To calculate this a set of claims from the generated answer is first identified. Then each one of these claims are cross checked with given context to determine if it can be inferred from given context or not"
     
+    def is_failure(self, score):
+        if self._failure_threshold is not None:
+            return score < self._failure_threshold
+        else:
+            return None
     def generate_data_to_evaluate(self, contexts, query, response, **kwargs) -> dict:
         """
         Generates data for evaluation.
