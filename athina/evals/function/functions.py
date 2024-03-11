@@ -1,7 +1,7 @@
 import re
 import json
 import requests
-from typing import Any
+from typing import Any, Optional
 
 def _standardize_url(url):
     """
@@ -341,8 +341,11 @@ def no_invalid_links(response):
 
 def api_call(
     url: str,
-    payload: dict,
-    response,
+    response: str,
+    query: Optional[str] = None,
+    context: Optional[str] = None,
+    expected_response: Optional[str] = None,
+    payload: dict = None,
     headers: dict = None,
 ):
     """
@@ -350,14 +353,27 @@ def api_call(
 
     Args:
         url (str): The URL to make the API call to.
-        payload (dict): The payload to be sent in the API call.
-        response: The response to be added to the payload.
+        response (str): The response to be added to the payload.
+        query (Optional[str]): The query parameter to be added to the payload.
+        context (Optional[str]): The context parameter to be added to the payload.
+        expected_response (Optional[str]): The expected response parameter to be added to the payload.
+        payload (dict, optional): The payload to be sent in the API call. Defaults to None.
         headers (dict, optional): The headers to be included in the API call. Defaults to None.
 
     Returns:
         dict: A dictionary containing the result and reason of the API call.
     """
+    if payload is None:
+        payload = {}
+    if headers is None:
+        headers = {}
     payload["response"] = response
+    if query:
+        payload["query"] = query
+    if context:
+        payload["context"] = context
+    if expected_response:
+        payload["expected_response"] = expected_response
     # Check the status code and set the reason accordingly
     try:
         api_response = requests.post(url, json=payload, headers=headers)
@@ -388,7 +404,7 @@ def api_call(
         
     return {
         "result": result,
-        "reason": reason,
+        "reason": reason
     }
 
 def equals(expected_response, response, case_sensitive=False):
