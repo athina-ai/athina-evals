@@ -111,7 +111,7 @@ class SummaryAccuracy(LlmEvaluator):
         return reason_str
 
 
-    def is_failure(self, ):
+    def is_failure(self, metrics):
         if (self._aggreement_score_failure_threshold is None and
             self._contradiction_score_failure_threshold is None and
             self._hallucination_score_failure_threshold is None):
@@ -123,7 +123,7 @@ class SummaryAccuracy(LlmEvaluator):
             MetricType.HALLUCINATION_SCORE.value: self._hallucination_score_failure_threshold,
         }
 
-        for metric in self.metrics:
+        for metric in metrics:
             failure_threshold = threshold_mapping.get(metric.id)
             if failure_threshold is not None and metric.value < failure_threshold:
                 return True  # Fail if any metric value is below its threshold
@@ -149,7 +149,7 @@ class SummaryAccuracy(LlmEvaluator):
         
         metrics = [EvalResultMetric(id=metric_id, value=summary_eval_result[metric_id]) for metric_id in self.metric_ids]
 
-        failure = self.is_failure()
+        failure = self.is_failure(metrics)
         llm_eval_result = EvalResult(
             name=self.name,
             display_name=self.display_name,
