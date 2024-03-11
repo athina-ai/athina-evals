@@ -21,7 +21,6 @@ class LlmEvaluator(BaseEvaluator):
     _model: str
     _system_message_template: Optional[str] = None
     _user_message_template: Optional[str] = None
-    _failure_threshold: Optional[float] = None
 
     TEMPERATURE = 0.0
 
@@ -60,7 +59,6 @@ class LlmEvaluator(BaseEvaluator):
         system_message_template: Optional[str] = None,
         user_message_template: Optional[str] = None,
         llm_service: Optional[AbstractLlmService] = None,
-        failure_threshold: Optional[float] = None
     ):
         if llm_service is not None and isinstance(llm_service, AbstractLlmService):
             self.llm_service = llm_service
@@ -73,9 +71,6 @@ class LlmEvaluator(BaseEvaluator):
             raise ValueError(f"Unsupported model: {model}")
         else:
             self._model = model
-        
-        if failure_threshold is not None:
-            self._failure_threshold = failure_threshold
 
         # Initialize message templates
         if system_message_template is None:

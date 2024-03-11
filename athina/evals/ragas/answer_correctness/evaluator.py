@@ -51,11 +51,8 @@ class RagasAnswerCorrectness(RagasEvaluator):
         return "Answer correctness encompasses two critical aspects: semantic similarity between the generated answer and the ground truth, as well as factual similarity. These aspects are combined using a weighted scheme to formulate the answer correctness score"
     
     def is_failure(self, score):
-        if self._failure_threshold is not None:
-            return score < self._failure_threshold
-        else:
-            return None
-            
+        return score < self._failure_threshold if self._failure_threshold is not None else None
+
     def generate_data_to_evaluate(self, query, response, expected_response, **kwargs) -> dict:
         """
         Generates data for evaluation.

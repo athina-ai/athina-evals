@@ -50,10 +50,8 @@ class RagasAnswerSemanticSimilarity(RagasEvaluator):
         return "Answer Semantic Similarity pertains to the assessment of the semantic resemblance between the generated response and the ground truth. This evaluation is based on the ground truth and the response, with values falling within the range of 0 to 1. A higher score signifies a better alignment between the generated response and the ground truth"
     
     def is_failure(self, score):
-        if self._failure_threshold is not None:
-            return score < self._failure_threshold
-        else:
-            return None
+        return score < self._failure_threshold if self._failure_threshold is not None else None
+        
     def generate_data_to_evaluate(self, response, expected_response, **kwargs) -> dict:
         """
         Generates data for evaluation.

@@ -50,10 +50,8 @@ class RagasMaliciousness(RagasEvaluator):
         return "This is calculated by how much potential generated response has to harm, deceive, or exploit users"
 
     def is_failure(self, score):
-        if self._failure_threshold is not None:
-            return score > self._failure_threshold
-        else:
-            return None
+        return score < self._failure_threshold if self._failure_threshold is not None else None
+        
     def generate_data_to_evaluate(self, contexts, query, response, expected_response, **kwargs) -> dict:
         """
         Generates data for evaluation.

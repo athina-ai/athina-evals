@@ -19,6 +19,9 @@ class SummaryAccuracy(LlmEvaluator):
     """
     questions: List[str] = []
     _llm_service: AbstractLlmService
+    _aggreement_score_failure_threshold: Optional[float] = None,
+    _contradiction_score_failure_threshold: Optional[float] = None,
+    _hallucination_score_failure_threshold: Optional[float] = None,
 
     def __init__(
         self,
@@ -27,6 +30,9 @@ class SummaryAccuracy(LlmEvaluator):
         model: str = "gpt-4-1106-preview",
         question_answerer: Optional[QuestionAnswerer] = None,
         llm_service: Optional[AbstractLlmService] = None,
+        aggreement_score_failure_threshold: Optional[float] = None,
+        contradiction_score_failure_threshold: Optional[float] = None,
+        hallucination_score_failure_threshold: Optional[float] = None,
     ):
         """
         Initialize the evaluator with given parameters.
@@ -60,6 +66,13 @@ class SummaryAccuracy(LlmEvaluator):
         for metric in self.metric_ids:
             setattr(self, f"{metric}_scores", {})
 
+        if aggreement_score_failure_threshold is not None:
+            self._aggreement_score_failure_threshold = aggreement_score_failure_threshold
+        if hallucination_score_failure_threshold is not None:
+            self._hallucination_score_failure_threshold = hallucination_score_failure_threshold
+        if contradiction_score_failure_threshold is not None:
+            self._contradiction_score_failure_threshold = contradiction_score_failure_threshold
+
     @property
     def name(self):
         return LlmEvalTypeId.SUMMARY_ACCURACY.value
@@ -87,9 +100,6 @@ class SummaryAccuracy(LlmEvaluator):
     @property
     def examples(self):
         return []
-        
-    def is_failure(self) -> bool:
-        return False
     
     def reason(self) -> str:
         disagreement_answers = self._disagreement_answers()
@@ -100,6 +110,25 @@ class SummaryAccuracy(LlmEvaluator):
             reason_str += f"{question}\n- Document: {answer_doc}\n- Summary: {answer_sum}\n"
         return reason_str
 
+
+    def is_failure(self, ):
+        if (self._aggreement_score_failure_threshold is None and
+            self._contradiction_score_failure_threshold is None and
+            self._hallucination_score_failure_threshold is None):
+            return None
+        
+        threshold_mapping = {
+            MetricType.AGREEMENT_SCORE.value: self._aggreement_score_failure_threshold,
+            MetricType.CONTRADICTION_SCORE.value: self._contradiction_score_failure_threshold,
+            MetricType.HALLUCINATION_SCORE.value: self._hallucination_score_failure_threshold,
+        }
+
+        for metric in self.metrics:
+            failure_threshold = threshold_mapping.get(metric.id)
+            if failure_threshold is not None and metric.value < failure_threshold:
+                return True  # Fail if any metric value is below its threshold
+
+        return False 
 
     def _evaluate(self, **instance) -> EvalResult:
         """
@@ -120,6 +149,7 @@ class SummaryAccuracy(LlmEvaluator):
         
         metrics = [EvalResultMetric(id=metric_id, value=summary_eval_result[metric_id]) for metric_id in self.metric_ids]
 
+        failure = self.is_failure()
         llm_eval_result = EvalResult(
             name=self.name,
             display_name=self.display_name,

@@ -62,10 +62,7 @@ class GroundedEvaluator(BaseEvaluator):
             raise ValueError("Exactly two arguments are required.")
 
     def is_failure(self, score):
-        if self._failure_threshold is not None:
-            return score < self._failure_threshold
-        else:
-            return None
+        return score < self._failure_threshold if self._failure_threshold is not None else None
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """

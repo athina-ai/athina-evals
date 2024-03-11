@@ -13,9 +13,11 @@ class ConversationResolution(LlmEvaluator):
     """
     This evaluator checks if the conversation was resolved or not.
     """
-    _default_failure_threshold = 0.75
-    def __init__(self, *args, **kwargs):
+    _failure_threshold: Optional[float] = None
+    def __init__(self, failure_threshold: Optional[float] = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if failure_threshold is not None:
+            self._failure_threshold = failure_threshold
         self._system_message_template = SYSTEM_MESSAGE
         self._user_message_template = USER_MESSAGE
 
@@ -46,10 +48,7 @@ class ConversationResolution(LlmEvaluator):
         return []
 
     def is_failure(self, score):
-        if self._failure_threshold is not None:
-            return score < self._failure_threshold
-        else:
-            return score < self._default_failure_threshold
+        return score < self._failure_threshold if self._failure_threshold is not None else None
 
     def _user_message(self, **kwargs) -> str:
         return self._user_message_template.format(**kwargs)

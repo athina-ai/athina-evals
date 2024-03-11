@@ -9,19 +9,20 @@ from ..llm_evaluator import LlmEvaluator
 from .prompt import GROUNDEDNESS_EVAL_PROMPT_CONCISE_SYSTEM, GROUNDEDNESS_EVAL_PROMPT_CONCISE_USER
 
 class Groundedness(LlmEvaluator):
-    _failure_threshold: float
+    _failure_threshold: Optional[float] = None
 
     def __init__(
             self,
-            failure_threshold = 0.85,
+            failure_threshold: Optional[float] = None,
             **kwargs
         ):
-        self._failure_threshold = failure_threshold
         super().__init__(
             system_message_template=GROUNDEDNESS_EVAL_PROMPT_CONCISE_SYSTEM,
             user_message_template=GROUNDEDNESS_EVAL_PROMPT_CONCISE_USER,
             **kwargs
         )
+        if failure_threshold is not None:
+            self._failure_threshold = failure_threshold
 
     @property
     def name(self) -> str:
@@ -47,6 +48,9 @@ class Groundedness(LlmEvaluator):
     def examples(self):
         return []
     
+    def is_failure(self, score):
+        return score < self._failure_threshold if self._failure_threshold is not None else None
+        
     def reason(self, unsupported_sentences: List[str]) -> str:
         if (len(unsupported_sentences) > 0):
             unsupported_sentences_str = "\n- ".join(unsupported_sentences)
@@ -105,7 +109,7 @@ class Groundedness(LlmEvaluator):
             groundedness_score = groundedness_score_with_reason[0]
             unsupported_sentences = groundedness_score_with_reason[1]
             supported_sentences_with_evidence = groundedness_score_with_reason[2] # list of (sentices, evidence) pairs
-            failure = groundedness_score < self._failure_threshold
+            failure = self.is_failure(groundedness_score)
             metrics.append(EvalResultMetric(id=MetricType.GROUNDEDNESS.value, value=groundedness_score))
             reason = self.reason(unsupported_sentences)
             datapoint_field_annotations = self.datapoint_field_annotations(supported_sentences_with_evidence, unsupported_sentences)

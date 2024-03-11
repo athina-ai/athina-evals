@@ -52,10 +52,7 @@ class RagasContextPrecision(RagasEvaluator):
         return "This metric evaluates whether all of the ground-truth relevant items present in the context are ranked higher or not. Ideally all the relevant chunks must appear at the top ranks"
     
     def is_failure(self, score):
-        if self._failure_threshold is not None:
-            return score < self._failure_threshold
-        else:
-            return None
+        return score < self._failure_threshold if self._failure_threshold is not None else None
     def generate_data_to_evaluate(self, contexts, query, expected_response, **kwargs) -> dict:
         """
         Generates data for evaluation.
