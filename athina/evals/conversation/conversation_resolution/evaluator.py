@@ -47,7 +47,7 @@ class ConversationResolution(LlmEvaluator):
     def examples(self):
         return []
 
-    def is_failure(self, score):
+    def is_failure(self, score) -> Optional[bool]:
         return score < self._failure_threshold if self._failure_threshold is not None else None
 
     def _user_message(self, **kwargs) -> str:

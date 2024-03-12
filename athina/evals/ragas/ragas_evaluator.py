@@ -53,10 +53,6 @@ class RagasEvaluator(BaseEvaluator):
     @abstractmethod
     def ragas_metric(self) -> Any:
         pass
-    
-    @abstractmethod
-    def is_failure(self):
-        pass
 
     @property
     def grade_reason(self) -> str:

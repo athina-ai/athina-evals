@@ -3,7 +3,7 @@ from ..ragas_evaluator import RagasEvaluator
 from athina.evals.eval_type import RagasEvalTypeId
 from athina.metrics.metric_type import MetricType
 from ragas.metrics.critique import conciseness
-from typing import List
+from typing import List, Optional
 
 """
 RAGAS Conciseness Docs: https://docs.ragas.io/en/latest/concepts/metrics/critique.html
@@ -49,7 +49,7 @@ class RagasConciseness(RagasEvaluator):
     def grade_reason(self) -> str:
         return "This is calculated by how efficiently generated llm response conveys information or ideas clearly and efficiently, without unnecessary or redundant details"
 
-    def is_failure(self, score):
+    def is_failure(self, score) -> Optional[bool]:
         return score < self._failure_threshold if self._failure_threshold is not None else None
         
     def generate_data_to_evaluate(self, contexts, query, response, expected_response, **kwargs) -> dict:

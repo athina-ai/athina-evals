@@ -43,6 +43,11 @@ class BaseEvaluator(ABC):
         """A list of examples for the evaluator."""
         pass
 
+    @abstractmethod
+    def is_failure(self, *args) -> Optional[bool]:
+        """A method to determine if the evaluation failed."""
+        pass
+
     # Common methods
     def _examples_str(self) -> str:
         return "" if self.examples is None else "\n".join(map(str, self.examples))

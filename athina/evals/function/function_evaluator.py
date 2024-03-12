@@ -61,6 +61,9 @@ class FunctionEvaluator(BaseEvaluator):
             self._function_name = function_name
             self._function_arguments = function_arguments
 
+    def is_failure(self, response) -> Optional[bool]:
+        return not response["result"] if response is not None and "result" in response else None
+
     def _evaluate(self, **kwargs) -> EvalResult:
         """
         Run the Function evaluator.
@@ -76,7 +79,7 @@ class FunctionEvaluator(BaseEvaluator):
             response = operator(**kwargs, **self._function_arguments)
             metrics.append(EvalResultMetric(id=MetricType.PASSED.value, value=float(response["result"])))
             explanation = response['reason']
-
+            failure = self.is_failure(response)
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
             raise e
@@ -91,7 +94,7 @@ class FunctionEvaluator(BaseEvaluator):
             runtime=eval_runtime_ms,
             model=None,
             metrics=metrics,
-            failure=not response["result"] if response is not None and "result" in response else None,
+            failure=failure,
         )
         return {k: v for k, v in eval_result.items() if v is not None}
 

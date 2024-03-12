@@ -111,7 +111,7 @@ class SummaryAccuracy(LlmEvaluator):
         return reason_str
 
 
-    def is_failure(self, metrics):
+    def is_failure(self, metrics) -> Optional[bool]:
         if (self._aggreement_score_failure_threshold is None and
             self._contradiction_score_failure_threshold is None and
             self._hallucination_score_failure_threshold is None):
