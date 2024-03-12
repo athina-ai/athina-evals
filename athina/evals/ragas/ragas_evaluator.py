@@ -55,7 +55,7 @@ class RagasEvaluator(BaseEvaluator):
         pass
     
     @abstractmethod
-    def is_failure(self) -> bool | None:
+    def is_failure(self):
         pass
 
     @property

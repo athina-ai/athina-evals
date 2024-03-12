@@ -1,5 +1,5 @@
 import time
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from athina.interfaces.result import EvalResult, EvalResultMetric, DatapointFieldAnnotation
 from athina.metrics.groundedness import GroundednessScore

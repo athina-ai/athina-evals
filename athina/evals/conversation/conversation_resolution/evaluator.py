@@ -1,5 +1,5 @@
 import time
-from typing import List
+from typing import List, Optional
 
 from athina.interfaces.model import Model
 from athina.interfaces.result import EvalResult, EvalResultMetric
