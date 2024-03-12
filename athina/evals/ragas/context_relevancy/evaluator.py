@@ -50,7 +50,7 @@ class RagasContextRelevancy(RagasEvaluator):
         return "This metric is calulated by dividing the number of sentences in context that are relevant for answering the given query by the total number of sentences in the retrieved context"
 
     def is_failure(self, score) -> Optional[bool]:
-        return score < self._failure_threshold if self._failure_threshold is not None else None
+        return bool(score < self._failure_threshold) if self._failure_threshold is not None else None
         
     def generate_data_to_evaluate(self, contexts, query, **kwargs) -> dict:
         """

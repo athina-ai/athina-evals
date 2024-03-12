@@ -51,7 +51,7 @@ class ConversationCoherence(LlmEvaluator):
         return self._user_message_template.format(**kwargs)
 
     def is_failure(self, score) -> Optional[bool]:
-        return score < self._failure_threshold if self._failure_threshold is not None else None
+        return bool(score < self._failure_threshold) if self._failure_threshold is not None else None
 
     def score(self, details):
         """Calculate the percentage of coherent messages."""

@@ -19,7 +19,7 @@ class SummaryAccuracy(LlmEvaluator):
     """
     questions: List[str] = []
     _llm_service: AbstractLlmService
-    _aggreement_score_failure_threshold: Optional[float] = None,
+    _agreement_score_failure_threshold: Optional[float] = None,
     _contradiction_score_failure_threshold: Optional[float] = None,
     _hallucination_score_failure_threshold: Optional[float] = None,
 
@@ -30,7 +30,7 @@ class SummaryAccuracy(LlmEvaluator):
         model: str = "gpt-4-1106-preview",
         question_answerer: Optional[QuestionAnswerer] = None,
         llm_service: Optional[AbstractLlmService] = None,
-        aggreement_score_failure_threshold: Optional[float] = None,
+        agreement_score_failure_threshold: Optional[float] = None,
         contradiction_score_failure_threshold: Optional[float] = None,
         hallucination_score_failure_threshold: Optional[float] = None,
     ):
@@ -66,8 +66,8 @@ class SummaryAccuracy(LlmEvaluator):
         for metric in self.metric_ids:
             setattr(self, f"{metric}_scores", {})
 
-        if aggreement_score_failure_threshold is not None:
-            self._aggreement_score_failure_threshold = aggreement_score_failure_threshold
+        if agreement_score_failure_threshold is not None:
+            self._agreement_score_failure_threshold = agreement_score_failure_threshold
         if hallucination_score_failure_threshold is not None:
             self._hallucination_score_failure_threshold = hallucination_score_failure_threshold
         if contradiction_score_failure_threshold is not None:
@@ -112,23 +112,28 @@ class SummaryAccuracy(LlmEvaluator):
 
 
     def is_failure(self, metrics) -> Optional[bool]:
-        if (self._aggreement_score_failure_threshold is None and
+        if (self._agreement_score_failure_threshold is None and
             self._contradiction_score_failure_threshold is None and
             self._hallucination_score_failure_threshold is None):
             return None
-        
+
         threshold_mapping = {
-            MetricType.AGREEMENT_SCORE.value: self._aggreement_score_failure_threshold,
+            MetricType.AGREEMENT_SCORE.value: self._agreement_score_failure_threshold,
             MetricType.CONTRADICTION_SCORE.value: self._contradiction_score_failure_threshold,
             MetricType.HALLUCINATION_SCORE.value: self._hallucination_score_failure_threshold,
         }
 
         for metric in metrics:
             failure_threshold = threshold_mapping.get(metric.id)
-            if failure_threshold is not None and metric.value < failure_threshold:
-                return True  # Fail if any metric value is below its threshold
+            if failure_threshold is not None:
+                if metric.id == MetricType.AGREEMENT_SCORE.value:
+                    if metric.value < failure_threshold:  # Fail if agreement score is below its threshold
+                        return True
+                else:  # For CONTRADICTION_SCORE and HALLUCINATION_SCORE
+                    if metric.value > failure_threshold:  # Fail if contradiction or hallucination score is above its threshold
+                        return True
 
-        return False 
+        return False  # No failure detected 
 
     def _evaluate(self, **instance) -> EvalResult:
         """

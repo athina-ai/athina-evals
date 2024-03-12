@@ -49,7 +49,7 @@ class Groundedness(LlmEvaluator):
         return []
     
     def is_failure(self, score) -> Optional[bool]:
-        return score < self._failure_threshold if self._failure_threshold is not None else None
+        return bool(score < self._failure_threshold) if self._failure_threshold is not None else None
         
     def reason(self, unsupported_sentences: List[str]) -> str:
         if (len(unsupported_sentences) > 0):
