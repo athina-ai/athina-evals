@@ -1,4 +1,4 @@
-[Documentation](https://docs.athina.ai/evals) | [Watch Demo Video →](https://www.loom.com/share/10e37f1ba11242ac8c97902edd2fa61e)
+[Documentation](https://docs.athina.ai/evals) | [Watch Demo Video →](https://bit.ly/athina-demo-feb-2024)
 
 ## Overview
 
