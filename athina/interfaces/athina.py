@@ -16,6 +16,7 @@ class AthinaInference:
     user_query: Optional[str]
     context: Optional[Dict[str, str]]
     prompt_response: Optional[str]
+    expected_response: Optional[str]
 
 
 @dataclass

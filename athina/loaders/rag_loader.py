@@ -89,8 +89,6 @@ class RagLoader(Loader):
                 "context": raw_dataset_dict['context'],
                 "response": raw_dataset_dict['prompt_response'],
             }
-
-            # Store the results
             self._processed_dataset.append(processed_instance)
         return self._processed_dataset
           

@@ -52,4 +52,13 @@ class ResponseLoader(Loader):
         """
         Load data from Athina API.
         """
-        pass
+        self._raw_dataset = AthinaApiService.fetch_inferences(
+            filters=filters, limit=limit
+        ) 
+        for raw_dataset in self._raw_dataset:
+            raw_dataset_dict = asdict(raw_dataset)
+            processed_instance = {
+                "response": raw_dataset_dict['prompt_response'],
+            }
+            self._processed_dataset.append(processed_instance)
+        return self._processed_dataset
