@@ -3,6 +3,8 @@ from athina.interfaces.athina import AthinaFilters
 from athina.interfaces.data import DataPoint
 from .base_loader import Loader
 from llama_index.indices.query.base import BaseQueryEngine
+from dataclasses import asdict
+from athina.services.athina_api_service import AthinaApiService
 
 
 class RagasDataPoint(TypedDict):
@@ -138,4 +140,18 @@ class RagasLoader(Loader):
         Load data from Athina API.
         By default, this will fetch the last 10 inferences from the API.
         """
-        pass
+        self._raw_dataset = AthinaApiService.fetch_inferences(
+            filters=filters, limit=limit
+        ) 
+        for raw_dataset in self._raw_dataset:
+            raw_dataset_dict = asdict(raw_dataset)
+
+            contexts = [str(raw_dataset_dict['context'])] if raw_dataset_dict['context'] is not None else None
+            processed_instance = {
+                "query": raw_dataset_dict['user_query'],
+                "contexts": contexts,
+                "response": raw_dataset_dict['prompt_response'],
+                "expected_response": raw_dataset_dict['expected_response'] 
+            }
+            self._processed_dataset.append(processed_instance)
+        return self._processed_dataset
