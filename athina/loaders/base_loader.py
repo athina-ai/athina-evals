@@ -9,7 +9,6 @@ class LoadFormat(Enum):
     """Supported load formats."""
 
     JSON = "json"
-    CSV = "csv"
     DICT = "dict"
     ATHINA = "athina"
 
@@ -44,8 +43,6 @@ class Loader(ABC):
             return self.load_json(**kwargs)
         elif format == LoadFormat.DICT.value:
             return self.load_dict(**kwargs)
-        elif format == LoadFormat.CSV.value:
-            return self.load_csv(**kwargs)
         elif format == LoadFormat.ATHINA.value:
             return self.load_athina_inferences(**kwargs)
         else:
@@ -74,15 +71,6 @@ class Loader(ABC):
         self._raw_dataset = data
         self.process()
         return self._processed_dataset
-
-    def load_csv(self) -> List[DataPoint]:
-        """
-        Placeholder for loading data from a CSV file.
-
-        Raises:
-            NotImplementedError: This method has not been implemented yet.
-        """
-        raise NotImplementedError("This method has not been implemented yet.")
 
     def load_pandas(self) -> List[DataPoint]:
         """
