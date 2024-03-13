@@ -46,6 +46,13 @@ class AthinaApiService:
                 headers=AthinaApiService._headers(),
                 json=json,
             )
+            if response.status_code != 200:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get(
+                    'details', {}).get('message', 'No Details')
+                raise CustomException(error_message, details_message)
+                
             inferences = response.json()["data"]["inferences"]
             return list(map(lambda x: AthinaInference(**x), inferences))
         except Exception as e:
