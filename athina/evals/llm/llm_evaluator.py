@@ -17,7 +17,6 @@ from ..base_evaluator import BaseEvaluator
 
 class LlmEvaluator(BaseEvaluator):
     llm_service: AbstractLlmService
-    grading_criteria: str
     _model: str
     _system_message_template: Optional[str] = None
     _user_message_template: Optional[str] = None
@@ -39,23 +38,11 @@ class LlmEvaluator(BaseEvaluator):
     
     """
 
-    DEFAULT_USER_MESSAGE_TEMPLATE = """
-    ### GRADING CRITERIA ###
-    {grading_criteria}
-
-    ### EXAMPLES ###
-    {examples}
-
-    ### RESPONSE TO EVALUATE ###
-    {response}
-    """
-
     EXAMPLES: FewShotExample = []
 
     def __init__(
         self,
         model: Optional[str] = None,
-        grading_criteria: Optional[str] = None,
         system_message_template: Optional[str] = None,
         user_message_template: Optional[str] = None,
         llm_service: Optional[AbstractLlmService] = None,
@@ -64,7 +51,6 @@ class LlmEvaluator(BaseEvaluator):
             self.llm_service = llm_service
         else:
             self.llm_service = OpenAiService()
-        self.grading_criteria = grading_criteria if grading_criteria else ""
         if model is None:
             self._model = self.default_model
         elif not Model.is_supported(model):
@@ -100,12 +86,6 @@ class LlmEvaluator(BaseEvaluator):
     def _system_message(self) -> str:
         return self._system_message_template
 
-    def _user_message(self, **kwargs) -> str:
-        return self._user_message_template.format(
-            examples=self._examples_str(),
-            grading_criteria=self.grading_criteria,
-            **kwargs,
-        )
 
     def _prompt_messages(self, **kwargs) -> List[dict]:
         return [
