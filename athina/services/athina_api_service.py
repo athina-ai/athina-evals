@@ -13,6 +13,7 @@ from athina.interfaces.athina import (
 from athina.interfaces.result import EvalPerformanceReport
 from athina.keys import AthinaApiKey
 from athina.helpers.constants import API_BASE_URL
+from athina.errors.exceptions import CustomException
 
 SDK_VERSION = pkg_resources.get_distribution("athina").version
 
@@ -89,6 +90,12 @@ class AthinaApiService:
                 headers=AthinaApiService._headers(),
                 json=athina_eval_result_create_many_request,
             )
+            if response.status_code != 200:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get(
+                    'details', {}).get('message', 'No Details')
+                raise CustomException(error_message, details_message)
             return response.json()
         except Exception as e:
             print(
@@ -111,6 +118,12 @@ class AthinaApiService:
                 headers=AthinaApiService._headers(),
                 json=athina_eval_request_create_request,
             )
+            if response.status_code != 200:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get(
+                    'details', {}).get('message', 'No Details')
+                raise CustomException(error_message, details_message)
             return response.json()
         except Exception as e:
             print(
@@ -144,6 +157,12 @@ class AthinaApiService:
                     "dataset_size": report["dataset_size"],
                 },
             )
+            if response.status_code != 200:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get(
+                    'details', {}).get('message', 'No Details')
+                raise CustomException(error_message, details_message)
             return response.json()
         except Exception as e:
             print(
@@ -175,6 +194,12 @@ class AthinaApiService:
                     "dataset_name": experiment["dataset_name"],
                 },
             )
+            if response.status_code != 200:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get(
+                    'details', {}).get('message', 'No Details')
+                raise CustomException(error_message, details_message)
             return response.json()
         except Exception as e:
             print(
