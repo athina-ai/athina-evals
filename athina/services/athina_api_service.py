@@ -46,13 +46,17 @@ class AthinaApiService:
                 headers=AthinaApiService._headers(),
                 json=json,
             )
-            if response.status_code != 200:
+            if response.status_code == 401:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
+                raise CustomException(error_message, details_message)
+            elif response.status_code != 200:
                 response_json = response.json()
                 error_message = response_json.get('error', 'Unknown Error')
                 details_message = response_json.get(
                     'details', {}).get('message', 'No Details')
                 raise CustomException(error_message, details_message)
-                
             inferences = response.json()["data"]["inferences"]
             return list(map(lambda x: AthinaInference(**x), inferences))
         except Exception as e:
@@ -97,7 +101,12 @@ class AthinaApiService:
                 headers=AthinaApiService._headers(),
                 json=athina_eval_result_create_many_request,
             )
-            if response.status_code != 200:
+            if response.status_code == 401:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
+                raise CustomException(error_message, details_message)
+            elif response.status_code != 200:
                 response_json = response.json()
                 error_message = response_json.get('error', 'Unknown Error')
                 details_message = response_json.get(
@@ -125,7 +134,12 @@ class AthinaApiService:
                 headers=AthinaApiService._headers(),
                 json=athina_eval_request_create_request,
             )
-            if response.status_code != 200:
+            if response.status_code == 401:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
+                raise CustomException(error_message, details_message)
+            elif response.status_code != 200:
                 response_json = response.json()
                 error_message = response_json.get('error', 'Unknown Error')
                 details_message = response_json.get(
@@ -164,7 +178,12 @@ class AthinaApiService:
                     "dataset_size": report["dataset_size"],
                 },
             )
-            if response.status_code != 200:
+            if response.status_code == 401:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
+                raise CustomException(error_message, details_message)
+            elif response.status_code != 200:
                 response_json = response.json()
                 error_message = response_json.get('error', 'Unknown Error')
                 details_message = response_json.get(
@@ -201,7 +220,12 @@ class AthinaApiService:
                     "dataset_name": experiment["dataset_name"],
                 },
             )
-            if response.status_code != 200:
+            if response.status_code == 401:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
+                raise CustomException(error_message, details_message)
+            elif response.status_code != 200:
                 response_json = response.json()
                 error_message = response_json.get('error', 'Unknown Error')
                 details_message = response_json.get(
