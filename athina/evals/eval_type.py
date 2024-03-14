@@ -1,10 +1,8 @@
 from enum import Enum
 
-
 class ConversationEvalTypeId(Enum):
     CONVERSATION_RESOLUTION = "ConversationResolution"
     CONVERSATION_COHERENCE = "ConversationCoherence"
-
 
 class LlmEvalTypeId(Enum):
     CONTEXT_CONTAINS_ENOUGH_INFORMATION = "Ccei"
@@ -13,7 +11,6 @@ class LlmEvalTypeId(Enum):
     GRADING_CRITERIA = "GradingCriteria"
     CUSTOM_PROMPT = "CustomPrompt"
     SUMMARY_ACCURACY = "SummaryAccuracy"
-
 
 class RagasEvalTypeId(Enum):
     RAGAS_CONTEXT_RELEVANCY = "RagasContextRelevancy"
@@ -49,14 +46,18 @@ class FunctionEvalTypeId(Enum):
     LENGTH_GREATER_THAN = "LengthGreaterThan"
     API_CALL = "ApiCall"
 
+class GroundedEvalTypeId(Enum):
+    ANSWER_SIMILARITY = "AnswerSimilarity"
+    CONTEXT_SIMILARITY = "ContextSimilarity"
 
 def is_llm_eval(evaluator_type: str) -> bool:
     return any(evaluator_type == member.value for member in LlmEvalTypeId)
 
-
 def is_ragas_eval(evaluator_type: str) -> bool:
     return any(evaluator_type == member.value for member in RagasEvalTypeId)
 
-
 def is_function_eval(evaluator_type: str) -> bool:
     return any(evaluator_type == member.value for member in FunctionEvalTypeId)
+
+def is_grounded_eval(evaluator_type: str) -> bool:
+    return any(evaluator_type == member.value for member in GroundedEvalTypeId)
