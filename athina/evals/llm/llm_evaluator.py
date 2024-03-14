@@ -38,6 +38,17 @@ class LlmEvaluator(BaseEvaluator):
     
     """
 
+    DEFAULT_USER_MESSAGE_TEMPLATE = """
+    ### GRADING CRITERIA ###
+    {grading_criteria}
+
+    ### EXAMPLES ###
+    {examples}
+
+    ### RESPONSE TO EVALUATE ###
+    {response}
+    """
+
     EXAMPLES: FewShotExample = []
 
     def __init__(

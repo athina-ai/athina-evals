@@ -64,8 +64,16 @@ class Faithfulness(LlmEvaluator):
         response: str,
         **kwargs,
     ) -> str:
+        """
+        Generates data for evaluation.
+
+        :param context: list of strings of retrieved context
+        :param response: llm response
+        :return: A dictionary with formatted data for evaluation
+        """
+        joined_context = ' '.join(context)
         return self.USER_MESSAGE_TEMPLATE.format(
-            context=context,
+            context=joined_context,
             response=response,
             examples=self._examples_str(),
         )
