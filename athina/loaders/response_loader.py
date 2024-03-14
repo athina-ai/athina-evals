@@ -1,10 +1,10 @@
 from typing import List, Optional
 from athina.interfaces.athina import AthinaFilters
 from athina.interfaces.data import DataPoint
-from .base_loader import Loader
+from .base_loader import BaseLoader
 
 
-class ResponseLoader(Loader):
+class ResponseLoader(BaseLoader):
     """
     This class is a data loader for evals that only evaluate the response.
 

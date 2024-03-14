@@ -13,7 +13,7 @@ class LoadFormat(Enum):
     ATHINA = "athina"
 
 
-class Loader(ABC):
+class BaseLoader(ABC):
     """Abstract base class for data loaders."""
 
     @property
@@ -71,12 +71,3 @@ class Loader(ABC):
         self._raw_dataset = data
         self.process()
         return self._processed_dataset
-
-    def load_pandas(self) -> List[DataPoint]:
-        """
-        Placeholder for loading data from a pandas DataFrame.
-
-        Raises:
-            NotImplementedError: This method has not been implemented yet.
-        """
-        raise NotImplementedError("This method has not been implemented yet.")

@@ -1,7 +1,7 @@
 from typing import List, Optional
 from athina.interfaces.athina import AthinaFilters
 from athina.interfaces.data import DataPoint
-from .base_loader import Loader
+from .base_loader import BaseLoader
 
 
 class SummaryDataPoint(DataPoint):
@@ -10,7 +10,7 @@ class SummaryDataPoint(DataPoint):
     response: str # summary
 
 
-class SummaryLoader(Loader):
+class SummaryLoader(BaseLoader):
     """
     This class is a data loader for LLM generated summary datasets.
 
