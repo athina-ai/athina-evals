@@ -49,20 +49,28 @@ class Loader(BaseLoader):
         Transforms the raw data into a structured format. Processes each entry from the raw dataset, and extracts attributes.
         """
         for raw_instance in self._raw_dataset:
-            # Create a processed instance with mandatory fields
-            processed_instance = {}
-            # add only if the key is present in the raw instance
-            if self.col_query in raw_instance:
-                processed_instance["query"] = raw_instance[self.col_query]
+
+            if self.col_query in raw_instance and not isinstance(raw_instance.get(self.col_query), str):
+                raise TypeError(f"'{self.col_query}' is not of type string.")
             if self.col_context in raw_instance:
-                processed_instance["context"] = raw_instance[self.col_context]
-            if self.col_response in raw_instance:
-                processed_instance["response"] = raw_instance[self.col_response]
-            if self.col_expected_response in raw_instance:
-                processed_instance["expected_response"] = raw_instance[self.col_expected_response]
-            # Store the results
-            processed_data_point = DataPoint(**processed_instance)
-            self._processed_dataset.append(processed_data_point)
+                if not isinstance(raw_instance.get(self.col_context), list):
+                    raise TypeError(f"'{self.col_context}' is not of type list.")
+                if not all(isinstance(element, str) for element in raw_instance.get(self.col_context)):
+                    raise TypeError(f"Not all elements in '{self.col_context}' are of type string.")
+            if self.col_response in raw_instance and not isinstance(raw_instance.get(self.col_response), str):
+                raise TypeError(f"'{self.col_response}' is not of type string.")
+            if self.col_expected_response in raw_instance and not isinstance(raw_instance.get(self.col_expected_response), str):
+                raise TypeError(f"'{self.col_expected_response}' is not of type string.")
+
+            # Create a processed instance
+            processed_instance = {
+                "query": raw_instance.get(self.col_query, None),
+                "context": raw_instance.get(self.col_context, None),
+                "response": raw_instance.get(self.col_response, None),
+                "expected_response": raw_instance.get(self.col_expected_response, None)
+            }
+            self._processed_dataset.append(processed_instance)
+        
 
     def load_athina_inferences(
         self,
