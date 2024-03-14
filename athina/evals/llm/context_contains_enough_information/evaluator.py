@@ -65,8 +65,16 @@ class ContextContainsEnoughInformation(LlmEvaluator):
         context: str,
         **kwargs,
     ) -> str:
+        """
+        Generates data for evaluation.
+
+        :param query: user query
+        :param context: list of strings of retrieved context
+        :return: A dictionary with formatted data for evaluation
+        """
+        joined_context = ' '.join(context)
         return self.USER_MESSAGE_TEMPLATE.format(
             query=query,
-            context=context,
+            context=joined_context,
             examples=self.examples,
         )

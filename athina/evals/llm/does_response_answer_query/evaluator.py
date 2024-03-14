@@ -65,6 +65,13 @@ class DoesResponseAnswerQuery(LlmEvaluator):
         response: str,
         **kwargs,
     ) -> str:
+        """
+        Generates data for evaluation.
+
+        :param query: user query
+        :param response: llm response
+        :return: A dictionary with formatted data for evaluation
+        """
         return self.USER_MESSAGE_TEMPLATE.format(
             query=query,
             response=response,

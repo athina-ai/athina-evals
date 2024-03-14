@@ -63,6 +63,12 @@ class GradingCriteria(LlmEvaluator):
         return bool(result == "Fail") 
 
     def _user_message(self, response) -> str:
+        """
+        Generates data for evaluation.
+
+        :param response: llm response
+        :return: A dictionary with formatted data for evaluation
+        """
         return self.USER_MESSAGE_TEMPLATE.format(
             examples=self._examples_str(),
             grading_criteria=self.grading_criteria,
