@@ -22,7 +22,7 @@ class GradingCriteria(LlmEvaluator):
     {response}
     """
     _examples = []
-
+    grading_criteria = None
     def __init__(self, 
         grading_criteria: str, 
         model: Optional[str] = None,
@@ -30,6 +30,7 @@ class GradingCriteria(LlmEvaluator):
     ):
         if grading_criteria is None:
             raise Exception("Eval is incorrectly configured: grading_criteria is required for GradingCriteria evaluator")
+        self.grading_criteria = grading_criteria
         super().__init__(
             model=model,
             llm_service=llm_service
