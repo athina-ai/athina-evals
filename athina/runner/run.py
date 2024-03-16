@@ -154,9 +154,6 @@ class EvalRunner:
 
         batch_results = []
         for eval in evals:
-            # Validate the dataset against the required args
-            eval._validate_batch_args(data)
-
             # Run the evaluations
             if max_parallel_evals > 1:
                 eval_results = eval._run_batch_generator_async(data, max_parallel_evals)
