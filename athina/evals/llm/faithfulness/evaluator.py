@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from ..llm_evaluator import LlmEvaluator
 from .examples import FAITHFULNESS_EVAL_EXAMPLES
 from athina.evals.eval_type import LlmEvalTypeId
@@ -56,6 +56,8 @@ class Faithfulness(LlmEvaluator):
     def examples(self):
         return FAITHFULNESS_EVAL_EXAMPLES
 
+    def is_failure(self, result) -> Optional[bool]:
+        return bool(result == "Fail") 
     def _user_message(
         self,
         context: str,

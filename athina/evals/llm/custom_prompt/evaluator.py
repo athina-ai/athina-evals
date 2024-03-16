@@ -74,4 +74,7 @@ class CustomPrompt(LlmEvaluator):
     @property
     def examples(self):
         return self._examples
+    
+    def is_failure(self, result) -> Optional[bool]:
+        return bool(result == "Fail") 
         

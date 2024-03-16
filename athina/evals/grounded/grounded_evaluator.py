@@ -12,7 +12,6 @@ from ..base_evaluator import BaseEvaluator
 class GroundedEvaluator(BaseEvaluator):
 
     _comparator: Comparator
-    _failure_threshold: Optional[float] = None
 
     """
     This evaluator runs the requested grounded evaluator on the given data.
@@ -62,6 +61,9 @@ class GroundedEvaluator(BaseEvaluator):
         else:
             raise ValueError("Exactly two arguments are required.")
 
+    def is_failure(self, score) -> Optional[bool]:
+        return bool(score < self._failure_threshold) if self._failure_threshold is not None else None
+
     def _evaluate(self, **kwargs) -> EvalResult:
         """
         Run the Function evaluator.
@@ -78,10 +80,12 @@ class GroundedEvaluator(BaseEvaluator):
             metrics.append(EvalResultMetric(id=MetricType.SIMILARITY_SCORE.value, value=similarity_score))
             if self._failure_threshold is None:
                 explanation = f"Successfully calculated similarity score of {similarity_score} using {self.display_name}"
-            elif similarity_score < self._failure_threshold:
+            elif similarity_bool(score < self._failure_threshold):
                 explanation = f"Evaluation failed as similarity score of {similarity_score} is below the failure threshold of {self._failure_threshold} using {self.display_name}"
             else:
                 explanation = f"Evaluation succeeded as similarity score of {similarity_score} is above the failure threshold of {self._failure_threshold} using {self.display_name}"
+
+            failure = self.is_failure(similarity_score)
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
             raise e
@@ -96,7 +100,7 @@ class GroundedEvaluator(BaseEvaluator):
             runtime=eval_runtime_ms,
             model=None,
             metrics=metrics,
-            failure=None if self._failure_threshold is None else similarity_score < self._failure_threshold,
+            failure=failure
         )
         return {k: v for k, v in eval_result.items() if v is not None}
 

@@ -4,7 +4,7 @@ from typing import Optional
 from athina.interfaces.athina import AthinaExperiment
 from athina.interfaces.model import Model
 import time
-from typing import Optional, Any
+from typing import Optional, Any, List
 from athina.interfaces.result import EvalResult, EvalResultMetric
 from athina.interfaces.model import Model
 from athina.helpers.logger import logger
@@ -20,11 +20,13 @@ class RagasEvaluator(BaseEvaluator):
     _model: str
     _openai_api_key: Optional[str]
     _experiment: Optional[AthinaExperiment] = None
+    _failure_threshold: Optional[float] = None
 
     def __init__(
         self,
         openai_api_key: Optional[str] = None,
         model: Optional[str] = None,
+        failure_threshold: Optional[float] = None
     ):
         if model is None:
             self._model = self.default_model
@@ -37,6 +39,9 @@ class RagasEvaluator(BaseEvaluator):
             self._openai_api_key = OpenAiApiKey.get_key()
         else:
             self._openai_api_key = openai_api_key
+
+        if failure_threshold is not None:
+            self._failure_threshold = failure_threshold
 
     @property
     def default_model(self) -> str:
@@ -73,6 +78,8 @@ class RagasEvaluator(BaseEvaluator):
                 metrics.append(EvalResultMetric(id=self.metric_ids[0], value=metric_value))
             else:
                 logger.warn(f"Invalid metric value: {metric_value}")
+
+            failure = self.is_failure(score=metric_value)
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
             raise e
@@ -83,7 +90,7 @@ class RagasEvaluator(BaseEvaluator):
             name=self.name,
             display_name=self.display_name,
             data=kwargs,
-            failure=None,
+            failure=failure,
             reason=self.grade_reason,
             runtime=eval_runtime_ms,
             model=self._model,

@@ -137,12 +137,12 @@ class LlmEvaluator(BaseEvaluator):
             messages=messages,
             temperature=self.TEMPERATURE,
         )
-
+    
         metrics = []
         try:
             result = chat_completion_response_json["result"]
             explanation = chat_completion_response_json["explanation"]
-            failure = bool(result == "Fail")
+            failure = self.is_failure(result)
             passed_value = 1 - float(failure)
             metrics.append(EvalResultMetric(id=MetricType.PASSED.value, value=passed_value))
 

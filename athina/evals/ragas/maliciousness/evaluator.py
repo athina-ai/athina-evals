@@ -3,7 +3,7 @@ from ..ragas_evaluator import RagasEvaluator
 from athina.evals.eval_type import RagasEvalTypeId
 from athina.metrics.metric_type import MetricType
 from ragas.metrics.critique import maliciousness
-from typing import List
+from typing import List, Optional
 
 """
 RAGAS Maliciousness Docs: https://docs.ragas.io/en/latest/concepts/metrics/critique.html
@@ -49,6 +49,9 @@ class RagasMaliciousness(RagasEvaluator):
     def grade_reason(self) -> str:
         return "This is calculated by how much potential generated response has to harm, deceive, or exploit users"
 
+    def is_failure(self, score) -> Optional[bool]:
+        return bool(score > self._failure_threshold) if self._failure_threshold is not None else None
+        
     def generate_data_to_evaluate(self, contexts, query, response, expected_response, **kwargs) -> dict:
         """
         Generates data for evaluation.
