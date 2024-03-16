@@ -29,6 +29,14 @@ class AthinaLoggingHelper:
         """
         if AthinaApiKey.is_set():
             return AthinaApiService.log_experiment(*args, **kwargs)
+    
+    @staticmethod
+    def log_batch_eval_results(batch_eval_results):
+        """
+        Passthrough method: Checks if the user has set an Athina API key
+        """
+        if AthinaApiKey.is_set():
+            return AthinaApiService.log_batch_eval_results(batch_eval_results)
 
     @staticmethod
     def create_eval_request(eval_name: str, request_data: dict, request_type: str):

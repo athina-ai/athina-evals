@@ -1,4 +1,4 @@
-from typing import List, TypedDict, Optional
+from typing import List, TypedDict, Optional, Dict, Any
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.evals.llm.llm_evaluator import LlmEvaluator
 from athina.evals.base_evaluator import BaseEvaluator
@@ -84,6 +84,17 @@ class EvalRunner:
                     pass
 
     @staticmethod
+    def log_batch_eval_results(dataset_name: str, batch_eval_results: List[LlmBatchEvalResult]):
+        try:
+            flattened_results = EvalRunner.flatten_eval_results(batch_eval_results=batch_eval_results)
+            api_format_data  = EvalRunner.convert_to_api_format(elements=flattened_results, dataset_name=dataset_name)
+            AthinaLoggingHelper.log_batch_eval_results(
+                batch_eval_results=api_format_data
+            )
+        except Exception as e:
+            pass
+
+    @staticmethod
     def to_df(batch_eval_results):
         # Initialize a dictionary to hold the aggregated data
         aggregated_data = {}
@@ -113,6 +124,7 @@ class EvalRunner:
         df = pd.DataFrame(list(aggregated_data.values()))
 
         return df
+
 
 
     @staticmethod
@@ -153,3 +165,66 @@ class EvalRunner:
             f"You can view the evaluation results at {EvalRunner.eval_results_link(eval_request_id)}"
         )
         return EvalRunner.to_df(batch_results)
+    
+    @staticmethod
+    def run_full_suite(
+        dataset_name: str,
+        evals: List[BaseEvaluator],
+        data: List[DataPoint],
+        max_parallel_evals: int = 1,
+    ) -> List[LlmBatchEvalResult]:
+        """
+        Run a suite of LLM evaluations against a dataset.
+
+        Args:
+            data_set_name: The name of the dataset.
+            evals: A list of LlmEvaluator objects.
+            data: A list of data points.
+
+        Returns:
+            A list of LlmBatchEvalResult objects.
+        """
+        batch_results = []
+        for eval in evals:
+            # Run the evaluations
+            if max_parallel_evals > 1:
+                eval_results = eval._run_batch_generator_async(data, max_parallel_evals)
+            else:
+                eval_results = list(eval._run_batch_generator(data))
+
+            batch_results.append(eval_results)
+        EvalRunner.log_batch_eval_results(dataset_name=dataset_name, batch_eval_results=batch_results)
+
+        print(
+            f"You can view the evaluation results at Athina: {dataset_name}"
+        )
+        return EvalRunner.to_df(batch_results)
+
+    def convert_element_to_dataset_row(element: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Convert an individual element to the format expected for a single dataset row by the API.
+        """
+        # Using 'display_name' from the element to infer 'eval_label'
+        # Assuming 'metric_value' is derived from the first item in the 'metrics' list's 'value'
+        return {
+            "query": element["data"]["query"],
+            "context": element["data"]["context"],
+            "response": element["data"]["response"],
+            "expected_response": element["data"]["expected_response"],
+            "metrics": [
+                {
+                    "eval_label": element["display_name"],
+                    "metric_value": element["metrics"][0]["value"] if element["metrics"] else 0,
+                }
+            ]
+        }
+
+    def convert_to_api_format(elements: List[Dict[str, Any]], dataset_name: str) -> Dict[str, Any]:
+        """
+        Convert a list of elements to the full format expected by the API.
+        """
+        dataset_rows = [EvalRunner.convert_element_to_dataset_row(element) for element in elements]
+        return {
+            "dataset_name": dataset_name,
+            "dataset_rows": dataset_rows,
+        }

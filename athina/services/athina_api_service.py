@@ -84,6 +84,37 @@ class AthinaApiService:
         except Exception as e:
             # Silent failure is ok here.
             pass
+    
+    @staticmethod
+    def log_batch_eval_results(batch_eval_results):
+        """
+        Logs batch eval results to Athina
+        """
+        try:
+            endpoint = f"{API_BASE_URL}/api/v1/tempDatasetEval/create"
+            response = requests.post(
+                endpoint,
+                headers=AthinaApiService._headers(),
+                json=batch_eval_results,
+            )
+            if response.status_code == 401:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
+                raise CustomException(error_message, details_message)
+            elif response.status_code != 200 and response.status_code != 201:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get(
+                    'details', {}).get('message', 'No Details')
+                raise CustomException(error_message, details_message)
+            return response.json()
+        except Exception as e:
+            print(
+                f"An error occurred while posting batch eval results",
+                str(e),
+            )
+            raise
 
     @staticmethod
     @retry(wait_fixed=500, stop_max_attempt_number=3)
