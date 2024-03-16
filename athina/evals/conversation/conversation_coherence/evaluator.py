@@ -39,7 +39,7 @@ class ConversationCoherence(LlmEvaluator):
     @property
     def required_args(self):
         return [
-            "conversation_messages"
+            "messages"
         ]  # messages is an array of strings representing the conversation
 
     @property
@@ -72,18 +72,14 @@ class ConversationCoherence(LlmEvaluator):
         else:
             return "All messages were coherent."
 
-    def _evaluate(self, conversation_messages: List[str]) -> EvalResult:
+    def _evaluate(self, messages: List[str]) -> EvalResult:
         """
         Run the LLM evaluator.
         """
         start_time = time.perf_counter()
 
-        print("evaluating conversation messages")
-        print(conversation_messages)
         # Construct Prompt
-        prompt_messages = self._prompt_messages(
-            messages="\n".join(conversation_messages)
-        )
+        prompt_messages = self._prompt_messages(messages="\n".join(messages))
 
         # Run the LLM Completion
         chat_completion_response_json: dict = self.llm_service.json_completion(
@@ -94,7 +90,6 @@ class ConversationCoherence(LlmEvaluator):
 
         metrics = []
         try:
-            print(chat_completion_response_json)
             messages_with_coherence_status = chat_completion_response_json["details"]
 
             score = self.score(messages_with_coherence_status)
@@ -116,7 +111,7 @@ class ConversationCoherence(LlmEvaluator):
         llm_eval_result = EvalResult(
             name=self.name,
             display_name=self.display_name,
-            data={"messages": conversation_messages},
+            data={"messages": messages},
             failure=failure,
             reason=reason,
             runtime=eval_runtime_ms,
