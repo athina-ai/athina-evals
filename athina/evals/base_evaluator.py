@@ -6,7 +6,7 @@ from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.interfaces.athina import AthinaExperiment
 
 from athina.interfaces.data import DataPoint
-from athina.interfaces.result import BatchRunResult
+from athina.interfaces.result import BatchRunResult, EvalResult
 from athina.services.athina_api_service import AthinaApiService
 
 
@@ -58,13 +58,19 @@ class BaseEvaluator(ABC):
         return self
 
     def validate_args(self, **kwargs) -> None:
+        """
+        Validates that all required arguments are present and not None.
+        """
         for arg in self.required_args:
             if arg not in kwargs:
                 raise ValueError(f"Missing required argument: {arg}")
+            elif kwargs[arg] is None:
+                raise ValueError(f"{arg} cannot be None")
 
     def _validate_batch_args(self, data: List[DataPoint]) -> bool:
         """
-        Validates that each entry in the batch has all the required arguments.
+        Validates that each entry in the batch has all the required arguments,
+        and none of the arguments is None.
         """
         for i, entry in enumerate(data):
             for arg in self.required_args:
@@ -72,34 +78,57 @@ class BaseEvaluator(ABC):
                     raise ValueError(
                         f"Data at index {i} is missing required argument: {arg}"
                     )
+                elif entry[arg] is None:
+                    raise ValueError(
+                        f"Data at index {i} has required argument {arg} set to None"
+                    )
         return True
 
-    def run(self, **kwargs) -> BatchRunResult:
+    def _log_evaluation_request(self, data) -> Optional[str]:
         """
-        Run the LLM evaluator, and log results to Athina.
+        Logs usage to Athina for analytics and creates an evaluation request.
         """
-        # Log usage to Athina for analytics
-        AthinaApiService.log_usage(eval_name=self.name, run_type="batch")
+        eval_request_id = None
+        try:
+            eval_request_id = AthinaLoggingHelper.create_eval_request(
+                eval_name=self.name, request_data={"data": data}, request_type="batch"
+            )
+            self._log_experiment(eval_request_id)
+        except Exception as e:
+            pass
+        return eval_request_id
 
-        # Create eval request
-        eval_request_id = AthinaLoggingHelper.create_eval_request(
-            eval_name=self.name, request_data={"data": [kwargs]}, request_type="batch"
-        )
-
-        # Log experiment
-        if self._experiment:
+    def _log_experiment(self, eval_request_id: Optional[str]):
+        """
+        Logs experiment to Athina if there is an ongoing experiment.
+        """
+        if self._experiment and eval_request_id:
             AthinaLoggingHelper.log_experiment(
                 eval_request_id=eval_request_id,
                 experiment=self._experiment,
             )
 
-        eval_result = self._evaluate(**kwargs)
+    def _log_evaluation_results(self, eval_request_id: Optional[str], eval_result: EvalResult):
+        """
+        Logs the evaluation results to Athina if the eval_request_id is available.
+        """
+        if eval_request_id:
+            try:
+                AthinaLoggingHelper.log_eval_results(
+                    eval_request_id=eval_request_id,
+                    eval_results=[eval_result],
+                )
+            except Exception as e:
+                pass
 
-        # Log evaluation results to Athina
-        AthinaLoggingHelper.log_eval_results(
-            eval_request_id=eval_request_id,
-            eval_results=[eval_result],
-        )
+    def run(self, **kwargs) -> BatchRunResult:
+        """
+        Run the LLM evaluator, and log results to Athina.
+        """
+        AthinaApiService.log_usage(eval_name=self.name, run_type="batch")
+        eval_request_id = self._log_evaluation_request(kwargs)
+        eval_result = self._evaluate(**kwargs)
+        self._log_evaluation_results(eval_request_id, eval_result)
 
         return BatchRunResult(
             eval_request_id=eval_request_id,
@@ -148,25 +177,10 @@ class BaseEvaluator(ABC):
         """
         Runs the evaluator on a batch of data.
         """
-
-        # Create eval request
-        eval_request_id = AthinaLoggingHelper.create_eval_request(
-            eval_name=self.name, request_data={"data": data}, request_type="batch"
-        )
-
         # Log usage to Athina for analytics
         AthinaApiService.log_usage(eval_name=self.name, run_type="batch")
-
-        # Log experiment
-        if self._experiment is not None:
-            AthinaLoggingHelper.log_experiment(
-                eval_request_id=eval_request_id,
-                experiment=self._experiment,
-            )
-
-        # Validate the dataset against the required args
-        self._validate_batch_args(data)
-
+        eval_request_id = self._log_evaluation_request(data)
+        
         # Run the evaluations
         if max_parallel_evals > 1:
             eval_results = self._run_batch_generator_async(data, max_parallel_evals)
@@ -174,10 +188,7 @@ class BaseEvaluator(ABC):
             eval_results = list(self._run_batch_generator(data))
 
         # Log evaluation results to Athina
-        AthinaLoggingHelper.log_eval_results(
-            eval_request_id=eval_request_id,
-            eval_results=eval_results,
-        )
+        self._log_evaluation_results(eval_request_id, eval_result)
 
         return BatchRunResult(
             eval_request_id=eval_request_id,
