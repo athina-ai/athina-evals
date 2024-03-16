@@ -108,7 +108,7 @@ class BaseEvaluator(ABC):
                 experiment=self._experiment,
             )
 
-    def _log_evaluation_results(self, eval_request_id: Optional[str], eval_result: EvalResult):
+    def _log_evaluation_results(self, eval_request_id: Optional[str], eval_results: List[EvalResult]):
         """
         Logs the evaluation results to Athina if the eval_request_id is available.
         """
@@ -116,7 +116,7 @@ class BaseEvaluator(ABC):
             try:
                 AthinaLoggingHelper.log_eval_results(
                     eval_request_id=eval_request_id,
-                    eval_results=[eval_result],
+                    eval_results=eval_results,
                 )
             except Exception as e:
                 pass
@@ -188,7 +188,7 @@ class BaseEvaluator(ABC):
             eval_results = list(self._run_batch_generator(data))
 
         # Log evaluation results to Athina
-        self._log_evaluation_results(eval_request_id, eval_result)
+        self._log_evaluation_results(eval_request_id, eval_results)
 
         return BatchRunResult(
             eval_request_id=eval_request_id,

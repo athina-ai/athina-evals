@@ -42,33 +42,44 @@ class BatchRunResult:
     """
     Represents the result of a batch run of LLM evaluation.
     """
-
-    eval_results: List[EvalResult]
+    eval_results: List[Optional[EvalResult]]
     eval_request_id: Optional[str] = field(default=None)
 
     def to_df(self):
         """
         Converts the batch run result to a Pandas DataFrame, including data and dynamic metrics.
+        Represents None entries in the DataFrame.
         """
         pd.set_option('display.max_colwidth', 500)
 
         df_data = []
         for item in self.eval_results:
-            # Start with dynamic fields from the 'data' dictionary
-            entry = {key: value for key, value in item['data'].items()}
+            if item is None:
+                # Add a representation for None entries
+                entry = {
+                    'display_name': None,
+                    'failed': None,
+                    'grade_reason': None,
+                    'runtime': None,
+                    'model': None,
+                    # Add more fields as None or with a placeholder as necessary
+                }
+            else:
+                # Start with dynamic fields from the 'data' dictionary
+                entry = {key: value for key, value in item['data'].items()}
 
-            # Add fixed fields
-            entry.update({
-                'display_name': item['display_name'],
-                'failed': item['failure'] if 'failure' in item else None,
-                'grade_reason': item['reason'],
-                'runtime': item['runtime'],
-                'model': item['model'] if 'model' in item else None,
-            })
+                # Add fixed fields
+                entry.update({
+                    'display_name': item['display_name'],
+                    'failed': item.get('failure'),
+                    'grade_reason': item['reason'],
+                    'runtime': item['runtime'],
+                    'model': item.get('model'),
+                })
 
-            # Add dynamic metrics
-            for metric in item['metrics']:
-                entry[metric['id']] = metric['value']
+                # Add dynamic metrics
+                for metric in item['metrics']:
+                    entry[metric['id']] = metric['value']
 
             df_data.append(entry)
 
