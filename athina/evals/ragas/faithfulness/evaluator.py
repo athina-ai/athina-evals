@@ -39,7 +39,7 @@ class RagasFaithfulness(RagasEvaluator):
 
     @property
     def required_args(self):
-        return ["query", "contexts", "response"]
+        return ["query", "context", "response"]
 
     @property
     def examples(self):
@@ -52,7 +52,7 @@ class RagasFaithfulness(RagasEvaluator):
     def is_failure(self, score) -> Optional[bool]:
         return bool(score < self._failure_threshold) if self._failure_threshold is not None else None
         
-    def generate_data_to_evaluate(self, contexts, query, response, **kwargs) -> dict:
+    def generate_data_to_evaluate(self, context, query, response, **kwargs) -> dict:
         """
         Generates data for evaluation.
 
@@ -62,7 +62,7 @@ class RagasFaithfulness(RagasEvaluator):
         :return: A dictionary with formatted data for evaluation.
         """
         data = {
-            "contexts": [contexts],
+            "contexts": [context],
             "question": [query],
             "answer": [response]
         }
