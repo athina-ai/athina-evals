@@ -55,9 +55,9 @@ class ContextContainsEnoughInformation(LlmEvaluator):
     @property
     def examples(self):
         return CONTEXT_CONTAINS_ENOUGH_INFORMATION_EXAMPLES
-    
+
     def is_failure(self, result) -> Optional[bool]:
-        return bool(result == "Fail") 
+        return bool(result == "Fail")
 
     def _user_message(
         self,
@@ -72,7 +72,7 @@ class ContextContainsEnoughInformation(LlmEvaluator):
         :param context: list of strings of retrieved context
         :return: A dictionary with formatted data for evaluation
         """
-        joined_context = ' '.join(context)
+        joined_context = "\n".join(context)
         return self.USER_MESSAGE_TEMPLATE.format(
             query=query,
             context=joined_context,

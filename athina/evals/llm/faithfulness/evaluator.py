@@ -57,7 +57,8 @@ class Faithfulness(LlmEvaluator):
         return FAITHFULNESS_EVAL_EXAMPLES
 
     def is_failure(self, result) -> Optional[bool]:
-        return bool(result == "Fail") 
+        return bool(result == "Fail")
+
     def _user_message(
         self,
         context: str,
@@ -71,7 +72,7 @@ class Faithfulness(LlmEvaluator):
         :param response: llm response
         :return: A dictionary with formatted data for evaluation
         """
-        joined_context = ' '.join(context)
+        joined_context = "\n".join(context)
         return self.USER_MESSAGE_TEMPLATE.format(
             context=joined_context,
             response=response,
