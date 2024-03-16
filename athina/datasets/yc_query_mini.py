@@ -3,6 +3,7 @@ data = [
     {
         "query": "What are some successful companies that went through YC?",
         "context": ["Y Combinator has invested in companies in various fields like FinTech, Healthcare, AI, etc."],
+        "response": "Airbnb, Dropbox, Stripe, Reddit, Coinbase, Instacart.",
         "expected_response": "Airbnb and Stripe are 2 of the successful companies that went through YC.",
     },
     {
