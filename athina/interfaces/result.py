@@ -1,5 +1,5 @@
 import pandas as pd
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TypedDict, List, Optional
 from athina.interfaces.data import DataPoint
 
@@ -43,8 +43,8 @@ class BatchRunResult:
     Represents the result of a batch run of LLM evaluation.
     """
 
-    eval_request_id: str
     eval_results: List[EvalResult]
+    eval_request_id: Optional[str] = field(default=None)
 
     def to_df(self):
         """

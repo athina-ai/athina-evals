@@ -1,6 +1,7 @@
 from typing import List, TypedDict, Optional
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.evals.llm.llm_evaluator import LlmEvaluator
+from athina.evals.base_evaluator import BaseEvaluator
 from athina.interfaces.result import EvalResult, BatchRunResult
 from athina.interfaces.data import DataPoint
 from athina.interfaces.athina import AthinaExperiment
@@ -120,7 +121,7 @@ class EvalRunner:
 
     @staticmethod
     def run_suite(
-        evals: List[LlmEvaluator],
+        evals: List[BaseEvaluator],
         data: List[DataPoint],
         experiment: Optional[AthinaExperiment] = None,
         max_parallel_evals: int = 1,
@@ -142,7 +143,6 @@ class EvalRunner:
             request_data={"data": data},
             request_type="suite",
         )
-
         # Log experiment
         if experiment is not None:
             AthinaLoggingHelper.log_experiment(

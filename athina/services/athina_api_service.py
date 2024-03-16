@@ -51,7 +51,7 @@ class AthinaApiService:
                 error_message = response_json.get('error', 'Unknown Error')
                 details_message = 'please check your athina api key and try again'
                 raise CustomException(error_message, details_message)
-            elif response.status_code != 200:
+            elif response.status_code != 200 and response.status_code != 201:
                 response_json = response.json()
                 error_message = response_json.get('error', 'Unknown Error')
                 details_message = response_json.get(
@@ -106,7 +106,7 @@ class AthinaApiService:
                 error_message = response_json.get('error', 'Unknown Error')
                 details_message = 'please check your athina api key and try again'
                 raise CustomException(error_message, details_message)
-            elif response.status_code != 200:
+            elif response.status_code != 200 and response.status_code != 201:
                 response_json = response.json()
                 error_message = response_json.get('error', 'Unknown Error')
                 details_message = response_json.get(
@@ -139,7 +139,7 @@ class AthinaApiService:
                 error_message = response_json.get('error', 'Unknown Error')
                 details_message = 'please check your athina api key and try again'
                 raise CustomException(error_message, details_message)
-            elif response.status_code != 200:
+            elif response.status_code != 200 and response.status_code != 201:
                 response_json = response.json()
                 error_message = response_json.get('error', 'Unknown Error')
                 details_message = response_json.get(
@@ -183,7 +183,7 @@ class AthinaApiService:
                 error_message = response_json.get('error', 'Unknown Error')
                 details_message = 'please check your athina api key and try again'
                 raise CustomException(error_message, details_message)
-            elif response.status_code != 200:
+            elif response.status_code != 200 and response.status_code != 201:
                 response_json = response.json()
                 error_message = response_json.get('error', 'Unknown Error')
                 details_message = response_json.get(
@@ -220,12 +220,13 @@ class AthinaApiService:
                     "dataset_name": experiment["dataset_name"],
                 },
             )
+            print(response.status_code)
             if response.status_code == 401:
                 response_json = response.json()
                 error_message = response_json.get('error', 'Unknown Error')
                 details_message = 'please check your athina api key and try again'
                 raise CustomException(error_message, details_message)
-            elif response.status_code != 200:
+            elif response.status_code != 200 and response.status_code != 201:
                 response_json = response.json()
                 error_message = response_json.get('error', 'Unknown Error')
                 details_message = response_json.get(
