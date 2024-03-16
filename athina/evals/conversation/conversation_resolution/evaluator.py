@@ -40,7 +40,7 @@ class ConversationResolution(LlmEvaluator):
     @property
     def required_args(self):
         return [
-            "conversation_messages"
+            "messages"
         ]  # messages is an array of strings representing the conversation
 
     @property
@@ -67,16 +67,14 @@ class ConversationResolution(LlmEvaluator):
             unresolved_messages
         )
 
-    def _evaluate(self, conversation_messages: List[str]) -> EvalResult:
+    def _evaluate(self, messages: List[str]) -> EvalResult:
         """
         Run the LLM evaluator.
         """
         start_time = time.perf_counter()
 
         # Construct Prompt
-        prompt_messages = self._prompt_messages(
-            messages="\n".join(conversation_messages)
-        )
+        prompt_messages = self._prompt_messages(messages="\n".join(messages))
 
         # Run the LLM Completion
         chat_completion_response_json: dict = self.llm_service.json_completion(
@@ -117,7 +115,7 @@ class ConversationResolution(LlmEvaluator):
         llm_eval_result = EvalResult(
             name=self.name,
             display_name=self.display_name,
-            data={"messages": conversation_messages},
+            data={"messages": messages},
             failure=failure,
             reason=reason,
             runtime=eval_runtime_ms,

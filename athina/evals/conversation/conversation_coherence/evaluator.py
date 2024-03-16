@@ -13,7 +13,9 @@ class ConversationCoherence(LlmEvaluator):
     """
     This evaluator checks if the conversation was resolved or not.
     """
+
     _failure_threshold: Optional[float] = None
+
     def __init__(self, failure_threshold: Optional[float] = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if failure_threshold is not None:
@@ -40,7 +42,7 @@ class ConversationCoherence(LlmEvaluator):
     @property
     def required_args(self):
         return [
-            "conversation_messages"
+            "messages"
         ]  # messages is an array of strings representing the conversation
 
     @property
@@ -51,7 +53,11 @@ class ConversationCoherence(LlmEvaluator):
         return self._user_message_template.format(**kwargs)
 
     def is_failure(self, score) -> Optional[bool]:
-        return bool(score < self._failure_threshold) if self._failure_threshold is not None else None
+        return (
+            bool(score < self._failure_threshold)
+            if self._failure_threshold is not None
+            else None
+        )
 
     def score(self, details):
         """Calculate the percentage of coherent messages."""
@@ -76,17 +82,14 @@ class ConversationCoherence(LlmEvaluator):
         else:
             return "All messages were coherent."
 
-    def _evaluate(self, conversation_messages: List[str]) -> EvalResult:
+    def _evaluate(self, messages: List[str]) -> EvalResult:
         """
         Run the LLM evaluator.
         """
         start_time = time.perf_counter()
 
-        print("evaluating conversation messages")
         # Construct Prompt
-        prompt_messages = self._prompt_messages(
-            messages="\n".join(conversation_messages)
-        )
+        prompt_messages = self._prompt_messages(messages="\n".join(messages))
 
         # Run the LLM Completion
         chat_completion_response_json: dict = self.llm_service.json_completion(
@@ -118,7 +121,7 @@ class ConversationCoherence(LlmEvaluator):
         llm_eval_result = EvalResult(
             name=self.name,
             display_name=self.display_name,
-            data={"messages": conversation_messages},
+            data={"messages": messages},
             failure=failure,
             reason=reason,
             runtime=eval_runtime_ms,
