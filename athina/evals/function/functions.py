@@ -31,7 +31,7 @@ def _preprocess_strings(keywords, response, case_sensitive):
     """
     # If keywords is a string, convert it to a list
     if isinstance(keywords, str):
-        keywords = [keywords]
+        keywords = keywords.split(",")
 
     # Strip leading and spaces from the keywords
     keywords = list(map(lambda k: k.strip(), keywords))
