@@ -13,7 +13,9 @@ class ConversationResolution(LlmEvaluator):
     """
     This evaluator checks if the conversation was resolved or not.
     """
+
     _failure_threshold: Optional[float] = None
+
     def __init__(self, failure_threshold: Optional[float] = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if failure_threshold is not None:
@@ -40,7 +42,7 @@ class ConversationResolution(LlmEvaluator):
     @property
     def required_args(self):
         return [
-            "conversation_messages"
+            "messages"
         ]  # messages is an array of strings representing the conversation
 
     @property
@@ -48,7 +50,11 @@ class ConversationResolution(LlmEvaluator):
         return []
 
     def is_failure(self, score) -> Optional[bool]:
-        return bool(score < self._failure_threshold) if self._failure_threshold is not None else None
+        return (
+            bool(score < self._failure_threshold)
+            if self._failure_threshold is not None
+            else None
+        )
 
     def _user_message(self, **kwargs) -> str:
         return self._user_message_template.format(**kwargs)
@@ -67,16 +73,14 @@ class ConversationResolution(LlmEvaluator):
             unresolved_messages
         )
 
-    def _evaluate(self, conversation_messages: List[str]) -> EvalResult:
+    def _evaluate(self, messages: List[str]) -> EvalResult:
         """
         Run the LLM evaluator.
         """
         start_time = time.perf_counter()
 
         # Construct Prompt
-        prompt_messages = self._prompt_messages(
-            messages="\n".join(conversation_messages)
-        )
+        prompt_messages = self._prompt_messages(messages="\n".join(messages))
 
         # Run the LLM Completion
         chat_completion_response_json: dict = self.llm_service.json_completion(
@@ -117,7 +121,7 @@ class ConversationResolution(LlmEvaluator):
         llm_eval_result = EvalResult(
             name=self.name,
             display_name=self.display_name,
-            data={"messages": conversation_messages},
+            data={"messages": messages},
             failure=failure,
             reason=reason,
             runtime=eval_runtime_ms,
