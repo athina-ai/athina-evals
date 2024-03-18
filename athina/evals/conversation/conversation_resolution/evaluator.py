@@ -1,5 +1,5 @@
 import time
-from typing import List
+from typing import List, Optional
 
 from athina.interfaces.model import Model
 from athina.interfaces.result import EvalResult, EvalResultMetric
@@ -13,12 +13,13 @@ class ConversationResolution(LlmEvaluator):
     """
     This evaluator checks if the conversation was resolved or not.
     """
-
-    def __init__(self, *args, **kwargs):
+    _failure_threshold: Optional[float] = None
+    def __init__(self, failure_threshold: Optional[float] = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if failure_threshold is not None:
+            self._failure_threshold = failure_threshold
         self._system_message_template = SYSTEM_MESSAGE
         self._user_message_template = USER_MESSAGE
-        self._failure_threshold = 0.75  # 75% of the messages must be resolved to pass
 
     @property
     def name(self):
@@ -45,6 +46,9 @@ class ConversationResolution(LlmEvaluator):
     @property
     def examples(self):
         return []
+
+    def is_failure(self, score) -> Optional[bool]:
+        return bool(score < self._failure_threshold) if self._failure_threshold is not None else None
 
     def _user_message(self, **kwargs) -> str:
         return self._user_message_template.format(**kwargs)
@@ -97,14 +101,13 @@ class ConversationResolution(LlmEvaluator):
                     reasons.append(message)
             score = number_resolved_messages / len(messages_with_resolution_status)
             reason = self.reason(messages_with_resolution_status)
-            failure = score < self._failure_threshold
 
             metrics.append(
                 EvalResultMetric(
                     id=MetricType.CONVERSATION_RESOLUTION.value, value=score
                 )
             )
-
+            failure = self.is_failure(score=score)
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
             raise e

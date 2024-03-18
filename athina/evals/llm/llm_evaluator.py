@@ -17,7 +17,6 @@ from ..base_evaluator import BaseEvaluator
 
 class LlmEvaluator(BaseEvaluator):
     llm_service: AbstractLlmService
-    grading_criteria: str
     _model: str
     _system_message_template: Optional[str] = None
     _user_message_template: Optional[str] = None
@@ -55,7 +54,6 @@ class LlmEvaluator(BaseEvaluator):
     def __init__(
         self,
         model: Optional[str] = None,
-        grading_criteria: Optional[str] = None,
         system_message_template: Optional[str] = None,
         user_message_template: Optional[str] = None,
         llm_service: Optional[AbstractLlmService] = None,
@@ -64,7 +62,6 @@ class LlmEvaluator(BaseEvaluator):
             self.llm_service = llm_service
         else:
             self.llm_service = OpenAiService()
-        self.grading_criteria = grading_criteria if grading_criteria else ""
         if model is None:
             self._model = self.default_model
         elif not Model.is_supported(model):
@@ -100,12 +97,6 @@ class LlmEvaluator(BaseEvaluator):
     def _system_message(self) -> str:
         return self._system_message_template
 
-    def _user_message(self, **kwargs) -> str:
-        return self._user_message_template.format(
-            examples=self._examples_str(),
-            grading_criteria=self.grading_criteria,
-            **kwargs,
-        )
 
     def _prompt_messages(self, **kwargs) -> List[dict]:
         return [
@@ -137,12 +128,12 @@ class LlmEvaluator(BaseEvaluator):
             messages=messages,
             temperature=self.TEMPERATURE,
         )
-
+    
         metrics = []
         try:
             result = chat_completion_response_json["result"]
             explanation = chat_completion_response_json["explanation"]
-            failure = bool(result == "Fail")
+            failure = self.is_failure(result)
             passed_value = 1 - float(failure)
             metrics.append(EvalResultMetric(id=MetricType.PASSED.value, value=passed_value))
 

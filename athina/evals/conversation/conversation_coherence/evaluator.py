@@ -1,5 +1,5 @@
 import time
-from typing import List
+from typing import List, Optional
 
 from athina.interfaces.model import Model
 from athina.interfaces.result import EvalResult, EvalResultMetric
@@ -13,12 +13,13 @@ class ConversationCoherence(LlmEvaluator):
     """
     This evaluator checks if the conversation was resolved or not.
     """
-
-    def __init__(self, *args, **kwargs):
+    _failure_threshold: Optional[float] = None
+    def __init__(self, failure_threshold: Optional[float] = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if failure_threshold is not None:
+            self._failure_threshold = failure_threshold
         self._system_message_template = SYSTEM_MESSAGE
         self._user_message_template = USER_MESSAGE
-        self._failure_threshold = 0.75  # 75% of the messages must be resolved to pass
 
     @property
     def name(self):
@@ -48,6 +49,9 @@ class ConversationCoherence(LlmEvaluator):
 
     def _user_message(self, **kwargs) -> str:
         return self._user_message_template.format(**kwargs)
+
+    def is_failure(self, score) -> Optional[bool]:
+        return bool(score < self._failure_threshold) if self._failure_threshold is not None else None
 
     def score(self, details):
         """Calculate the percentage of coherent messages."""
@@ -79,7 +83,6 @@ class ConversationCoherence(LlmEvaluator):
         start_time = time.perf_counter()
 
         print("evaluating conversation messages")
-        print(conversation_messages)
         # Construct Prompt
         prompt_messages = self._prompt_messages(
             messages="\n".join(conversation_messages)
@@ -94,18 +97,17 @@ class ConversationCoherence(LlmEvaluator):
 
         metrics = []
         try:
-            print(chat_completion_response_json)
             messages_with_coherence_status = chat_completion_response_json["details"]
 
             score = self.score(messages_with_coherence_status)
             reason = self.reason(messages_with_coherence_status)
-            failure = score < self._failure_threshold
 
             metrics.append(
                 EvalResultMetric(
                     id=MetricType.CONVERSATION_COHERENCE.value, value=score
                 )
             )
+            failure = self.is_failure(score=score)
 
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")

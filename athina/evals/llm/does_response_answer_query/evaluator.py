@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from ..llm_evaluator import LlmEvaluator
 from .examples import DOES_RESPONSE_ANSWER_QUERY_EVAL_EXAMPLES
 from athina.evals.eval_type import LlmEvalTypeId
@@ -56,12 +56,22 @@ class DoesResponseAnswerQuery(LlmEvaluator):
     def metric_ids(self) -> List[str]:
         return [MetricType.PASSED.value]
 
+    def is_failure(self, result) -> Optional[bool]:
+        return bool(result == "Fail") 
+
     def _user_message(
         self,
         query: str,
         response: str,
         **kwargs,
     ) -> str:
+        """
+        Generates data for evaluation.
+
+        :param query: user query
+        :param response: llm response
+        :return: A dictionary with formatted data for evaluation
+        """
         return self.USER_MESSAGE_TEMPLATE.format(
             query=query,
             response=response,

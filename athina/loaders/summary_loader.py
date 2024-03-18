@@ -1,7 +1,7 @@
 from typing import List, Optional
 from athina.interfaces.athina import AthinaFilters
 from athina.interfaces.data import DataPoint
-from .base_loader import Loader
+from .base_loader import BaseLoader
 
 
 class SummaryDataPoint(DataPoint):
@@ -10,7 +10,7 @@ class SummaryDataPoint(DataPoint):
     response: str # summary
 
 
-class SummaryLoader(Loader):
+class SummaryLoader(BaseLoader):
     """
     This class is a data loader for LLM generated summary datasets.
 
@@ -66,4 +66,14 @@ class SummaryLoader(Loader):
         Load data from Athina API.
         By default, this will fetch the last 10 inferences from the API.
         """
-        pass
+        self._raw_dataset = AthinaApiService.fetch_inferences(
+            filters=filters, limit=limit
+        ) 
+        for raw_dataset in self._raw_dataset:
+            raw_dataset_dict = asdict(raw_dataset)
+            processed_instance = {
+                "document": raw_dataset_dict['context'],
+                "response": raw_dataset_dict['prompt_response'],
+            }
+            self._processed_dataset.append(processed_instance)
+        return self._processed_dataset

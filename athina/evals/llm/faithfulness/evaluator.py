@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from ..llm_evaluator import LlmEvaluator
 from .examples import FAITHFULNESS_EVAL_EXAMPLES
 from athina.evals.eval_type import LlmEvalTypeId
@@ -56,14 +56,25 @@ class Faithfulness(LlmEvaluator):
     def examples(self):
         return FAITHFULNESS_EVAL_EXAMPLES
 
+    def is_failure(self, result) -> Optional[bool]:
+        return bool(result == "Fail")
+
     def _user_message(
         self,
         context: str,
         response: str,
         **kwargs,
     ) -> str:
+        """
+        Generates data for evaluation.
+
+        :param context: list of strings of retrieved context
+        :param response: llm response
+        :return: A dictionary with formatted data for evaluation
+        """
+        joined_context = "\n".join(context)
         return self.USER_MESSAGE_TEMPLATE.format(
-            context=context,
+            context=joined_context,
             response=response,
             examples=self._examples_str(),
         )

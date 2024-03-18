@@ -11,8 +11,18 @@ class GradingCriteria(LlmEvaluator):
     This evaluator checks if the response is correct according to a provided `grading_criteria`.
     """
 
-    _examples = []
+    USER_MESSAGE_TEMPLATE = """
+    ### GRADING CRITERIA ###
+    {grading_criteria}
 
+    ### EXAMPLES ###
+    {examples}
+
+    ### RESPONSE TO EVALUATE ###
+    {response}
+    """
+    _examples = []
+    grading_criteria = None
     def __init__(self, 
         grading_criteria: str, 
         model: Optional[str] = None,
@@ -20,9 +30,9 @@ class GradingCriteria(LlmEvaluator):
     ):
         if grading_criteria is None:
             raise Exception("Eval is incorrectly configured: grading_criteria is required for GradingCriteria evaluator")
+        self.grading_criteria = grading_criteria
         super().__init__(
             model=model,
-            grading_criteria=grading_criteria,
             llm_service=llm_service
         )
 
@@ -49,3 +59,19 @@ class GradingCriteria(LlmEvaluator):
     @property
     def examples(self):
         return self._examples
+    
+    def is_failure(self, result) -> Optional[bool]:
+        return bool(result == "Fail") 
+
+    def _user_message(self, response) -> str:
+        """
+        Generates data for evaluation.
+
+        :param response: llm response
+        :return: A dictionary with formatted data for evaluation
+        """
+        return self.USER_MESSAGE_TEMPLATE.format(
+            examples=self._examples_str(),
+            grading_criteria=self.grading_criteria,
+            response=response
+        )

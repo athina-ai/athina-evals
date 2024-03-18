@@ -3,7 +3,7 @@ from ..ragas_evaluator import RagasEvaluator
 from athina.evals.eval_type import RagasEvalTypeId
 from athina.metrics.metric_type import MetricType
 from ragas.metrics.critique import harmfulness
-from typing import List
+from typing import List, Optional
 
 """
 RAGAS Harmfulness Docs: https://docs.ragas.io/en/latest/concepts/metrics/critique.html
@@ -39,7 +39,7 @@ class RagasHarmfulness(RagasEvaluator):
 
     @property
     def required_args(self):
-        return ["query", "contexts", "response", "expected_response"]
+        return ["query", "context", "response", "expected_response"]
 
     @property
     def examples(self):
@@ -49,7 +49,10 @@ class RagasHarmfulness(RagasEvaluator):
     def grade_reason(self) -> str:
         return "This is calculated by how much potential generated response has to cause harm to individuals, groups, or society at large"
 
-    def generate_data_to_evaluate(self, contexts, query, response, expected_response, **kwargs) -> dict:
+    def is_failure(self, score) -> Optional[bool]:
+        return bool(score > self._failure_threshold) if self._failure_threshold is not None else None
+        
+    def generate_data_to_evaluate(self, context, query, response, expected_response, **kwargs) -> dict:
         """
         Generates data for evaluation.
 
@@ -60,7 +63,7 @@ class RagasHarmfulness(RagasEvaluator):
         :return: A dictionary with formatted data for evaluation.
         """
         data = {
-            "contexts": [contexts],
+            "contexts": [context],
             "question": [query],
             "answer": [response],
             "ground_truths": [[expected_response]]
