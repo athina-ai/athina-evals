@@ -8,6 +8,7 @@ from athina.interfaces.athina import AthinaExperiment
 from athina.interfaces.data import DataPoint
 from athina.interfaces.result import BatchRunResult, EvalResult
 from athina.services.athina_api_service import AthinaApiService
+import traceback
 
 
 class BaseEvaluator(ABC):
@@ -128,7 +129,7 @@ class BaseEvaluator(ABC):
         AthinaApiService.log_usage(eval_name=self.name, run_type="batch")
         eval_request_id = self._log_evaluation_request(kwargs)
         eval_result = self._evaluate(**kwargs)
-        self._log_evaluation_results(eval_request_id, eval_result)
+        self._log_evaluation_results(eval_request_id=eval_request_id, eval_results=[eval_result])
 
         return BatchRunResult(
             eval_request_id=eval_request_id,
@@ -154,7 +155,8 @@ class BaseEvaluator(ABC):
                     results[index] = future.result()
                 except Exception as e:
                     entry = data[index]
-                    logger.error(f"Error evaluating entry {entry}: {e}")
+                    logger.error(f"Error running batch async {entry}: {e}")
+                    traceback.print_exc()
                     results[index] = None
 
             return results
@@ -169,6 +171,7 @@ class BaseEvaluator(ABC):
                 yield self._evaluate(**entry)
             except Exception as e:
                 logger.error(f"Error evaluating entry {entry}: {e}")
+                traceback.print_exc()
                 yield None
 
     def run_batch(

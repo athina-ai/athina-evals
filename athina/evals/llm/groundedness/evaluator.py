@@ -133,3 +133,22 @@ class Groundedness(LlmEvaluator):
         )
         return {k: v for k, v in llm_eval_result.items() if v is not None}
     
+    def _user_message(
+        self,
+        context: str,
+        response: str,
+        **kwargs,
+    ) -> str:
+            """
+            Generates data for evaluation.
+
+            :param context: list of strings of retrieved context
+            :param response: llm response
+            :return: A dictionary with formatted data for evaluation
+            """
+            joined_context = "\n".join(context)
+            return self._user_message_template.format(
+                context=joined_context,
+                response=response,
+                examples=self._examples_str(),
+            )

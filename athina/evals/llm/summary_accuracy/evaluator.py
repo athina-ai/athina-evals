@@ -19,9 +19,9 @@ class SummaryAccuracy(LlmEvaluator):
     """
     questions: List[str] = []
     _llm_service: AbstractLlmService
-    _agreement_score_failure_threshold: Optional[float] = None,
-    _contradiction_score_failure_threshold: Optional[float] = None,
-    _hallucination_score_failure_threshold: Optional[float] = None,
+    _agreement_score_failure_threshold: Optional[float] = None
+    _contradiction_score_failure_threshold: Optional[float] = None
+    _hallucination_score_failure_threshold: Optional[float] = None
 
     def __init__(
         self,
@@ -75,7 +75,7 @@ class SummaryAccuracy(LlmEvaluator):
 
     @property
     def name(self):
-        return LlmEvalTypeId.SUMMARY_ACCURACY.value
+        return LlmEvalTypeId.SUMMARIZATION_HAL.value
         
     @property
     def metric_ids(self) -> List[str]:
@@ -124,13 +124,14 @@ class SummaryAccuracy(LlmEvaluator):
         }
 
         for metric in metrics:
-            failure_threshold = threshold_mapping.get(metric.id)
+            failure_threshold = threshold_mapping.get(metric['id'], None)
+            print("failure_threshold", failure_threshold)
             if failure_threshold is not None:
-                if metric.id == MetricType.AGREEMENT_SCORE.value:
-                    if metric.value < failure_threshold:  # Fail if agreement score is below its threshold
+                if metric['id'] == MetricType.AGREEMENT_SCORE.value:
+                    if metric['value'] < failure_threshold:  # Fail if agreement score is below its threshold
                         return True
                 else:  # For CONTRADICTION_SCORE and HALLUCINATION_SCORE
-                    if metric.value > failure_threshold:  # Fail if contradiction or hallucination score is above its threshold
+                    if metric['value'] > failure_threshold:  # Fail if contradiction or hallucination score is above its threshold
                         return True
 
         return False  # No failure detected 
@@ -153,13 +154,13 @@ class SummaryAccuracy(LlmEvaluator):
         eval_runtime_ms = int((end_time - start_time) * 1000)
         
         metrics = [EvalResultMetric(id=metric_id, value=summary_eval_result[metric_id]) for metric_id in self.metric_ids]
+        
 
-        failure = self.is_failure(metrics)
         llm_eval_result = EvalResult(
             name=self.name,
             display_name=self.display_name,
             data=SummaryDataPoint(**instance),
-            failure=self.is_failure(),
+            failure=self.is_failure(metrics=metrics),
             reason=self.reason(),
             runtime=eval_runtime_ms,
             model=self._model,

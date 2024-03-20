@@ -77,4 +77,9 @@ class CustomPrompt(LlmEvaluator):
     
     def is_failure(self, result) -> Optional[bool]:
         return bool(result == "Fail") 
+    
+    def _user_message(self, **kwargs) -> str:
+        return self._user_message_template.format(
+            **kwargs,
+        )
         

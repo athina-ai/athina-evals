@@ -10,7 +10,7 @@ class LlmEvalTypeId(Enum):
     FAITHFULNESS = "Irftc"
     GRADING_CRITERIA = "GradingCriteria"
     CUSTOM_PROMPT = "CustomPrompt"
-    SUMMARY_ACCURACY = "SummaryAccuracy"
+    SUMMARIZATION_HAL = "SummarizationHal"
 
 class RagasEvalTypeId(Enum):
     RAGAS_CONTEXT_RELEVANCY = "RagasContextRelevancy"
