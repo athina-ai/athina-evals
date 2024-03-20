@@ -80,7 +80,7 @@ class GroundedEvaluator(BaseEvaluator):
             metrics.append(EvalResultMetric(id=MetricType.SIMILARITY_SCORE.value, value=similarity_score))
             if self._failure_threshold is None:
                 explanation = f"Successfully calculated similarity score of {similarity_score} using {self.display_name}"
-            elif similarity_bool(score < self._failure_threshold):
+            elif bool(similarity_score < self._failure_threshold):
                 explanation = f"Evaluation failed as similarity score of {similarity_score} is below the failure threshold of {self._failure_threshold} using {self.display_name}"
             else:
                 explanation = f"Evaluation succeeded as similarity score of {similarity_score} is above the failure threshold of {self._failure_threshold} using {self.display_name}"
