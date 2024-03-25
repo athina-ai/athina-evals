@@ -1,4 +1,3 @@
-
 from typing import Optional, List
 from athina.evals.eval_type import FunctionEvalTypeId
 from athina.evals.function.function_evaluator import FunctionEvaluator
@@ -9,42 +8,53 @@ class ContainsAny(FunctionEvaluator):
         self,
         keywords: List[str],
         case_sensitive: Optional[bool] = False,
+        display_name: Optional[str] = None,
     ):
         """
         Initialize the ContainsAny function evaluator.
 
         Args:
-            keywords (List[str]): List of keywords to check for in the response.
+            keywords (List[str]): List of keywords to check for in the text.
             case_sensitive (Optional[bool], optional): Whether the keyword matching should be case sensitive. Defaults to False.
         """
         super().__init__(
             function_name=FunctionEvalTypeId.CONTAINS_ANY.value,
-            function_arguments={"keywords":keywords, "case_sensitive":case_sensitive},
+            function_arguments={"keywords": keywords, "case_sensitive": case_sensitive},
+            display_name=display_name,
         )
+
 
 class Regex(FunctionEvaluator):
     def __init__(
         self,
         regex: str,
+        display_name: Optional[str] = None,
     ):
         """
         Initialize the Regex function evaluator.
 
         Args:
-            regex (str): The regular expression pattern to be matched in the response.
+            regex (str): The regular expression pattern to be matched in the text.
         """
         super().__init__(
             function_name=FunctionEvalTypeId.REGEX.value,
-            function_arguments={"pattern":regex},
+            function_arguments={"pattern": regex},
+            display_name=display_name,
         )
 
+
 class ContainsNone(FunctionEvaluator):
-    def __init__(self, keywords: List[str], case_sensitive: bool = False):
+    def __init__(
+        self,
+        keywords: List[str],
+        case_sensitive: bool = False,
+        display_name: Optional[str] = None,
+    ):
         """
         Initialize the ContainsNone function evaluator.
 
         Args:
-            keywords (str or List[str]): The keyword(s) to search for in the response.
+            keywords (str or List[str]): The keyword(s) to search for in the text.
             case_sensitive (bool, optional): If True, the comparison is case-sensitive. Defaults to False.
         """
         super().__init__(
@@ -53,15 +63,22 @@ class ContainsNone(FunctionEvaluator):
                 "keywords": keywords,
                 "case_sensitive": case_sensitive,
             },
+            display_name=display_name,
         )
 
+
 class Contains(FunctionEvaluator):
-    def __init__(self, keyword: str, case_sensitive: bool = False):
+    def __init__(
+        self,
+        keyword: str,
+        case_sensitive: bool = False,
+        display_name: Optional[str] = None,
+    ):
         """
         Initialize the Contains function evaluator.
 
         Args:
-            keyword (str): The keyword to search for in the response.
+            keyword (str): The keyword to search for in the text.
             case_sensitive (bool, optional): If True, the comparison is case-sensitive. Defaults to False.
         """
         super().__init__(
@@ -70,15 +87,22 @@ class Contains(FunctionEvaluator):
                 "keyword": keyword,
                 "case_sensitive": case_sensitive,
             },
+            display_name=display_name,
         )
 
+
 class ContainsAll(FunctionEvaluator):
-    def __init__(self, keywords: List[str], case_sensitive: bool = False):
+    def __init__(
+        self,
+        keywords: List[str],
+        case_sensitive: bool = False,
+        display_name: Optional[str] = None,
+    ):
         """
         Initialize the ContainsAll function evaluator.
 
         Args:
-            keywords (List[str]): The list of keywords to search for in the response.
+            keywords (List[str]): The list of keywords to search for in the text.
             case_sensitive (bool, optional): If True, the comparison is case-sensitive. Defaults to False.
         """
         super().__init__(
@@ -87,10 +111,12 @@ class ContainsAll(FunctionEvaluator):
                 "keywords": keywords,
                 "case_sensitive": case_sensitive,
             },
+            display_name=display_name,
         )
 
+
 class ContainsJson(FunctionEvaluator):
-    def __init__(self):
+    def __init__(self, display_name: Optional[str] = None):
         """
         Initialize the ContainsJson function evaluator.
         """
@@ -98,6 +124,7 @@ class ContainsJson(FunctionEvaluator):
             function_name=FunctionEvalTypeId.CONTAINS_JSON.value,
             function_arguments={},
         )
+
 
 class ContainsEmail(FunctionEvaluator):
     def __init__(self):
@@ -109,6 +136,7 @@ class ContainsEmail(FunctionEvaluator):
             function_arguments={},
         )
 
+
 class IsJson(FunctionEvaluator):
     def __init__(self):
         """
@@ -118,6 +146,7 @@ class IsJson(FunctionEvaluator):
             function_name=FunctionEvalTypeId.IS_JSON.value,
             function_arguments={},
         )
+
 
 class IsEmail(FunctionEvaluator):
     def __init__(self):
@@ -129,6 +158,7 @@ class IsEmail(FunctionEvaluator):
             function_arguments={},
         )
 
+
 class NoInvalidLinks(FunctionEvaluator):
     def __init__(self):
         """
@@ -138,6 +168,7 @@ class NoInvalidLinks(FunctionEvaluator):
             function_name=FunctionEvalTypeId.NO_INVALID_LINKS.value,
             function_arguments={},
         )
+
 
 class ContainsLink(FunctionEvaluator):
     def __init__(self):
@@ -149,6 +180,7 @@ class ContainsLink(FunctionEvaluator):
             function_arguments={},
         )
 
+
 class ContainsValidLink(FunctionEvaluator):
     def __init__(self):
         """
@@ -159,22 +191,24 @@ class ContainsValidLink(FunctionEvaluator):
             function_arguments={},
         )
 
+
 class Equals(FunctionEvaluator):
-    def __init__(self, expected_response: str, case_sensitive: bool = False):
+    def __init__(self, expected_text: str, case_sensitive: bool = False):
         """
         Initialize the Equals function evaluator.
 
         Args:
-            expected_response (str): The expected response to compare against.
+            expected_text (str): The expected text to compare against.
             case_sensitive (bool, optional): If True, the comparison is case-sensitive. Defaults to False.
         """
         super().__init__(
             function_name=FunctionEvalTypeId.EQUALS.value,
             function_arguments={
-                "expected_response": expected_response,
+                "expected_text": expected_text,
                 "case_sensitive": case_sensitive,
             },
         )
+
 
 class StartsWith(FunctionEvaluator):
     def __init__(self, substring: str, case_sensitive: bool = False):
@@ -182,7 +216,7 @@ class StartsWith(FunctionEvaluator):
         Initialize the StartsWith function evaluator.
 
         Args:
-            substring (str): The substring to check for at the start of the response.
+            substring (str): The substring to check for at the start of the text.
             case_sensitive (bool, optional): If True, the comparison is case-sensitive. Defaults to False.
         """
         super().__init__(
@@ -193,13 +227,14 @@ class StartsWith(FunctionEvaluator):
             },
         )
 
+
 class EndsWith(FunctionEvaluator):
-    def __init__(self, substring: str, case_sensitive:bool = False):
+    def __init__(self, substring: str, case_sensitive: bool = False):
         """
         Initialize the EndsWith function evaluator.
 
         Args:
-            substring (str): The substring to check for at the end of the response.
+            substring (str): The substring to check for at the end of the text.
             case_sensitive (bool, optional): If True, the comparison is case-sensitive. Defaults to False.
         """
         super().__init__(
@@ -210,18 +245,22 @@ class EndsWith(FunctionEvaluator):
             },
         )
 
+
 class LengthLessThan(FunctionEvaluator):
     def __init__(self, max_length: int):
         """
         Initialize the LengthLessThan function evaluator.
 
         Args:
-            max_length (int): The maximum length that the response should have.
+            max_length (int): The maximum length that the text should have.
         """
         super().__init__(
             function_name=FunctionEvalTypeId.LENGTH_LESS_THAN.value,
-            function_arguments={"max_length": max_length, },
+            function_arguments={
+                "max_length": max_length,
+            },
         )
+
 
 class LengthGreaterThan(FunctionEvaluator):
     def __init__(self, min_length: int):
@@ -229,12 +268,15 @@ class LengthGreaterThan(FunctionEvaluator):
         Initialize the LengthGreaterThan function evaluator.
 
         Args:
-            min_length (int): The minimum length that the response should have.
+            min_length (int): The minimum length that the text should have.
         """
         super().__init__(
             function_name=FunctionEvalTypeId.LENGTH_GREATER_THAN.value,
-            function_arguments={"min_length": min_length, },
+            function_arguments={
+                "min_length": min_length,
+            },
         )
+
 
 class ApiCall(FunctionEvaluator):
     def __init__(self, url: str, payload: dict = None, headers: dict = None):
@@ -243,7 +285,7 @@ class ApiCall(FunctionEvaluator):
 
         Args:
             url (str): The URL to make the API call to.
-            payload (dict): The payload to be sent in the API call. Response will be added to the dict as "response".
+            payload (dict): The payload to be sent in the API call. response, query, context, expected_response will be added to the payload.
             headers (dict, optional): The headers to be included in the API call. Defaults to None.
         """
         super().__init__(

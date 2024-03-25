@@ -3,6 +3,7 @@ import json
 import requests
 from typing import Any, Optional
 
+
 def _standardize_url(url):
     """
     Generate a standardized URL by adding 'http://' if it's missing.
@@ -18,7 +19,8 @@ def _standardize_url(url):
     else:
         return "http://" + url
 
-def _preprocess_strings(keywords, response, case_sensitive):
+
+def _preprocess_strings(keywords, text, case_sensitive):
     """
     Preprocess the keywords based on the case_sensitive flag.
 
@@ -36,25 +38,26 @@ def _preprocess_strings(keywords, response, case_sensitive):
     # Strip leading and spaces from the keywords
     keywords = list(map(lambda k: k.strip(), keywords))
 
-    # If case_sensitive is False, convert all keywords and response to lowercase
+    # If case_sensitive is False, convert all keywords and text to lowercase
     if not case_sensitive:
         keywords = [keyword.lower() for keyword in keywords]
-        response = response.lower()
+        text = text.lower()
 
-    return keywords, response
+    return keywords, text
 
-def regex(pattern, response):
+
+def regex(pattern, text, **kwargs):
     """
-    Perform a regex search on the response and return a dictionary indicating whether the pattern was found.
+    Perform a regex search on the text and return a dictionary indicating whether the pattern was found.
 
     Args:
         pattern (str): The regex pattern to search for.
-        response (str): The response string to search within.
+        text (str): The text string to search within.
 
     Returns:
         dict: A dictionary containing the result of the regex search and the reason for the result.
     """
-    match = re.search(pattern, response)
+    match = re.search(pattern, text, **kwargs)
     if match:
         return {"result": True, "reason": f"regex pattern {pattern} found in output"}
     else:
@@ -63,22 +66,23 @@ def regex(pattern, response):
             "reason": f"regex pattern {pattern} not found in output",
         }
 
-def contains_any(keywords, response, case_sensitive=False):
+
+def contains_any(keywords, text: str, case_sensitive=False, **kwargs):
     """
-    Check if any of the provided keywords are present in the response.
+    Check if any of the provided keywords are present in the text.
 
     Args:
-        keywords (str or List[str]): The keyword(s) to search for in the response.
-        response (str): The response string to search within.
+        keywords (str or List[str]): The keyword(s) to search for in the text.
+        text (str): The text string to search within.
         case_sensitive (bool, optional): Whether the search should be case-sensitive. Defaults to False.
 
     Returns:
         dict: A dictionary containing the result of the search and the reason for the result.
     """
-    keywords, response = _preprocess_strings(keywords, response, case_sensitive)
+    keywords, text = _preprocess_strings(keywords, text, case_sensitive)
     found_keywords = []
     for keyword in keywords:
-        if keyword in response:
+        if keyword in text:
             found_keywords.append(keyword)
 
     if found_keywords:
@@ -92,22 +96,23 @@ def contains_any(keywords, response, case_sensitive=False):
 
     return {"result": result, "reason": reason}
 
-def contains_all(keywords, response, case_sensitive=False):
+
+def contains_all(keywords, text, case_sensitive=False, **kwargs):
     """
-    Check if all the provided keywords are present in the response.
+    Check if all the provided keywords are present in the text.
 
     Args:
-        keywords (List[str]): The list of keywords to search for in the response.
-        response (str): The response string to search within.
+        keywords (List[str]): The list of keywords to search for in the text.
+        text (str): The text string to search within.
         case_sensitive (bool, optional): If True, the comparison is case-sensitive. Defaults to False.
 
     Returns:
         dict: A dictionary containing the result of the keyword search and the reason for the result.
     """
-    keywords, response = _preprocess_strings(keywords, response, case_sensitive)
+    keywords, text = _preprocess_strings(keywords, text, case_sensitive)
     missing_keywords = []
     for keyword in keywords:
-        if keyword not in response:
+        if keyword not in text:
             result = False
             missing_keywords.append(keyword)
     if (len(missing_keywords)) > 0:
@@ -119,22 +124,23 @@ def contains_all(keywords, response, case_sensitive=False):
 
     return {"result": result, "reason": reason}
 
-def contains(keyword, response, case_sensitive=False):
+
+def contains(keyword, text, case_sensitive=False, **kwargs):
     """
-    Check if the response contains a specific keyword.
+    Check if the text contains a specific keyword.
 
     Args:
-        keyword (str): The keyword to search for in the response.
-        response (str): The response string to search within.
+        keyword (str): The keyword to search for in the text.
+        text (str): The text string to search within.
         case_sensitive (bool, optional): If True, the comparison is case-sensitive. Defaults to False.
 
     Returns:
         dict: A dictionary containing the result of the keyword search and the reason for the result.
     """
     if case_sensitive == False:
-        response = response.lower()
+        text = text.lower()
         keyword = keyword.lower()
-    if keyword not in response:
+    if keyword not in text:
         result = False
         reason = f"keyword not found in output: " + keyword
     else:
@@ -143,22 +149,23 @@ def contains(keyword, response, case_sensitive=False):
 
     return {"result": result, "reason": reason}
 
-def contains_none(keywords, response, case_sensitive=False):
+
+def contains_none(keywords, text, case_sensitive=False, **kwargs):
     """
-    Check if none of the provided keywords are present in the response.
+    Check if none of the provided keywords are present in the text.
 
     Args:
-        keywords (str or List[str]): The keyword(s) to search for in the response.
-        response (str): The response string to search within.
+        keywords (str or List[str]): The keyword(s) to search for in the text.
+        text (str): The text string to search within.
         case_sensitive (bool, optional): If True, the comparison is case-sensitive. Defaults to False.
 
     Returns:
         dict: A dictionary containing the result of the check and the reason for the result.
     """
-    keywords, response = _preprocess_strings(keywords, response, case_sensitive)
+    keywords, text = _preprocess_strings(keywords, text, case_sensitive)
     found_keywords = []
     for keyword in keywords:
-        if keyword in response:
+        if keyword in text:
             found_keywords.append(keyword)
 
     if found_keywords:
@@ -172,18 +179,21 @@ def contains_none(keywords, response, case_sensitive=False):
 
     return {"result": result, "reason": reason}
 
-def contains_json(response):
+
+def contains_json(text, **kwargs):
     """
-    Check if the response contains valid JSON.
+    Check if the text contains valid JSON.
 
     Args:
-        response (str): The response string to check for valid JSON.
+        text (str): The text string to check for valid JSON.
 
     Returns:
         dict: A dictionary containing the result of the JSON check and the reason for the result.
     """
-    trimmed_output = response.strip()
-    pattern = r'\{(?:\s*"(?:\\.|[^"\\])*"\s*:\s*(?:"(?:\\.|[^"\\])*"|[^{}\[\]:,]+)|[^{}]+)*\}'
+    trimmed_output = text.strip()
+    pattern = (
+        r'\{(?:\s*"(?:\\.|[^"\\])*"\s*:\s*(?:"(?:\\.|[^"\\])*"|[^{}\[\]:,]+)|[^{}]+)*\}'
+    )
     matches = re.findall(pattern, trimmed_output)
 
     if matches:
@@ -194,38 +204,51 @@ def contains_json(response):
                 parsed_json = json.loads(potential_json_string)
                 results.append({"json": parsed_json, "valid": True})
             except json.JSONDecodeError as e:
-                errors.append({"json": potential_json_string, "valid": False, "error": str(e)})
+                errors.append(
+                    {"json": potential_json_string, "valid": False, "error": str(e)}
+                )
         if errors:
-            return {"result": False, "reason": "Output contains a potential JSON but it is invalid", "matches": results, "errors": errors}
-        else:   
-            return {"result": True, "reason": "Output contains JSON", "matches": results}
+            return {
+                "result": False,
+                "reason": "Output contains a potential JSON but it is invalid",
+                "matches": results,
+                "errors": errors,
+            }
+        else:
+            return {
+                "result": True,
+                "reason": "Output contains JSON",
+                "matches": results,
+            }
     else:
         return {"result": False, "reason": "Output does not contain JSON"}
-    
-def contains_email(response):
+
+
+def contains_email(text, **kwargs):
     """
-    Check if the response contains an email address.
+    Check if the text contains an email address.
 
     Args:
-        response (str): The response string to check for an email address.
+        text (str): The text string to check for an email address.
 
     Returns:
         dict: A dictionary containing the result of the email address check and the reason for the result.
     """
-    return regex(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', response)
+    return regex(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", text, **kwargs)
 
-def is_json(response):
+
+def is_json(text, **kwargs):
     """
-    Check if the response contains valid JSON.
+    Check if the text contains valid JSON.
 
     Args:
-        response (str): The response string to check for valid JSON.
+        text (str): The text string to check for valid JSON.
 
     Returns:
         dict: A dictionary containing the result of the JSON check and the reason for the result.
     """
     try:
-        json.loads(response)
+        json.loads(text, **kwargs)
         result = True
     except json.JSONDecodeError:
         result = False
@@ -240,54 +263,57 @@ def is_json(response):
             "reason": "Output does not contain JSON",
         }
 
-def is_email(response):
+
+def is_email(text, **kwargs):
     """
-    Check if the response is a valid email address.
+    Check if the text is a valid email address.
 
     Args:
-        response (str): The response string to check for a valid email address.
+        text (str): The text string to check for a valid email address.
 
     Returns:
         dict: A dictionary containing the result of the email address check and the reason for the result.
     """
-    return regex(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', response)
+    return regex(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", text, **kwargs)
 
-def contains_link(response):
+
+def contains_link(text, **kwargs):
     """
-    Check if the response contains a link.
+    Check if the text contains a link.
 
     Args:
-        response (str): The response string to check for a link.
+        text (str): The text string to check for a link.
 
     Returns:
         dict: A dictionary containing the result of the link check and the reason for the result.
     """
     pattern = r"(?!.*@)(?:https?://)?(?:www\.)?\S+\.\S+"
-    result = bool(re.search(pattern, response))
+    result = bool(re.search(pattern, text, **kwargs))
     if result:
         return {"result": True, "reason": "Link found in output"}
     else:
         return {"result": False, "reason": "No link found in output"}
 
-def contains_valid_link(response):
+
+def contains_valid_link(text, **kwargs):
     """
-    Check if the response contains a valid link.
+    Check if the text contains a valid link.
 
     Args:
-        response (str): The response string to check for a valid link.
+        text (str): The text string to check for a valid link.
 
     Returns:
         dict: A dictionary containing the result of the link check and the reason for the result.
     """
     pattern = r"(?!.*@)(?:https?://)?(?:www\.)?\S+\.\S+"
-    link_match = re.search(pattern=pattern, string=response)
+    link_match = re.search(pattern=pattern, string=text, **kwargs)
     if link_match:
         matched_url = link_match.group()
         if matched_url:
             standardized_url = _standardize_url(matched_url)
             try:
-                response = requests.head(standardized_url)
-                if response.status_code == 200:
+                text = requests.head(standardized_url)
+                if text.status_code == 200:
                     return {
                         "result": True,
                         "reason": f"link {matched_url} found in output and is valid",
@@ -304,25 +330,26 @@ def contains_valid_link(response):
                 }
     return {"result": False, "reason": f"no link found in output"}
 
-def no_invalid_links(response):
+
+def no_invalid_links(text, **kwargs):
     """
-    Check for invalid links in the response.
+    Check for invalid links in the text.
 
     Args:
-        response (str): The response string to check for invalid links.
+        text (str): The text string to check for invalid links.
 
     Returns:
         dict: A dictionary containing the result of the link check and the reason for the result.
     """
     pattern = r"(?!.*@)(?:https?://)?(?:www\.)?\S+\.\S+"
-    link_match = re.search(pattern=pattern, string=response)
+    link_match = re.search(pattern=pattern, string=text, **kwargs)
     if link_match:
         matched_url = link_match.group()
         if matched_url:
             standardized_url = _standardize_url(matched_url)
             try:
-                response = requests.head(standardized_url)
-                if response.status_code == 200:
+                text = requests.head(standardized_url)
+                if text.status_code == 200:
                     return {
                         "result": True,
                         "reason": f"link {matched_url} found in output and is valid",
@@ -339,6 +366,7 @@ def no_invalid_links(response):
                 }
     return {"result": True, "reason": f"no invalid link found in output"}
 
+
 def api_call(
     url: str,
     response: str,
@@ -353,10 +381,10 @@ def api_call(
 
     Args:
         url (str): The URL to make the API call to.
-        response (str): The response to be added to the payload.
+        text (str): The text to be added to the payload.
         query (Optional[str]): The query parameter to be added to the payload.
         context (Optional[str]): The context parameter to be added to the payload.
-        expected_response (Optional[str]): The expected response parameter to be added to the payload.
+        expected_response (Optional[str]): The expected text parameter to be added to the payload.
         payload (dict, optional): The payload to be sent in the API call. Defaults to None.
         headers (dict, optional): The headers to be included in the API call. Defaults to None.
 
@@ -392,7 +420,9 @@ def api_call(
         elif api_response.status_code == 500:
             # Internal Server Error
             result = False
-            reason = "Internal Server Error: The server encountered an unexpected condition."
+            reason = (
+                "Internal Server Error: The server encountered an unexpected condition."
+            )
         else:
             # Other error codes
             result = False
@@ -401,89 +431,90 @@ def api_call(
         # Handle any exceptions that occur during the API call
         result = False
         reason = f"API Request Exception: {e}"
-        
-    return {
-        "result": result,
-        "reason": reason
-    }
 
-def equals(expected_response, response, case_sensitive=False):
+    return {"result": result, "reason": reason}
+
+
+def equals(expected_text, text, case_sensitive=False, **kwargs):
     """
-    Check if the response exactly matches the expected response.
+    Check if the text exactly matches the expected text.
 
     Args:
-        expected_response (str): The expected response to compare against.
-        response (str): The response to compare with the expected output.
+        expected_text (str): The expected text to compare against.
+        text (str): The text to compare with the expected output.
         case_sensitive (bool, optional): If True, the comparison is case-sensitive. Defaults to False.
 
     Returns:
         dict: A dictionary containing the result and reason of the comparison.
     """
     if case_sensitive == False:
-        response = response.lower()
-        expected_response = expected_response.lower()
-    if response == expected_response:
+        text = text.lower()
+        expected_text = expected_text.lower()
+    if text == expected_text:
         result = True
-        reason = "✅ output exactly matches expected response"
+        reason = "✅ output exactly matches expected text"
     else:
         result = False
-        reason = "output does not exactly match expected response"
+        reason = "output does not exactly match expected text"
     return {"result": result, "reason": reason}
 
-def starts_with(substring, response, case_sensitive=False):
+
+def starts_with(substring, text, case_sensitive=False, **kwargs):
     """
-    Check if the response starts with a specified substring.
+    Check if the text starts with a specified substring.
 
     Args:
-        substring (str): The substring to check for at the start of the response.
-        response (str): The response string to check.
+        substring (str): The substring to check for at the start of the text.
+        text (str): The text string to check.
         case_sensitive (bool, optional): If True, the comparison is case-sensitive. Defaults to False.
 
     Returns:
         dict: A dictionary containing the result of the check and the reason for the result.
     """
     if case_sensitive == False:
-        response = response.lower()
+        text = text.lower()
         substring = substring.lower()
-    result = response.startswith(substring)
+    result = text.startswith(substring)
     if result == True:
         return {"result": result, "reason": "output starts with " + substring}
     else:
         return {"result": result, "reason": "output does not start with " + substring}
 
-def ends_with(substring, response, case_sensitive=False):
+
+def ends_with(substring, text, case_sensitive=False, **kwargs):
     """
-    Check if the response ends with a specified substring.
+    Check if the text ends with a specified substring.
 
     Args:
-        substring (str): The substring to check for at the end of the response.
-        response (str): The response string to check.
+        substring (str): The substring to check for at the end of the text.
+        text (str): The text string to check.
         case_sensitive (bool, optional): If True, the comparison is case-sensitive. Defaults to False.
 
     Returns:
         dict: A dictionary containing the result of the check and the reason for the result.
     """
     if case_sensitive == False:
-        response = response.lower()
+        text = text.lower()
         substring = substring.lower()
-    result = response.endswith(substring)
+    result = text.endswith(substring)
     if result == True:
         return {"result": result, "reason": "output ends with " + substring}
     else:
         return {"result": result, "reason": "output does not end with " + substring}
 
-def length_less_than(max_length, response):
+
+def length_less_than(max_length, text, **kwargs):
     """
-    Check if the length of the response is less than a specified maximum length.
+    Check if the length of the text is less than a specified maximum length.
 
     Args:
-        max_length (int): The maximum length that the response should have.
-        response (str): The response string to check the length of.
+        max_length (int): The maximum length that the text should have.
+        text (str): The text string to check the length of.
 
     Returns:
         dict: A dictionary containing the result of the length check and the reason for the result.
     """
-    if len(response) < max_length:
+    if len(text, **kwargs) < max_length:
         return {
             "result": True,
             "reason": f"output length is less than {max_length} characters",
@@ -494,18 +525,19 @@ def length_less_than(max_length, response):
             "reason": f"output length is greater than {max_length} characters",
         }
 
-def length_greater_than(min_length, response):
+
+def length_greater_than(min_length, text, **kwargs):
     """
-    Check if the length of the response is greater than a specified minimum length.
+    Check if the length of the text is greater than a specified minimum length.
 
     Args:
-        min_length (int): The minimum length that the response should have.
-        response (str): The response string to check the length of.
+        min_length (int): The minimum length that the text should have.
+        text (str): The text string to check the length of.
 
     Returns:
         dict: A dictionary containing the result of the length check and the reason for the result.
     """
-    if len(response) > min_length:
+    if len(text, **kwargs) > min_length:
         return {
             "result": True,
             "reason": f"output length is greater than {min_length} characters",
@@ -515,6 +547,7 @@ def length_greater_than(min_length, response):
             "result": False,
             "reason": f"output length is less than {min_length} characters",
         }
+
 
 """
 A dictionary containing the available operations and their corresponding functions.

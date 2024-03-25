@@ -2,6 +2,7 @@ import pandas as pd
 from dataclasses import dataclass, field
 from typing import TypedDict, List, Optional
 from athina.interfaces.data import DataPoint
+from pydantic import BaseModel
 
 
 class EvalResultMetric(TypedDict):
@@ -31,7 +32,7 @@ class EvalResult(TypedDict):
 
     name: str
     display_name: str
-    data: DataPoint
+    data: dict
     failure: Optional[bool]
     reason: str
     runtime: int
@@ -107,3 +108,9 @@ class EvalPerformanceReport(TypedDict):
     f1_score: float
     runtime: int
     dataset_size: int
+
+
+class GuardResult(BaseModel):
+    passed: bool
+    reason: str
+    runtime: int

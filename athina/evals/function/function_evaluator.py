@@ -1,4 +1,3 @@
-
 from typing import Optional, List
 from athina.metrics.metric_type import MetricType
 import time
@@ -9,8 +8,9 @@ from athina.interfaces.athina import AthinaExperiment
 from ..base_evaluator import BaseEvaluator
 from .functions import operations
 
-class FunctionEvaluator(BaseEvaluator):
 
+class FunctionEvaluator(BaseEvaluator):
+    _display_name: str
     _function_name: str
     _function_arguments: dict
 
@@ -21,14 +21,14 @@ class FunctionEvaluator(BaseEvaluator):
     @property
     def _model(self):
         return None
-    
+
     @property
     def name(self):
         return self._function_name
 
     @property
     def display_name(self):
-        return self._function_name
+        return self._display_name
 
     @property
     def metric_ids(self) -> List[str]:
@@ -40,16 +40,20 @@ class FunctionEvaluator(BaseEvaluator):
 
     @property
     def required_args(self):
-        return ["response"]
+        return []  # validate_args function is implemented explicitly
 
     @property
     def examples(self):
         return None
 
+    def validate_args(self, **kwargs) -> None:
+        return
+
     def __init__(
         self,
         function_name: Optional[str] = None,
         function_arguments: Optional[dict] = None,
+        display_name=None,
     ):
         if function_name is None:
             raise ValueError(f"function_name is a required argument")
@@ -60,9 +64,14 @@ class FunctionEvaluator(BaseEvaluator):
         else:
             self._function_name = function_name
             self._function_arguments = function_arguments
+            self._display_name = display_name or function_name
 
-    def is_failure(self, response) -> Optional[bool]:
-        return not response["result"] if response is not None and "result" in response else None
+    def is_failure(self, eval_response) -> Optional[bool]:
+        return (
+            not eval_response["result"]
+            if eval_response is not None and "result" in eval_response
+            else None
+        )
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
@@ -72,14 +81,20 @@ class FunctionEvaluator(BaseEvaluator):
 
         # Validate that correct args were passed
         self.validate_args(**kwargs)
-        metrics = []
-        try: 
+        metrics: List[EvalResultMetric] = []
+        try:
             # Evaluate the dataset using Function
             operator = operations.get(self._function_name)
-            response = operator(**kwargs, **self._function_arguments)
-            metrics.append(EvalResultMetric(id=MetricType.PASSED.value, value=float(response["result"])))
-            explanation = response['reason']
-            failure = self.is_failure(response)
+            if (operator is None) or (not callable(operator)):
+                raise ValueError(f"Unsupported function: {self._function_name}")
+            eval_response = operator(**kwargs, **self._function_arguments)
+            metrics.append(
+                EvalResultMetric(
+                    id=MetricType.PASSED.value, value=float(eval_response["result"])
+                )
+            )
+            explanation = eval_response["reason"]
+            failure = self.is_failure(eval_response)
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
             raise e
@@ -95,6 +110,6 @@ class FunctionEvaluator(BaseEvaluator):
             model=None,
             metrics=metrics,
             failure=failure,
+            datapoint_field_annotations=None,
         )
         return {k: v for k, v in eval_result.items() if v is not None}
-
