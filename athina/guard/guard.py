@@ -2,7 +2,7 @@ import time
 from typing import List
 from ..evals import BaseEvaluator
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import traceback
+from .exception import AthinaGuardException
 
 
 def guard(suite: List[BaseEvaluator], **kwargs):
@@ -24,8 +24,8 @@ def guard(suite: List[BaseEvaluator], **kwargs):
                     print(f"{eval.display_name}: Passed in {runtime}ms - {reason}")
                 else:
                     print(f"{eval.display_name}: Failed in {runtime}ms - {reason}")
+                    raise AthinaGuardException(f"{eval.display_name} failed: {reason}")
             except Exception as exc:
-                print(f"{eval.display_name} generated an exception: {exc}")
                 raise exc
 
     end_time = time.perf_counter()

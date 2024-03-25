@@ -28,6 +28,7 @@ from athina.evals.function.function_evaluator import FunctionEvaluator
 from athina.evals.llm.llm_evaluator import LlmEvaluator
 from athina.evals.grounded.grounded_evaluator import GroundedEvaluator
 from athina.evals.safety.pii_detection.evaluator import PiiDetection
+from athina.evals.safety.prompt_injection.evaluator import PromptInjection
 from athina.evals.function.wrapper import (
     ContainsAny,
     Regex,
@@ -107,4 +108,5 @@ __all__ = [
     "ConversationResolution",
     "ConversationCoherence",
     "PiiDetection",
+    "PromptInjection",
 ]
