@@ -127,73 +127,84 @@ class ContainsJson(FunctionEvaluator):
 
 
 class ContainsEmail(FunctionEvaluator):
-    def __init__(self):
+    def __init__(self, display_name: Optional[str] = None):
         """
         Initialize the ContainsEmail function evaluator.
         """
         super().__init__(
             function_name=FunctionEvalTypeId.CONTAINS_EMAIL.value,
             function_arguments={},
+            display_name=display_name,
         )
 
 
 class IsJson(FunctionEvaluator):
-    def __init__(self):
+    def __init__(self, display_name: Optional[str] = None):
         """
         Initialize the IsJson function evaluator.
         """
         super().__init__(
             function_name=FunctionEvalTypeId.IS_JSON.value,
             function_arguments={},
+            display_name=display_name,
         )
 
 
 class IsEmail(FunctionEvaluator):
-    def __init__(self):
+    def __init__(self, display_name: Optional[str] = None):
         """
         Initialize the IsEmail function evaluator.
         """
         super().__init__(
             function_name=FunctionEvalTypeId.IS_EMAIL.value,
             function_arguments={},
+            display_name=display_name,
         )
 
 
 class NoInvalidLinks(FunctionEvaluator):
-    def __init__(self):
+    def __init__(self, display_name: Optional[str] = None):
         """
         Initialize the NoInvalidLinks function evaluator.
         """
         super().__init__(
             function_name=FunctionEvalTypeId.NO_INVALID_LINKS.value,
             function_arguments={},
+            display_name=display_name,
         )
 
 
 class ContainsLink(FunctionEvaluator):
-    def __init__(self):
+    def __init__(self, display_name: Optional[str] = None):
         """
         Initialize the ContainsLink function evaluator.
         """
         super().__init__(
             function_name=FunctionEvalTypeId.CONTAINS_LINK.value,
             function_arguments={},
+            display_name=display_name,
         )
 
 
 class ContainsValidLink(FunctionEvaluator):
-    def __init__(self):
+    def __init__(self, display_name: Optional[str] = None):
         """
         Initialize the ContainsValidLink function evaluator.
         """
         super().__init__(
             function_name=FunctionEvalTypeId.CONTAINS_VALID_LINK.value,
             function_arguments={},
+            display_name=display_name,
         )
 
 
 class Equals(FunctionEvaluator):
-    def __init__(self, expected_text: str, case_sensitive: bool = False):
+    def __init__(
+        self,
+        expected_text: str,
+        case_sensitive: bool = False,
+        display_name: Optional[str] = None,
+    ):
         """
         Initialize the Equals function evaluator.
 
@@ -207,11 +218,17 @@ class Equals(FunctionEvaluator):
                 "expected_text": expected_text,
                 "case_sensitive": case_sensitive,
             },
+            display_name=display_name,
         )
 
 
 class StartsWith(FunctionEvaluator):
-    def __init__(self, substring: str, case_sensitive: bool = False):
+    def __init__(
+        self,
+        substring: str,
+        case_sensitive: bool = False,
+        display_name: Optional[str] = None,
+    ):
         """
         Initialize the StartsWith function evaluator.
 
@@ -225,11 +242,17 @@ class StartsWith(FunctionEvaluator):
                 "substring": substring,
                 "case_sensitive": case_sensitive,
             },
+            display_name=display_name,
         )
 
 
 class EndsWith(FunctionEvaluator):
-    def __init__(self, substring: str, case_sensitive: bool = False):
+    def __init__(
+        self,
+        substring: str,
+        case_sensitive: bool = False,
+        display_name: Optional[str] = None,
+    ):
         """
         Initialize the EndsWith function evaluator.
 
@@ -243,11 +266,12 @@ class EndsWith(FunctionEvaluator):
                 "substring": substring,
                 "case_sensitive": case_sensitive,
             },
+            display_name=display_name,
         )
 
 
 class LengthLessThan(FunctionEvaluator):
-    def __init__(self, max_length: int):
+    def __init__(self, max_length: int, display_name: Optional[str] = None):
         """
         Initialize the LengthLessThan function evaluator.
 
@@ -259,11 +283,12 @@ class LengthLessThan(FunctionEvaluator):
             function_arguments={
                 "max_length": max_length,
             },
+            display_name=display_name,
         )
 
 
 class LengthGreaterThan(FunctionEvaluator):
-    def __init__(self, min_length: int):
+    def __init__(self, min_length: int, display_name: Optional[str] = None):
         """
         Initialize the LengthGreaterThan function evaluator.
 
@@ -275,11 +300,18 @@ class LengthGreaterThan(FunctionEvaluator):
             function_arguments={
                 "min_length": min_length,
             },
+            display_name=display_name,
         )
 
 
 class ApiCall(FunctionEvaluator):
-    def __init__(self, url: str, payload: dict = None, headers: dict = None):
+    def __init__(
+        self,
+        url: str,
+        payload: Optional[dict] = None,
+        headers: Optional[dict] = None,
+        display_name: Optional[str] = None,
+    ):
         """
         Initialize the ApiCall function evaluator.
 
@@ -295,4 +327,5 @@ class ApiCall(FunctionEvaluator):
                 "payload": payload,
                 "headers": headers,
             },
+            display_name=display_name,
         )
