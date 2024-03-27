@@ -18,11 +18,11 @@ class Model(Enum):
     AZURE_GPT35_TURBO_1106 = "azure/gpt-3.5-turbo-1106"
     AZURE_GPT4 = "azure/gpt-4"
     AZURE_GPT4_1106_PREVIEW = "azure/gpt-4-1106-preview"
-    GEMINI_PROD = 'gemini/gemini-prod'
-    CLAUDE_2 = 'claude-2'
-    MISTRAL_TINY = 'mistral-tiny'
-    MISTRAL_SMALL = 'mistral-small'
-    
+    GEMINI_PROD = "gemini/gemini-prod"
+    CLAUDE_2 = "claude-2"
+    MISTRAL_TINY = "mistral/mistral-tiny"
+    MISTRAL_SMALL = "mistral/mistral-small"
+
     @staticmethod
     def is_supported(model_name: str) -> bool:
         """

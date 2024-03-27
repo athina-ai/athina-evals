@@ -4,15 +4,15 @@ from typing import List, Optional
 from athina.helpers.logger import logger
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.interfaces.athina import AthinaExperiment
-
 from athina.interfaces.data import DataPoint
-from athina.interfaces.result import BatchRunResult, EvalResult
+from athina.interfaces.result import BatchRunResult, EvalResult, GuardResult
 from athina.services.athina_api_service import AthinaApiService
 import traceback
 
 
 class BaseEvaluator(ABC):
     _experiment: Optional[AthinaExperiment] = None
+
     # Abstract properties
     @property
     @abstractmethod
@@ -49,10 +49,15 @@ class BaseEvaluator(ABC):
         """A method to determine if the evaluation failed."""
         pass
 
+    @abstractmethod
+    def _evaluate(self, **kwargs) -> EvalResult:
+        """The method that performs the evaluation."""
+        pass
+
     # Common methods
     def _examples_str(self) -> str:
         return "" if self.examples is None else "\n".join(map(str, self.examples))
-    
+
     def configure_experiment(self, experiment: AthinaExperiment):
         """Configured metadata parameters to log an experiment to Athina"""
         self._experiment = experiment
@@ -109,7 +114,9 @@ class BaseEvaluator(ABC):
                 experiment=self._experiment,
             )
 
-    def _log_evaluation_results(self, eval_request_id: Optional[str], eval_results: List[EvalResult]):
+    def _log_evaluation_results(
+        self, eval_request_id: Optional[str], eval_results: List[EvalResult]
+    ):
         """
         Logs the evaluation results to Athina if the eval_request_id is available.
         """
@@ -129,13 +136,25 @@ class BaseEvaluator(ABC):
         AthinaApiService.log_usage(eval_name=self.name, run_type="batch")
         eval_request_id = self._log_evaluation_request(kwargs)
         eval_result = self._evaluate(**kwargs)
-        self._log_evaluation_results(eval_request_id=eval_request_id, eval_results=[eval_result])
+        self._log_evaluation_results(
+            eval_request_id=eval_request_id, eval_results=[eval_result]
+        )
 
         return BatchRunResult(
             eval_request_id=eval_request_id,
             eval_results=[eval_result],
         )
-    
+
+    def guard(self, **kwargs):
+        """
+        Guard
+        """
+        eval_result = self._evaluate(**kwargs)
+        passed = not eval_result["failure"]
+        reason = eval_result["reason"]
+        runtime = eval_result["runtime"]
+        return GuardResult(passed=passed, reason=reason, runtime=runtime)
+
     def _run_batch_generator_async(
         self, data: List[DataPoint], max_parallel_evals: int
     ):
@@ -183,7 +202,7 @@ class BaseEvaluator(ABC):
         # Log usage to Athina for analytics
         AthinaApiService.log_usage(eval_name=self.name, run_type="batch")
         eval_request_id = self._log_evaluation_request(data)
-        
+
         # Run the evaluations
         if max_parallel_evals > 1:
             eval_results = self._run_batch_generator_async(data, max_parallel_evals)
