@@ -57,7 +57,7 @@ def regex(pattern, text, **kwargs):
     Returns:
         dict: A dictionary containing the result of the regex search and the reason for the result.
     """
-    match = re.search(pattern, text, **kwargs)
+    match = re.search(pattern, text)
     if match:
         return {"result": True, "reason": f"regex pattern {pattern} found in output"}
     else:
@@ -234,7 +234,7 @@ def contains_email(text, **kwargs):
     Returns:
         dict: A dictionary containing the result of the email address check and the reason for the result.
     """
-    return regex(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", text, **kwargs)
+    return regex(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", text)
 
 
 def is_json(text, **kwargs):
@@ -248,7 +248,7 @@ def is_json(text, **kwargs):
         dict: A dictionary containing the result of the JSON check and the reason for the result.
     """
     try:
-        json.loads(text, **kwargs)
+        json.loads(text)
         result = True
     except json.JSONDecodeError:
         result = False
@@ -274,7 +274,7 @@ def is_email(text, **kwargs):
     Returns:
         dict: A dictionary containing the result of the email address check and the reason for the result.
     """
-    return regex(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", text, **kwargs)
+    return regex(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", text)
 
 
 def contains_link(text, **kwargs):
@@ -288,7 +288,7 @@ def contains_link(text, **kwargs):
         dict: A dictionary containing the result of the link check and the reason for the result.
     """
     pattern = r"(?!.*@)(?:https?://)?(?:www\.)?\S+\.\S+"
-    result = bool(re.search(pattern, text, **kwargs))
+    result = bool(re.search(pattern, text))
     if result:
         return {"result": True, "reason": "Link found in output"}
     else:
@@ -306,7 +306,7 @@ def contains_valid_link(text, **kwargs):
         dict: A dictionary containing the result of the link check and the reason for the result.
     """
     pattern = r"(?!.*@)(?:https?://)?(?:www\.)?\S+\.\S+"
-    link_match = re.search(pattern=pattern, string=text, **kwargs)
+    link_match = re.search(pattern=pattern, string=text)
     if link_match:
         matched_url = link_match.group()
         if matched_url:
@@ -342,7 +342,7 @@ def no_invalid_links(text, **kwargs):
         dict: A dictionary containing the result of the link check and the reason for the result.
     """
     pattern = r"(?!.*@)(?:https?://)?(?:www\.)?\S+\.\S+"
-    link_match = re.search(pattern=pattern, string=text, **kwargs)
+    link_match = re.search(pattern=pattern, string=text)
     if link_match:
         matched_url = link_match.group()
         if matched_url:
@@ -514,7 +514,7 @@ def length_less_than(max_length, text, **kwargs):
     Returns:
         dict: A dictionary containing the result of the length check and the reason for the result.
     """
-    if len(text, **kwargs) < max_length:
+    if len(text) < max_length:
         return {
             "result": True,
             "reason": f"output length is less than {max_length} characters",
@@ -537,7 +537,7 @@ def length_greater_than(min_length, text, **kwargs):
     Returns:
         dict: A dictionary containing the result of the length check and the reason for the result.
     """
-    if len(text, **kwargs) > min_length:
+    if len(text) > min_length:
         return {
             "result": True,
             "reason": f"output length is greater than {min_length} characters",
