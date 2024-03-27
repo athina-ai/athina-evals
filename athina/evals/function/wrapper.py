@@ -27,18 +27,18 @@ class ContainsAny(FunctionEvaluator):
 class Regex(FunctionEvaluator):
     def __init__(
         self,
-        regex: str,
+        pattern: str,
         display_name: Optional[str] = None,
     ):
         """
         Initialize the Regex function evaluator.
 
         Args:
-            regex (str): The regular expression pattern to be matched in the text.
+            pattern (str): The regular expression pattern to be matched in the text.
         """
         super().__init__(
             function_name=FunctionEvalTypeId.REGEX.value,
-            function_arguments={"pattern": regex},
+            function_arguments={"pattern": pattern},
             display_name=display_name,
         )
 
