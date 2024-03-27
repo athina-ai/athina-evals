@@ -33,7 +33,7 @@ llm_operations = {
     "Irftc": Faithfulness,
     "BaseEvaluator": BaseEvaluator,
     "Ccei": ContextContainsEnoughInformation,
-    "SummaryAccuracy": SummaryAccuracy,
+    "SummarizationHal": SummaryAccuracy,
     "Groundedness": Groundedness,
     "GradingCriteria": GradingCriteria,
     "CustomPrompt": CustomPrompt,
