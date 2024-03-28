@@ -45,7 +45,7 @@ class FunctionEvalTypeId(Enum):
     LENGTH_LESS_THAN = "LengthLessThan"
     LENGTH_GREATER_THAN = "LengthGreaterThan"
     API_CALL = "ApiCall"
-
+    OPENAI_CONTENT_MODERATION = "OpenAiContentModeration"
 class GroundedEvalTypeId(Enum):
     ANSWER_SIMILARITY = "AnswerSimilarity"
     CONTEXT_SIMILARITY = "ContextSimilarity"
