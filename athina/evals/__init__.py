@@ -51,7 +51,7 @@ from athina.evals.function.wrapper import (
 )
 from athina.evals.grounded.wrapper import AnswerSimilarity, ContextSimilarity
 from athina.evals.guardrails.gibberish_text.evaluator import NotGibberishText
-from athina.evals.guardrails.sfw.evaluator import SfwText
+from athina.evals.guardrails.sfw.evaluator import SafeForWorkText
 from athina.evals.guardrails.sensitive_topics.evaluator import ContainsNoSensitiveTopics
 
 from athina.evals.conversation.conversation_resolution.evaluator import (
@@ -113,6 +113,6 @@ __all__ = [
     "PiiDetection",
     "PromptInjection",
     "NotGibberishText",
-    "SfwText",
+    "SafeForWorkText",
     "ContainsNoSensitiveTopics",
 ]

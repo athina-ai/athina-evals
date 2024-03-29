@@ -11,7 +11,7 @@ from guardrails import Guard
 from athina.metrics.metric_type import MetricType
 
 # Passes when the text is SFW, fails when the text is NSFW.
-class SfwText(BaseEvaluator):
+class SafeForWorkText(BaseEvaluator):
     _validation_method: str
     _threshold: float
 
