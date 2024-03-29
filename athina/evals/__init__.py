@@ -112,7 +112,7 @@ __all__ = [
     "ConversationCoherence",
     "PiiDetection",
     "PromptInjection",
-    "NotGibberishText"
+    "NotGibberishText",
     "SfwText",
     "ContainsNoSensitiveTopics",
 ]
