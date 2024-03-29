@@ -29,6 +29,14 @@ class OpenAiContentModeration(BaseEvaluator):
     @property
     def examples(self):
         return None
+    
+    def __init__(self, open_ai_api_key: Optional[str] = None):
+        if open_ai_api_key is None:
+            if OpenAiApiKey.get_key() is None:
+                raise NoOpenAiApiKeyException()
+            self.open_ai_api_key = OpenAiApiKey.get_key()
+        else:
+            self.open_ai_api_key = open_ai_api_key
 
     def is_failure(self, content_moderation_response: dict) -> Optional[bool]:
         results = content_moderation_response.get('results',[])
@@ -111,15 +119,12 @@ class OpenAiContentModeration(BaseEvaluator):
     #     ]
     # }
 
-    def get_content_moderation_result(self, text: str):
-        if OpenAiApiKey.get_key() is None:
-            raise NoOpenAiApiKeyException()
-        open_ai_api_key = OpenAiApiKey.get_key()
+    def get_content_moderation_result(self, text: str): 
         # Define the endpoint URL
         url = "https://api.openai.com/v1/moderations"
         # Prepare headers and data payload for the HTTP request
         headers = {
-            "Authorization": f"Bearer {open_ai_api_key}",
+            "Authorization": f"Bearer {self.open_ai_api_key}",
             "Content-Type": "application/json"
         }
         data = {"input": text}
