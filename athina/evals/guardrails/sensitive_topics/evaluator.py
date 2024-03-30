@@ -20,7 +20,7 @@ class ContainsNoSensitiveTopics(BaseEvaluator):
 
     def __init__(
         self,
-        sensitive_topics: Optional[str] = _default_sensitive_topics,
+        sensitive_topics: [str] = _default_sensitive_topics, 
         open_ai_api_key: Optional[str] = None
     ):
         if open_ai_api_key is None:
