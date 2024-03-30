@@ -1,8 +1,8 @@
 import time
 from typing import List
 from ..evals import BaseEvaluator
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from .exception import AthinaGuardException
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 def guard(suite: List[BaseEvaluator], **kwargs):
