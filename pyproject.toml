@@ -33,4 +33,4 @@ include = "athina/**/*"
 
 [tool.poetry.scripts]
 athina = "athina.cli.cli:main"
-guardrails = "athina.scripts.guardrails:main"
+install_guardrails = "athina.scripts.guardrails:install"
