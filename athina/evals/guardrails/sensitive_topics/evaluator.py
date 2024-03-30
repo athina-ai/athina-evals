@@ -1,5 +1,6 @@
 # Guardrails Sensitive topics Evaluator
 # https://hub.guardrailsai.com/validator/guardrails/sensitive_topics
+
 import os
 import time
 from typing import List, Optional
@@ -8,10 +9,7 @@ from athina.helpers.logger import logger
 from athina.errors.exceptions import NoOpenAiApiKeyException
 from athina.keys import OpenAiApiKey
 from ...base_evaluator import BaseEvaluator
-from guardrails import Guard
 from athina.metrics.metric_type import MetricType
-from guardrails.hub import SensitiveTopic
-from guardrails.validator_base import FailResult
 
 # Passes when the text doesn't contain any sensitive topics, fails when the text contains.
 class ContainsNoSensitiveTopics(BaseEvaluator):
@@ -23,6 +21,7 @@ class ContainsNoSensitiveTopics(BaseEvaluator):
         sensitive_topics: [str] = _default_sensitive_topics, 
         open_ai_api_key: Optional[str] = None
     ):
+        from guardrails.hub import SensitiveTopic
         if open_ai_api_key is None:
             if OpenAiApiKey.get_key() is None:
                 raise NoOpenAiApiKeyException()
@@ -61,6 +60,7 @@ class ContainsNoSensitiveTopics(BaseEvaluator):
         return not(bool(result))
 
     def _evaluate(self, **kwargs) -> EvalResult:
+        from guardrails import Guard
         """
         Run the Guardrails evaluator.
         """

@@ -1,14 +1,12 @@
 # Guardrails NSFW Evaluator
 # https://hub.guardrailsai.com/validator/guardrails/nsfw_text
 
-from typing import List, Optional
 import time
-from athina.interfaces.result import EvalResult, EvalResultMetric
+from typing import List
 from athina.helpers.logger import logger
 from ...base_evaluator import BaseEvaluator
-from guardrails.hub import NSFWText
-from guardrails import Guard
 from athina.metrics.metric_type import MetricType
+from athina.interfaces.result import EvalResult, EvalResultMetric
 
 # Passes when the text is SFW, fails when the text is NSFW.
 class SafeForWorkText(BaseEvaluator):
@@ -20,6 +18,7 @@ class SafeForWorkText(BaseEvaluator):
         validation_method: str = "sentence",
         threshold: float = 0.8,
     ):
+        from guardrails.hub import NSFWText
         self._validation_method = validation_method
         self._threshold = threshold
         # Initialize Validator
@@ -56,6 +55,7 @@ class SafeForWorkText(BaseEvaluator):
         """
         Run the Guardrails nsfw evaluator.
         """
+        from guardrails import Guard
         start_time = time.time()
         self.validate_args(**kwargs)
         metrics = []

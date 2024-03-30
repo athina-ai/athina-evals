@@ -1,26 +1,26 @@
 # Guardrails Gibberish Evaluator
 # https://hub.guardrailsai.com/validator/guardrails/gibberish_text
 
-from typing import List, Optional
 import time
-from athina.interfaces.result import EvalResult, EvalResultMetric
+from typing import List
 from athina.helpers.logger import logger
 from ...base_evaluator import BaseEvaluator
-from guardrails.hub import GibberishText as GuardrailsGibberishText
-from guardrails import Guard
 from athina.metrics.metric_type import MetricType
+from athina.interfaces.result import EvalResult, EvalResultMetric
 
 
 # Passes when the text is sensible, fails when the text is gibberish.
 class NotGibberishText(BaseEvaluator):
     _validation_method: str
     _threshold: float
-    
+
     def __init__(
         self,
         validation_method: str = "sentence",
         threshold: float = 0.75,
     ):
+        from guardrails.hub import GibberishText as GuardrailsGibberishText
+        
         self._validation_method = validation_method
         self._threshold = threshold
         # Initialize Validator
@@ -57,6 +57,8 @@ class NotGibberishText(BaseEvaluator):
         """
         Run the Guardrails evaluator.
         """
+        from guardrails import Guard
+
         start_time = time.time()
         self.validate_args(**kwargs)
         metrics = []
