@@ -119,6 +119,41 @@ class AthinaApiService:
                 str(e),
             )
             raise
+    
+    @staticmethod
+    @retry(wait_fixed=500, stop_max_attempt_number=3)
+    def create_dataset(
+        
+    ):
+        """
+        Logs eval results to Athina
+        """
+        try:
+            # Construct eval update requests
+            endpoint = f"{API_BASE_URL}/api/v1/dataset"
+            response = requests.post(
+                endpoint,
+                headers=AthinaApiService._headers(),
+                json=athina_eval_result_create_many_request,
+            )
+            if response.status_code == 401:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
+                raise CustomException(error_message, details_message)
+            elif response.status_code != 200 and response.status_code != 201:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get(
+                    'details', {}).get('message', 'No Details')
+                raise CustomException(error_message, details_message)
+            return response.json()
+        except Exception as e:
+            print(
+                f"An error occurred while posting eval results",
+                str(e),
+            )
+            raise
 
     @staticmethod
     def create_eval_request(
