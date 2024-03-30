@@ -52,6 +52,9 @@ from athina.evals.function.wrapper import (
     ApiCall,
 )
 from athina.evals.grounded.wrapper import AnswerSimilarity, ContextSimilarity
+from athina.evals.guardrails.gibberish_text.evaluator import NotGibberishText
+from athina.evals.guardrails.sfw.evaluator import SafeForWorkText
+from athina.evals.guardrails.sensitive_topics.evaluator import ContainsNoSensitiveTopics
 
 from athina.evals.conversation.conversation_resolution.evaluator import (
     ConversationResolution,
@@ -111,5 +114,8 @@ __all__ = [
     "ConversationCoherence",
     "PiiDetection",
     "PromptInjection",
+    "NotGibberishText",
+    "SafeForWorkText",
+    "ContainsNoSensitiveTopics",
     "OpenAiContentModeration",
 ]
