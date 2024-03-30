@@ -63,7 +63,7 @@ class GradingCriteria(LlmEvaluator):
     def is_failure(self, result) -> Optional[bool]:
         return bool(result == "Fail") 
 
-    def _user_message(self, response) -> str:
+    def _user_message(self, response, **kwargs) -> str:
         """
         Generates data for evaluation.
 
