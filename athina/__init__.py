@@ -1,6 +1,11 @@
-# __init__.py
+from .runner.run import EvalRunner
 
-from .guard.guard import guard
-from .guard.exception import AthinaGuardException
-from . import evals
-from . import keys
+def run(evals, data):
+    """
+    A convenience wrapper to run evaluation suites.
+
+    :param evals: A list of evaluations to be run.
+    :param data: The dataset over which evaluations are run.
+    """
+    # Call the EvalRunner's run_suite method directly
+    return EvalRunner.run_suite(evals=evals, data=data)
