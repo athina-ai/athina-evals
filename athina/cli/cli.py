@@ -65,7 +65,7 @@ def main():
         type=str,
         choices=[
             LoadFormat.JSON.value,
-            LoadFormat.CSV.value,
+            LoadFormat.DICT.value,
             LoadFormat.ATHINA.value,
         ],
         help="Output format type",

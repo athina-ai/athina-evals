@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "athina"
-version = "1.2.6"
+version = "1.2.7"
 description = "Python SDK to configure and run evaluations for your LLM-based application"
 authors = ["Shiv Sakhuja <shiv@athina.ai>", "Akshat Gupta <akshat@athina.ai>", "Vivek Aditya <vivek@athina.ai>", "Akhil Bisht <akhil@athina.ai>"]
 readme = "README.md"
@@ -21,7 +21,6 @@ requests = "^2.31.0"
 langchain-openai = "^0.0.3"
 llama-index = "^0.9.40"
 
-
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.27.0"
 
@@ -34,3 +33,4 @@ include = "athina/**/*"
 
 [tool.poetry.scripts]
 athina = "athina.cli.cli:main"
+install_guardrails = "athina.scripts.guardrails:install"

@@ -1,4 +1,4 @@
-from athina.evals import Regex, ContainsAny, ContainsAll, Contains, ContainsNone, ContainsJson, ContainsEmail, IsJson, IsEmail, NoInvalidLinks, ContainsLink, ContainsValidLink, Equals, StartsWith, EndsWith, LengthLessThan, LengthGreaterThan, ApiCall, DoesResponseAnswerQuery, Faithfulness, BaseEvaluator, ContextContainsEnoughInformation, SummaryAccuracy, Groundedness, GradingCriteria, CustomPrompt, RagasContextRelevancy, RagasAnswerRelevancy, RagasAnswerCorrectness, RagasAnswerSemanticSimilarity, RagasCoherence, RagasConciseness, RagasContextPrecision, RagasContextRecall, RagasFaithfulness, RagasHarmfulness, RagasMaliciousness
+from athina.evals import Regex, ContainsAny, ContainsAll, Contains, ContainsNone, ContainsJson, ContainsEmail, IsJson, IsEmail, NoInvalidLinks, ContainsLink, ContainsValidLink, Equals, StartsWith, EndsWith, LengthLessThan, LengthGreaterThan, ApiCall, DoesResponseAnswerQuery, Faithfulness, BaseEvaluator, ContextContainsEnoughInformation, SummaryAccuracy, Groundedness, GradingCriteria, CustomPrompt, RagasContextRelevancy, RagasAnswerRelevancy, RagasAnswerCorrectness, RagasAnswerSemanticSimilarity, RagasCoherence, RagasConciseness, RagasContextPrecision, RagasContextRecall, RagasFaithfulness, RagasHarmfulness, RagasMaliciousness, NotGibberishText, SafeForWorkText, ContainsNoSensitiveTopics
 from athina.evals.grounded.similarity import CosineSimilarity, JaccardSimilarity, JaroWincklerSimilarity, NormalisedLevenshteinSimilarity, SorensenDiceSimilarity
 from athina.evals.grounded.wrapper import AnswerSimilarity, ContextSimilarity
 
@@ -26,6 +26,12 @@ function_operations = {
     "LengthLessThan": LengthLessThan,
     "LengthGreaterThan": LengthGreaterThan,
     "ApiCall": ApiCall,
+}
+
+safety_operations = {
+    "SafeForWorkText": SafeForWorkText,
+    "NotGibberishText": NotGibberishText,
+    "ContainsNoSensitiveTopics": ContainsNoSensitiveTopics,
 }
 
 llm_operations = {
@@ -56,6 +62,8 @@ ragas_operations = {
 def get_evaluator(evaluator_type):
     if evaluator_type in function_operations:
         return function_operations[evaluator_type]
+    elif evaluator_type in safety_operations:
+        return safety_operations[evaluator_type]
     elif evaluator_type in grounded_operations:
         return grounded_operations[evaluator_type]
     elif evaluator_type in llm_operations:
