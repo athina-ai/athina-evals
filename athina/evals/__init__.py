@@ -29,6 +29,8 @@ from athina.evals.llm.llm_evaluator import LlmEvaluator
 from athina.evals.grounded.grounded_evaluator import GroundedEvaluator
 from athina.evals.safety.pii_detection.evaluator import PiiDetection
 from athina.evals.safety.prompt_injection.evaluator import PromptInjection
+from athina.evals.safety.content_moderation.evaluator import OpenAiContentModeration
+
 from athina.evals.function.wrapper import (
     ContainsAny,
     Regex,
@@ -50,6 +52,9 @@ from athina.evals.function.wrapper import (
     ApiCall,
 )
 from athina.evals.grounded.wrapper import AnswerSimilarity, ContextSimilarity
+from athina.evals.guardrails.gibberish_text.evaluator import NotGibberishText
+from athina.evals.guardrails.sfw.evaluator import SafeForWorkText
+from athina.evals.guardrails.sensitive_topics.evaluator import ContainsNoSensitiveTopics
 
 from athina.evals.conversation.conversation_resolution.evaluator import (
     ConversationResolution,
@@ -109,4 +114,8 @@ __all__ = [
     "ConversationCoherence",
     "PiiDetection",
     "PromptInjection",
+    "NotGibberishText",
+    "SafeForWorkText",
+    "ContainsNoSensitiveTopics",
+    "OpenAiContentModeration",
 ]

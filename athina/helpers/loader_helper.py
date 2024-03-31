@@ -1,5 +1,5 @@
 from typing import Optional
-from athina.loaders import RagLoader, ResponseLoader
+from athina.loaders import ResponseLoader, Loader
 
 
 class LoaderHelper:
@@ -8,12 +8,8 @@ class LoaderHelper:
     @staticmethod
     def get_loader(eval_name, loader_name: Optional[str] = None):
         """Returns the loader for the given format"""
-        if eval_name == "ContextContainsEnoughInformation":
-            return RagLoader
-        elif eval_name == "DoesResponseAnswerQuery":
-            return RagLoader
-        elif eval_name == "Faithfulness":
-            return RagLoader
+        if eval_name == "ContextContainsEnoughInformation" or eval_name == "DoesResponseAnswerQuery" or eval_name == "Faithfulness":
+            return Loader
         else:
             if loader_name is None:
                 raise ValueError(

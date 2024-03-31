@@ -21,7 +21,6 @@ requests = "^2.31.0"
 langchain-openai = "^0.0.3"
 llama-index = "^0.9.40"
 
-
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.27.0"
 
@@ -34,3 +33,4 @@ include = "athina/**/*"
 
 [tool.poetry.scripts]
 athina = "athina.cli.cli:main"
+install_guardrails = "athina.scripts.guardrails:install"
