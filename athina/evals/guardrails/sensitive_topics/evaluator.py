@@ -13,12 +13,12 @@ from athina.metrics.metric_type import MetricType
 
 # Passes when the text doesn't contain any sensitive topics, fails when the text contains.
 class ContainsNoSensitiveTopics(BaseEvaluator):
-    _sensitive_topics: [str]
+    _sensitive_topics: List[str]
     _default_sensitive_topics = ["adult content", "hate speech", "illegal activities", "politics", "violence"]
 
     def __init__(
         self,
-        sensitive_topics: [str] = _default_sensitive_topics, 
+        sensitive_topics: List[str] = _default_sensitive_topics, 
         open_ai_api_key: Optional[str] = None
     ):
         from guardrails.hub import SensitiveTopic
