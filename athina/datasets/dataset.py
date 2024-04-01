@@ -1,8 +1,8 @@
 import json
 from typing import Any, List, Optional
 import requests
-from dataclasses import dataclass, field
-from athina.services.athina_api_service import AthinaApiService
+from dataclasses import dataclass, field, asdict
+from athina.services.athina_api_service import AthinaApiService 
 
 @dataclass
 class DatasetRow:
@@ -14,6 +14,7 @@ class DatasetRow:
 @dataclass
 class Dataset:
     id: str
+    source: str
     name: str
     description: Optional[str] = None
     language_model_id: Optional[str] = None
@@ -36,7 +37,39 @@ class Dataset:
         Raises:
         - Exception: If the dataset could not be created due to an error like invalid parameters, database errors, etc.
         """
-        dataset = Dataset(name=name, description=description, language_model_id=language_model_id, prompt_template=prompt_template, rows=rows)
-        created_dataset = AthinaApiService.create_dataset(dataset)
-        return created_dataset
+        dataset_data = {
+                "source": "dev_sdk",
+                "name": name,
+                "description": description,
+                "language_model_id": language_model_id,
+                "prompt_template": prompt_template,
+                "dataset_rows": rows or []
+            }
+        
+        created_dataset_data = AthinaApiService.create_dataset(dataset_data)
+        dataset = Dataset(id=created_dataset_data['id'], source=created_dataset_data['source'], name=created_dataset_data['name'], description=created_dataset_data['description'], language_model_id=created_dataset_data['language_model_id'], prompt_template=created_dataset_data['prompt_template'])
+        return dataset
+
+    @staticmethod
+    def add_rows(dataset_id: str, rows: List[DatasetRow]):
+        """
+        Adds rows to a dataset in batches of 100.
+
+        Parameters:
+        - dataset_id (str): The ID of the dataset to add rows to.
+        - rows (List[DatasetRow]): The rows to add to the dataset.
+
+        Raises:
+        - Exception: If the API returns an error or the limit of 1000 rows is exceeded.
+        """
+        batch_size = 1
+        for i in range(0, len(rows), batch_size):
+            batch = rows[i:i+batch_size]
+            try:
+                AthinaApiService.add_dataset_rows(dataset_id, batch)
+            except Exception as e:
+                print(f"Dataset can contain 1000 rows: {e}")
+                raise
+    
+
        

@@ -1,7 +1,8 @@
 import pkg_resources
 import requests
+from dataclasses import asdict
 from retrying import retry
-from typing import List, Optional
+from typing import List, Optional, Dict
 from athina.errors.exceptions import NoAthinaApiKeyException
 from athina.interfaces.athina import (
     AthinaFilters,
@@ -121,20 +122,18 @@ class AthinaApiService:
             raise
     
     @staticmethod
-    @retry(wait_fixed=500, stop_max_attempt_number=3)
     def create_dataset(
-        
+        dataset: Dict
     ):
         """
         Logs eval results to Athina
         """
         try:
-            # Construct eval update requests
             endpoint = f"{API_BASE_URL}/api/v1/dataset"
             response = requests.post(
                 endpoint,
                 headers=AthinaApiService._headers(),
-                json=athina_eval_result_create_many_request,
+                json=dataset,
             )
             if response.status_code == 401:
                 response_json = response.json()
@@ -147,12 +146,48 @@ class AthinaApiService:
                 details_message = response_json.get(
                     'details', {}).get('message', 'No Details')
                 raise CustomException(error_message, details_message)
-            return response.json()
+            return response.json()['data']['dataset']
         except Exception as e:
             print(
-                f"An error occurred while posting eval results",
+                f"An error occurred while creating dataset",
                 str(e),
             )
+            raise
+    
+    @staticmethod
+    def add_dataset_rows(dataset_id: str, rows: List[Dict]):
+        """
+        Adds rows to a dataset by calling the Athina API.
+
+        Parameters:
+        - dataset_id (str): The ID of the dataset to which rows are added.
+        - rows (List[Dict]): A list of rows to add to the dataset, where each row is represented as a dictionary.
+
+        Returns:
+        The API response data for the dataset after adding the rows.
+
+        Raises:
+        - CustomException: If the API call fails or returns an error.
+        """
+        try:
+            endpoint = f"{API_BASE_URL}/api/v1/dataset/{dataset_id}/add-rows"
+            response = requests.post(
+                endpoint,
+                headers=AthinaApiService._headers(),
+                json={"dataset_rows": rows},
+            )
+            if response.status_code == 401:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
+                raise CustomException(error_message, details_message)
+            elif response.status_code != 200 and response.status_code != 201:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get('details', {}).get('message', 'No Details')
+                raise CustomException(error_message, details_message)
+
+        except Exception as e:
             raise
 
     @staticmethod
