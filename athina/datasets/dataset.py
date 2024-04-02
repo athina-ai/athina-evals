@@ -27,7 +27,7 @@ class Dataset:
         Creates a new dataset with the specified properties.
         Parameters:
         - name (str): The name of the dataset. This is a required field.
-        - description (Optional[str]): An optional textual description of the dataset, providing additional context or metadata.
+        - description (Optional[str]): An optional textual description of the dataset, providing additional context.
         - language_model_id (Optional[str]): An optional identifier for the language model associated with this dataset.
         - prompt_template (Optional[Any]): An optional template for prompts used in this dataset.
 
