@@ -46,7 +46,10 @@ class Dataset:
                 "dataset_rows": rows or []
             }
         
-        created_dataset_data = AthinaApiService.create_dataset(dataset_data)
+        try:
+            created_dataset_data = AthinaApiService.create_dataset(dataset_data)
+        except Exception as e:
+            raise
         dataset = Dataset(id=created_dataset_data['id'], source=created_dataset_data['source'], name=created_dataset_data['name'], description=created_dataset_data['description'], language_model_id=created_dataset_data['language_model_id'], prompt_template=created_dataset_data['prompt_template'])
         return dataset
 
@@ -62,13 +65,12 @@ class Dataset:
         Raises:
         - Exception: If the API returns an error or the limit of 1000 rows is exceeded.
         """
-        batch_size = 1
+        batch_size = 100
         for i in range(0, len(rows), batch_size):
             batch = rows[i:i+batch_size]
             try:
                 AthinaApiService.add_dataset_rows(dataset_id, batch)
             except Exception as e:
-                print(f"Dataset can contain 1000 rows: {e}")
                 raise
     
 

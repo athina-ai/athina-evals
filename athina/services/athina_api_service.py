@@ -148,10 +148,6 @@ class AthinaApiService:
                 raise CustomException(error_message, details_message)
             return response.json()['data']['dataset']
         except Exception as e:
-            print(
-                f"An error occurred while creating dataset",
-                str(e),
-            )
             raise
     
     @staticmethod
@@ -186,7 +182,7 @@ class AthinaApiService:
                 error_message = response_json.get('error', 'Unknown Error')
                 details_message = response_json.get('details', {}).get('message', 'No Details')
                 raise CustomException(error_message, details_message)
-
+            return response.json()['data']
         except Exception as e:
             raise
 
