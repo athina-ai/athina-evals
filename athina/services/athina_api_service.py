@@ -126,7 +126,7 @@ class AthinaApiService:
         dataset: Dict
     ):
         """
-        Logs eval results to Athina
+        Creates a dataset by calling the Athina API
         """
         try:
             endpoint = f"{API_BASE_URL}/api/v1/dataset"
