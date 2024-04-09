@@ -149,7 +149,4 @@ class EvalRunner:
             EvalRunner._log_evaluation_results(eval_request_id=eval_request_id, eval_results=eval_results)
             batch_results.append(eval_results)
 
-        print(
-            f"You can view the evaluation results at {EvalRunner.eval_results_link(eval_request_id)}"
-        )
         return EvalRunner.to_df(batch_results)
