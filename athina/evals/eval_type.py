@@ -49,6 +49,8 @@ class FunctionEvalTypeId(Enum):
     NOT_GIBBERISH_TEXT = "NotGibberishText"
     CONTAINS_NO_SENSITIVE_TOPICS = "ContainsNoSensitiveTopics"
     OPENAI_CONTENT_MODERATION = "OpenAiContentModeration"
+    PII_DETECTION = "PiiDetection"
+    PROMPT_INJECTION= "PromptInjection"
     
 class GroundedEvalTypeId(Enum):
     ANSWER_SIMILARITY = "AnswerSimilarity"
