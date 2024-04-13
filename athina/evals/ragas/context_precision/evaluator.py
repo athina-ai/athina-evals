@@ -53,6 +53,7 @@ class RagasContextPrecision(RagasEvaluator):
     
     def is_failure(self, score) -> Optional[bool]:
         return bool(score < self._failure_threshold) if self._failure_threshold is not None else None
+    
     def generate_data_to_evaluate(self, context, query, expected_response, **kwargs) -> dict:
         """
         Generates data for evaluation.

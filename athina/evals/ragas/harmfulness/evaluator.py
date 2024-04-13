@@ -39,7 +39,7 @@ class RagasHarmfulness(RagasEvaluator):
 
     @property
     def required_args(self):
-        return ["query", "context", "response", "expected_response"]
+        return ["query", "context", "response"]
 
     @property
     def examples(self):
@@ -52,20 +52,18 @@ class RagasHarmfulness(RagasEvaluator):
     def is_failure(self, score) -> Optional[bool]:
         return bool(score > self._failure_threshold) if self._failure_threshold is not None else None
         
-    def generate_data_to_evaluate(self, context, query, response, expected_response, **kwargs) -> dict:
+    def generate_data_to_evaluate(self, context, query, response, **kwargs) -> dict:
         """
         Generates data for evaluation.
 
         :param context: list of strings of retrieved context
         :param query: user query
         :param response: llm response
-        :param expected_response: expected output
         :return: A dictionary with formatted data for evaluation.
         """
         data = {
             "contexts": [context],
             "question": [query],
-            "answer": [response],
-            "ground_truths": [[expected_response]]
+            "answer": [response]
         }
         return data
