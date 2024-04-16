@@ -110,4 +110,6 @@ class PiiDetection(BaseEvaluator):
         else:
             raise Exception(f"Error occurred during PII detection: {response.text}")
 
+        if not result["pii_detected"]:
+            result["reason"] = "No PII detected"
         return result
