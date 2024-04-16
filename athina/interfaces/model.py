@@ -33,7 +33,7 @@ class Model(Enum):
     MISTRAL_TINY = "mistral/mistral-tiny"
     MISTRAL_SMALL = "mistral/mistral-small"
     MISTRAL_MEDIUM = "mistral/mistral-medium"
-    MISTRAL_LARGE = "mistral/mistral-large"
+    MISTRAL_LARGE = "mistral/mistral-large-latest"
 
     @staticmethod
     def is_supported(model_name: str) -> bool:
