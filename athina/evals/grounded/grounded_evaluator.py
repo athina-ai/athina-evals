@@ -12,6 +12,7 @@ from ..base_evaluator import BaseEvaluator
 class GroundedEvaluator(BaseEvaluator):
 
     _comparator: Comparator
+    _failure_threshold = None
 
     """
     This evaluator runs the requested grounded evaluator on the given data.
@@ -50,7 +51,10 @@ class GroundedEvaluator(BaseEvaluator):
             self._failure_threshold = failure_threshold
 
     def _process_kwargs(self, required_args, **kwargs):
-        required_args_map = {key: kwargs[key] for key in required_args}
+        required_args_map = {
+            key: "\n".join(kwargs[key]) if key == "context" and isinstance(kwargs[key], list) else kwargs[key] 
+            for key in required_args
+        }
         if len(required_args_map) == 2:
             values = list(required_args_map.values())
             if all(isinstance(value, str) for value in values):
