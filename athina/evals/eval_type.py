@@ -11,6 +11,7 @@ class LlmEvalTypeId(Enum):
     GRADING_CRITERIA = "GradingCriteria"
     CUSTOM_PROMPT = "CustomPrompt"
     SUMMARIZATION_HAL = "SummarizationHal"
+    GROUNDEDNESS = "Groundedness"
 
 class RagasEvalTypeId(Enum):
     RAGAS_CONTEXT_RELEVANCY = "RagasContextRelevancy"
