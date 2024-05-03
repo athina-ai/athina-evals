@@ -2,6 +2,9 @@ from typing import List, Optional
 from athina.interfaces.athina import AthinaFilters
 from athina.interfaces.data import DataPoint
 from .base_loader import BaseLoader
+from athina.services.athina_api_service import AthinaApiService
+from dataclasses import asdict
+
 
 
 class ResponseLoader(BaseLoader):

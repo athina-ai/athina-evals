@@ -11,6 +11,7 @@ class LoadFormat(Enum):
     JSON = "json"
     DICT = "dict"
     ATHINA = "athina"
+    LLAMA_INDEX = "llama_index"
 
 
 class BaseLoader(ABC):
@@ -21,7 +22,7 @@ class BaseLoader(ABC):
         """
         Returns the processed dataset.
         """
-        return self._processed_dataset
+        return self.
 
     @property
     def raw_dataset(self):
@@ -71,3 +72,10 @@ class BaseLoader(ABC):
         self._raw_dataset = data
         self.process()
         return self._processed_dataset
+
+    @abstractmethod
+    def load_athina_inferences(self, data: dict) -> List[DataPoint]:
+        """
+        Loads and processes data from a dictionary of Athina inferences.
+        """
+        pass
