@@ -16,18 +16,20 @@ class ContextContainsEnoughInformation(LlmEvaluator):
     """
 
     USER_MESSAGE_TEMPLATE = """
-        Let's think step by step:
+    Let's think step by step:
 
-        1. Consider the following: 
-        user's query: {query}.
-        context: {context}.
-        2. Determine if the chatbot can answer the user's query with nothing but the "context" information provided to you.
-        3. Provide a brief explanation of why the context does or does not contain sufficient information, labeled as 'explanation', leading up to a verdict (Pass/Fail) labeled as 'result'.
-        4. Always return a JSON object in the following format: "result": 'result', "explanation": 'explanation'.
+    1. Consider the following: 
+    user's query: {query}.
+    context: {context}.
+    chat history: {chat_history}
+    2. Determine if the chatbot can answer the user's query with nothing but the "context" and "chat history" information provided to you.
+    3. If the chat history is not provided, consider only the context.
+    4. Provide a brief explanation of why the context and the chat history do or do not contain sufficient information, labeled as 'explanation', leading up to a verdict (Pass/Fail) labeled as 'result'.
+    5. Always return a JSON object in the following format: "result": 'result', "explanation": 'explanation'.
 
-        Here's are some examples: 
-        {examples}
-    """
+    Here are some examples: 
+    {examples}
+"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -59,12 +61,7 @@ class ContextContainsEnoughInformation(LlmEvaluator):
     def is_failure(self, result) -> Optional[bool]:
         return bool(result == "Fail")
 
-    def _user_message(
-        self,
-        query: str,
-        context: str,
-        **kwargs,
-    ) -> str:
+    def _user_message(self, query: str, context: str, **kwargs) -> str:
         """
         Generates data for evaluation.
 
@@ -73,8 +70,13 @@ class ContextContainsEnoughInformation(LlmEvaluator):
         :return: A dictionary with formatted data for evaluation
         """
         joined_context = "\n".join(context)
+        # Check if chat_history is provided and format it
+        chat_history = kwargs.get('chat_history', [])
+        formatted_chat_history = "\n".join(chat_history) if chat_history else "No chat history provided."
+
         return self.USER_MESSAGE_TEMPLATE.format(
             query=query,
             context=joined_context,
+            chat_history=formatted_chat_history,
             examples=self.examples,
         )
