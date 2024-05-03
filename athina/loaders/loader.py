@@ -126,18 +126,19 @@ class Loader(BaseLoader):
         contexts, response = self._fetch_context_and_response_for_llama_index(raw_instance.get(self.col_query), query_engine)
         processed_instance = {
             "query": raw_instance.get(self.col_query),
-            "contexts": contexts,
+            "context": contexts,
             "response": response,
             "expected_response": raw_instance.get(self.col_expected_response, None)
         }
         return processed_instance
 
-    def load_from_llama_index(self, query_engine: BaseQueryEngine):
+    def load_from_llama_index(self, data: list, query_engine: BaseQueryEngine):
         """
         Load data from Llama Index.
         """
         if query_engine is None:
             raise ValueError("Query engine is not provided.")
-        for raw_instance in self._raw_dataset:
+        for raw_instance in data:
             processed_instance = self._generate_processed_instance_for_llama_index(raw_instance, query_engine)
             self._processed_dataset.append(processed_instance)
+        return self._processed_dataset

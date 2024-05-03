@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 from athina.interfaces.athina import AthinaFilters
 from athina.interfaces.data import DataPoint as BaseDataPoint
 from .base_loader import BaseLoader

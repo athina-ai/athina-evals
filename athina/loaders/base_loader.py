@@ -11,7 +11,6 @@ class LoadFormat(Enum):
     JSON = "json"
     DICT = "dict"
     ATHINA = "athina"
-    LLAMA_INDEX = "llama_index"
 
 
 class BaseLoader(ABC):
@@ -22,7 +21,7 @@ class BaseLoader(ABC):
         """
         Returns the processed dataset.
         """
-        return self.
+        return self._processed_dataset
 
     @property
     def raw_dataset(self):
