@@ -48,7 +48,6 @@ class BatchRunResult:
     """
 
     eval_results: List[Optional[EvalResult]]
-    eval_request_id: Optional[str] = field(default=None)
 
     def to_df(self):
         """

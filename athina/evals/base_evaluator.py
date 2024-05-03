@@ -201,7 +201,6 @@ class BaseEvaluator(ABC):
         """
         # Log usage to Athina for analytics
         AthinaApiService.log_usage(eval_name=self.name, run_type="batch")
-        eval_request_id = self._log_evaluation_request(data)
 
         # Run the evaluations
         if max_parallel_evals > 1:
