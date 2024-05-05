@@ -50,9 +50,6 @@ class ConversationCoherence(LlmEvaluator):
     def examples(self):
         return []
 
-    def to_config(self) -> Optional[Dict]:
-        return None
-
     def _user_message(self, **kwargs) -> str:
         return self._user_message_template.format(**kwargs)
 

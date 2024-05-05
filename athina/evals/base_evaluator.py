@@ -54,9 +54,8 @@ class BaseEvaluator(ABC):
         """The method that performs the evaluation."""
         pass
     
-    @abstractmethod
     def to_config(self) -> Optional[Dict]:
-        pass
+        return None
 
     # Common methods
     def _examples_str(self) -> str:
@@ -194,18 +193,29 @@ class BaseEvaluator(ABC):
             )
             return dataset
         except Exception as e:
+            print(f"Error logging dataset to Athina: {e}")
             return None
     
-    def _log_batch_results_to_athina(self, eval_results: List[EvalResult]):
+    def _log_eval_results_to_athina(self, eval_results: List[EvalResult], dataset_id: str):
         """
         Logs the batch results to Athina
         """
         try:
-            AthinaLoggingHelper.log_batch_results([
-                ev
-            ]
+            eval_config = self.to_config()
+            llm_engine = getattr(self, "_model", None)
+            AthinaLoggingHelper.log_eval_results_with_config(
+                eval_results_with_config={
+                    "eval_results": eval_results,
+                    "development_eval_config": {
+                        "eval_type_id": self.name,
+                        "eval_config": eval_config,
+                        "llm_engine": llm_engine
+                    }
+                },
+                dataset_id=dataset_id
             )
         except Exception as e:
+            print(f"Error logging eval results to Athina: {e}")
             pass
     
     def run_batch(
@@ -226,7 +236,9 @@ class BaseEvaluator(ABC):
         # Create the Dataset
         dataset = self._log_dataset_to_athina(data)
         if dataset:
-            self._log_batch_results_to_athina(eval_results)
+            self._log_eval_results_to_athina(eval_results, dataset.id)
+            print(f"You can view your dataset at: {Dataset.dataset_link(dataset.id)}")
+        
 
         return BatchRunResult(
             eval_results=eval_results,

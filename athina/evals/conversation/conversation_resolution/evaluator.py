@@ -49,9 +49,6 @@ class ConversationResolution(LlmEvaluator):
     def examples(self):
         return []
 
-    def to_config(self) -> Optional[Dict]:
-        return None
-
     def is_failure(self, score) -> Optional[bool]:
         return (
             bool(score < self._failure_threshold)

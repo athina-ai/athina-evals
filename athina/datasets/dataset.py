@@ -76,5 +76,9 @@ class Dataset:
             except Exception as e:
                 raise
     
+    @staticmethod
+    def dataset_link(dataset_id: str):
+        return f"https://app.athina.ai/datasets/{dataset_id}"
+    
 
        
