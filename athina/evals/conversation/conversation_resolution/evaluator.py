@@ -1,5 +1,5 @@
 import time
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from athina.interfaces.model import Model
 from athina.interfaces.result import EvalResult, EvalResultMetric
@@ -48,6 +48,9 @@ class ConversationResolution(LlmEvaluator):
     @property
     def examples(self):
         return []
+
+    def to_config(self) -> Optional[Dict]:
+        return None
 
     def is_failure(self, score) -> Optional[bool]:
         return (

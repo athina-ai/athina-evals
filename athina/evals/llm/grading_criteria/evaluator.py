@@ -60,6 +60,11 @@ class GradingCriteria(LlmEvaluator):
     def examples(self):
         return self._examples
     
+    def to_config(self) -> Optional[dict]:
+        return {
+            "grading_criteria": self.grading_criteria
+        }
+    
     def is_failure(self, result) -> Optional[bool]:
         return bool(result == "Fail") 
 

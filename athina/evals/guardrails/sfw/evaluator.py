@@ -2,7 +2,7 @@
 # https://hub.guardrailsai.com/validator/guardrails/nsfw_text
 
 import time
-from typing import List
+from typing import List, Optional, Dict
 from athina.helpers.logger import logger
 from ...base_evaluator import BaseEvaluator
 from athina.metrics.metric_type import MetricType
@@ -47,6 +47,9 @@ class SafeForWorkText(BaseEvaluator):
     @property
     def examples(self):
         pass
+
+    def to_config(self) -> Optional[Dict]:
+        return None
 
     def is_failure(self, result: bool) -> bool:
         return not(bool(result))

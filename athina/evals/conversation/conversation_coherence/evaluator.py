@@ -1,5 +1,5 @@
 import time
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from athina.helpers import logger
 from athina.interfaces.model import Model
@@ -49,6 +49,9 @@ class ConversationCoherence(LlmEvaluator):
     @property
     def examples(self):
         return []
+
+    def to_config(self) -> Optional[Dict]:
+        return None
 
     def _user_message(self, **kwargs) -> str:
         return self._user_message_template.format(**kwargs)
