@@ -34,6 +34,10 @@ class Model(Enum):
     MISTRAL_SMALL = "mistral/mistral-small"
     MISTRAL_MEDIUM = "mistral/mistral-medium"
     MISTRAL_LARGE = "mistral/mistral-large-latest"
+    GROQ_LLAMA3_8B_8192 = 'groq/llama3-8b-8192'
+    GROQ_LLAMA3_70B_8192 = 'groq/llama3-70b-8192'
+    HUGGINGFACE_META_LLAMA_3_8B ='huggingface/meta-llama/meta-llama-3-8b'
+    HUGGINGFACE_META_LLAMA_3_70B ='huggingface/meta-llama/meta-llama-3-70b'
 
     @staticmethod
     def is_supported(model_name: str) -> bool:
