@@ -126,6 +126,7 @@ class EvalRunner:
                     "eval_results": eval_results,
                     "development_eval_config": {
                         "eval_type_id": eval.name,
+                        "eval_display_name": eval.display_name,
                         "eval_config": eval_config,
                         "llm_engine": llm_engine
                     }

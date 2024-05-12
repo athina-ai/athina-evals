@@ -208,6 +208,7 @@ class BaseEvaluator(ABC):
                     "eval_results": eval_results,
                     "development_eval_config": {
                         "eval_type_id": self.name,
+                        "eval_display_name": self.display_name,
                         "eval_config": eval_config,
                         "llm_engine": llm_engine
                     }
