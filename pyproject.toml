@@ -20,6 +20,7 @@ python-dotenv = "^1.0.0"
 requests = "^2.31.0"
 langchain-openai = "^0.0.3"
 llama-index = "^0.9.40"
+pydantic = ">=2.0,<3.0"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.27.0"
