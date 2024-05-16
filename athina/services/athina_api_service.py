@@ -129,7 +129,7 @@ class AthinaApiService:
         Creates a dataset by calling the Athina API
         """
         try:
-            endpoint = f"{API_BASE_URL}/api/v1/dataset"
+            endpoint = f"{API_BASE_URL}/api/v1/dataset_v2"
             response = requests.post(
                 endpoint,
                 headers=AthinaApiService._headers(),
@@ -166,7 +166,7 @@ class AthinaApiService:
         - CustomException: If the API call fails or returns an error.
         """
         try:
-            endpoint = f"{API_BASE_URL}/api/v1/dataset/{dataset_id}/add-rows"
+            endpoint = f"{API_BASE_URL}/api/v1/dataset_v2/{dataset_id}/add-rows"
             response = requests.post(
                 endpoint,
                 headers=AthinaApiService._headers(),
