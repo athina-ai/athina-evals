@@ -65,6 +65,15 @@ class GroundedEvaluator(BaseEvaluator):
         else:
             raise ValueError("Exactly two arguments are required.")
 
+    def to_config(self):
+        config = {
+            "similarity_function": self._comparator.__class__.__name__,
+        }
+        if self._failure_threshold is not None:
+            config["failure_threshold"] = self._failure_threshold
+        return config
+    
+    
     def is_failure(self, score) -> Optional[bool]:
         return bool(score < self._failure_threshold) if self._failure_threshold is not None else None
 

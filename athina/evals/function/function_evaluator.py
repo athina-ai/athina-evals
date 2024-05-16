@@ -1,7 +1,7 @@
 from typing import Optional, List
 from athina.metrics.metric_type import MetricType
 import time
-from typing import Optional
+from typing import Optional, Dict
 from athina.interfaces.result import EvalResult, EvalResultMetric
 from athina.helpers.logger import logger
 from athina.interfaces.athina import AthinaExperiment
@@ -73,6 +73,12 @@ class FunctionEvaluator(BaseEvaluator):
             else None
         )
 
+    def to_config(self) -> Optional[Dict]:
+        if not self._function_arguments:
+            return None
+        else:
+            return self._function_arguments
+        
     def _evaluate(self, **kwargs) -> EvalResult:
         """
         Run the Function evaluator.

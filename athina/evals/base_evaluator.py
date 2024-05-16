@@ -1,18 +1,18 @@
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Optional
+from typing import List, Optional, Dict
 from athina.helpers.logger import logger
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
-from athina.interfaces.athina import AthinaExperiment
+from athina.helpers.dataset_helper import generate_unique_dataset_name
 from athina.interfaces.data import DataPoint
 from athina.interfaces.result import BatchRunResult, EvalResult, GuardResult
 from athina.services.athina_api_service import AthinaApiService
+from athina.datasets import Dataset
 import traceback
 
 
 class BaseEvaluator(ABC):
-    _experiment: Optional[AthinaExperiment] = None
-
+    
     # Abstract properties
     @property
     @abstractmethod
@@ -53,15 +53,14 @@ class BaseEvaluator(ABC):
     def _evaluate(self, **kwargs) -> EvalResult:
         """The method that performs the evaluation."""
         pass
+    
+    def to_config(self) -> Optional[Dict]:
+        return None
 
     # Common methods
     def _examples_str(self) -> str:
         return "" if self.examples is None else "\n".join(map(str, self.examples))
 
-    def configure_experiment(self, experiment: AthinaExperiment):
-        """Configured metadata parameters to log an experiment to Athina"""
-        self._experiment = experiment
-        return self
 
     def validate_args(self, **kwargs) -> None:
         """
@@ -99,20 +98,10 @@ class BaseEvaluator(ABC):
             eval_request_id = AthinaLoggingHelper.create_eval_request(
                 eval_name=self.name, request_data={"data": data}, request_type="batch"
             )
-            self._log_experiment(eval_request_id)
         except Exception as e:
             pass
         return eval_request_id
 
-    def _log_experiment(self, eval_request_id: Optional[str]):
-        """
-        Logs experiment to Athina if there is an ongoing experiment.
-        """
-        if self._experiment and eval_request_id:
-            AthinaLoggingHelper.log_experiment(
-                eval_request_id=eval_request_id,
-                experiment=self._experiment,
-            )
 
     def _log_evaluation_results(
         self, eval_request_id: Optional[str], eval_results: List[EvalResult]
@@ -193,6 +182,43 @@ class BaseEvaluator(ABC):
                 traceback.print_exc()
                 yield None
 
+    def _log_dataset_to_athina(self, data: List[DataPoint]) -> Optional[str]:
+        """
+        Logs the dataset to Athina
+        """
+        try: 
+            dataset = Dataset.create(
+                name=generate_unique_dataset_name(),
+                rows=data
+            )
+            return dataset
+        except Exception as e:
+            print(f"Error logging dataset to Athina: {e}")
+            return None
+    
+    def _log_eval_results_to_athina(self, eval_results: List[EvalResult], dataset_id: str):
+        """
+        Logs the batch results to Athina
+        """
+        try:
+            eval_config = self.to_config()
+            llm_engine = getattr(self, "_model", None)
+            AthinaLoggingHelper.log_eval_results_with_config(
+                eval_results_with_config={
+                    "eval_results": eval_results,
+                    "development_eval_config": {
+                        "eval_type_id": self.name,
+                        "eval_display_name": self.display_name,
+                        "eval_config": eval_config,
+                        "llm_engine": llm_engine
+                    }
+                },
+                dataset_id=dataset_id
+            )
+        except Exception as e:
+            print(f"Error logging eval results to Athina: {e}")
+            pass
+    
     def run_batch(
         self, data: List[DataPoint], max_parallel_evals: int = 5
     ) -> BatchRunResult:
@@ -201,7 +227,6 @@ class BaseEvaluator(ABC):
         """
         # Log usage to Athina for analytics
         AthinaApiService.log_usage(eval_name=self.name, run_type="batch")
-        eval_request_id = self._log_evaluation_request(data)
 
         # Run the evaluations
         if max_parallel_evals > 1:
@@ -209,10 +234,13 @@ class BaseEvaluator(ABC):
         else:
             eval_results = list(self._run_batch_generator(data))
 
-        # Log evaluation results to Athina
-        self._log_evaluation_results(eval_request_id, eval_results)
+        # Create the Dataset
+        dataset = self._log_dataset_to_athina(data)
+        if dataset:
+            self._log_eval_results_to_athina(eval_results, dataset.id)
+            print(f"You can view your dataset at: {Dataset.dataset_link(dataset.id)}")
+        
 
         return BatchRunResult(
-            eval_request_id=eval_request_id,
             eval_results=eval_results,
         )

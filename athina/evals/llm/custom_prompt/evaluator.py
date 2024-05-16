@@ -75,6 +75,11 @@ class CustomPrompt(LlmEvaluator):
     @property
     def examples(self):
         return self._examples
+    
+    def to_config(self) -> Optional[Dict]:
+        return {
+            "eval_prompt": self._eval_prompt,
+        }
 
     def is_failure(self, result) -> Optional[bool]:
         return bool(result == "Fail")

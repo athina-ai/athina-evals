@@ -1,7 +1,9 @@
 from typing import List, TypedDict, Optional
+from athina.datasets.dataset import Dataset
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.evals.llm.llm_evaluator import LlmEvaluator
 from athina.evals.base_evaluator import BaseEvaluator
+from athina.helpers.dataset_helper import generate_unique_dataset_name
 from athina.interfaces.result import EvalResult, BatchRunResult
 from athina.interfaces.data import DataPoint
 from athina.interfaces.athina import AthinaExperiment
@@ -114,12 +116,49 @@ class EvalRunner:
 
         return df
 
+    @staticmethod
+    def _log_eval_results_with_config(eval_results: List[dict], eval: BaseEvaluator, dataset_id: str):
+        try:
+            eval_config = eval.to_config()
+            llm_engine = getattr(eval, "_model", None)
+            AthinaLoggingHelper.log_eval_results_with_config(
+                eval_results_with_config={
+                    "eval_results": eval_results,
+                    "development_eval_config": {
+                        "eval_type_id": eval.name,
+                        "eval_display_name": eval.display_name,
+                        "eval_config": eval_config,
+                        "llm_engine": llm_engine
+                    }
+                },
+                dataset_id=dataset_id
+            )
+        except Exception as e:
+            print(
+                f"An error occurred while posting eval results",
+                str(e),
+            )
+            raise
+
+    @staticmethod
+    def _log_dataset_to_athina(data: List[DataPoint]) -> Optional[str]:
+        """
+        Logs the dataset to Athina
+        """
+        try: 
+            dataset = Dataset.create(
+                name=generate_unique_dataset_name(),
+                rows=data
+            )
+            return dataset
+        except Exception as e:
+            print(f"Error logging dataset to Athina: {e}")
+            return None
 
     @staticmethod
     def run_suite(
         evals: List[BaseEvaluator],
         data: List[DataPoint],
-        experiment: Optional[AthinaExperiment] = None,
         max_parallel_evals: int = 1,
     ) -> List[LlmBatchEvalResult]:
         """
@@ -134,10 +173,9 @@ class EvalRunner:
         """
         eval_suite_name = "llm_eval_suite" + "_" + ",".join(eval.name for eval in evals)
         AthinaApiService.log_usage(eval_name=eval_suite_name, run_type="suite")
-        # Create eval request
-        eval_request_id = EvalRunner._create_eval_request(eval_suite_name=eval_suite_name, data=data)
-        EvalRunner._log_experiment(eval_request_id=eval_request_id, experiment=experiment)
 
+        # Log Dataset to Athina
+        dataset = EvalRunner._log_dataset_to_athina(data)
         batch_results = []
         for eval in evals:
             # Run the evaluations
@@ -146,7 +184,11 @@ class EvalRunner:
             else:
                 eval_results = list(eval._run_batch_generator(data))
 
-            EvalRunner._log_evaluation_results(eval_request_id=eval_request_id, eval_results=eval_results)
+            if dataset:
+                EvalRunner._log_eval_results_with_config(eval_results=eval_results, eval=eval, dataset_id=dataset.id)
             batch_results.append(eval_results)
+        
+        if dataset:
+            print(f"You can view your dataset at: {Dataset.dataset_link(dataset.id)}")
 
         return EvalRunner.to_df(batch_results)

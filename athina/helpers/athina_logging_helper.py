@@ -53,6 +53,7 @@ class AthinaLoggingHelper:
             )
             raise
 
+    @staticmethod
     def log_eval_results(
         eval_request_id: str,
         eval_results: List[EvalResult],
@@ -110,4 +111,35 @@ class AthinaLoggingHelper:
                 f"An error occurred while posting eval results",
                 str(e),
             )
+            raise
+
+    @staticmethod
+    def log_eval_results_with_config(eval_results_with_config: dict, dataset_id: str):
+        try:
+            def remove_none_values(data: dict) -> dict:
+                return {k: v for k, v in data.items() if v is not None}
+
+            eval_results = eval_results_with_config.get("eval_results", [])
+            # Limit to the first 1000 items
+            sliced_eval_results = eval_results[:1000]
+            cleaned_eval_results = []
+
+            for eval_result in sliced_eval_results:
+                cleaned_eval_result = {
+                    "metrics": eval_result.get("metrics"),
+                    "reason": eval_result.get("reason")
+                }
+                cleaned_eval_results.append(remove_none_values(cleaned_eval_result))
+
+            development_eval_config = remove_none_values(eval_results_with_config.get("development_eval_config", {}))
+
+            cleaned_results = {
+                "dataset_id": dataset_id,
+                "eval_results": cleaned_eval_results,
+                "development_eval_config": development_eval_config
+            }
+
+            # Replace with your logging mechanism
+            AthinaApiService.log_eval_results_with_config(cleaned_results)
+        except Exception as e:
             raise

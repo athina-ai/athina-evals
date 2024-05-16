@@ -305,3 +305,27 @@ class AthinaApiService:
                 str(e),
             )
             raise
+    
+    @staticmethod
+    def log_eval_results_with_config(eval_results_with_config: dict):
+        try:
+            endpoint = f"{API_BASE_URL}/api/v1/eval_run/log-eval-results-sdk"
+            response = requests.post(
+                endpoint,
+                headers=AthinaApiService._headers(),
+                json=eval_results_with_config,
+            )
+            if response.status_code == 401:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
+                raise CustomException(error_message, details_message)
+            elif response.status_code != 200 and response.status_code != 201:
+                response_json = response.json()
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get(
+                    'details', {}).get('message', 'No Details')
+                raise CustomException(error_message, details_message)
+            return response.json()
+        except Exception as e:
+            raise

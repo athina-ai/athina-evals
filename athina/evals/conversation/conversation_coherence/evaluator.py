@@ -1,5 +1,5 @@
 import time
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from athina.helpers import logger
 from athina.interfaces.model import Model

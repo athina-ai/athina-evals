@@ -46,6 +46,9 @@ class Dataset:
                 "dataset_rows": rows or []
             }
         
+        # Remove keys where the value is None
+        dataset_data = {k: v for k, v in dataset_data.items() if v is not None}
+        
         try:
             created_dataset_data = AthinaApiService.create_dataset(dataset_data)
         except Exception as e:
@@ -72,6 +75,10 @@ class Dataset:
                 AthinaApiService.add_dataset_rows(dataset_id, batch)
             except Exception as e:
                 raise
+    
+    @staticmethod
+    def dataset_link(dataset_id: str):
+        return f"https://app.athina.ai/datasets/{dataset_id}"
     
 
        

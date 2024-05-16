@@ -3,7 +3,7 @@
 
 import os
 import time
-from typing import List, Optional
+from typing import List, Optional, Dict
 from athina.interfaces.result import EvalResult, EvalResultMetric
 from athina.helpers.logger import logger
 from athina.errors.exceptions import NoOpenAiApiKeyException
@@ -55,6 +55,9 @@ class ContainsNoSensitiveTopics(BaseEvaluator):
     @property
     def examples(self):
         pass
+
+    def to_config(self) -> Optional[Dict]:
+        return None
 
     def is_failure(self, result: bool) -> bool:
         return not(bool(result))
