@@ -30,9 +30,7 @@ class OpenAiService(AbstractLlmService):
         """
         try:
             response = self.openai.embeddings.create(
-                model="text-embedding-ada-002",
-                input=text,
-                encoding_format="float"
+                model="text-embedding-ada-002", input=text, encoding_format="float"
             )
             return response.data[0].embedding
         except Exception as e:
@@ -54,7 +52,9 @@ class OpenAiService(AbstractLlmService):
             raise e
 
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
-    def chat_completion_json(self, messages, model, temperature=DEFAULT_TEMPERATURE) -> str:
+    def chat_completion_json(
+        self, messages, model, temperature=DEFAULT_TEMPERATURE
+    ) -> str:
         """
         Fetches response from OpenAI's ChatCompletion API using JSON mode.
         """
@@ -90,7 +90,7 @@ class OpenAiService(AbstractLlmService):
 
             # Extract JSON object from LLM response
             return JsonHelper.extract_json_from_text(chat_completion_response)
-        
+
         except Exception as e:
             print(f"Error in ChatCompletion: {e}")
             raise e
