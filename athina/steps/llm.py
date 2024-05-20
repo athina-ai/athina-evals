@@ -43,9 +43,16 @@ class PromptExecution(Step):
         model (str): The model to use for the LLM service.
     """
 
-    llm_service: AbstractLlmService
+    llm_service: AbstractLlmService = None
     template: PromptTemplate
     model: str
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if kwargs.get("llm_service"):
+            self.llm_service = kwargs.get("llm_service")
+        else:
+            self.llm_service = OpenAiService()
 
     class Config:
         arbitrary_types_allowed = True
