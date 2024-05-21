@@ -21,6 +21,7 @@ requests = "^2.31.0"
 langchain-openai = "^0.0.3"
 llama-index = "^0.9.40"
 pydantic = ">=2.0,<3.0"
+litellm = "1.35.6"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.27.0"

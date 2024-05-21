@@ -13,6 +13,13 @@ class PromptMessage(BaseModel):
     role: str
     content: str
 
+class ModelOptions(BaseModel):
+    max_tokens: Optional[int] = None
+    temperature: Optional[float] = None
+    top_p: Optional[float] = None
+    frequency_penalty: Optional[float] = None
+    presence_penalty: Optional[float] = None
+
 
 class PromptTemplate(BaseModel):
     messages: List[PromptMessage]
@@ -46,6 +53,7 @@ class PromptExecution(Step):
     llm_service: AbstractLlmService = None
     template: PromptTemplate
     model: str
+    model_options: ModelOptions
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

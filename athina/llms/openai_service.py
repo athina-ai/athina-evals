@@ -38,13 +38,15 @@ class OpenAiService(AbstractLlmService):
             raise e
 
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
-    def chat_completion(self, messages, model, temperature=DEFAULT_TEMPERATURE) -> str:
+    def chat_completion(self, messages, model, **kwargs) -> str:
         """
         Fetches response from OpenAI's ChatCompletion API.
         """
+        if 'temperature' not in kwargs:
+            kwargs['temperature'] = DEFAULT_TEMPERATURE
         try:
             response = self.openai.chat.completions.create(
-                model=model, messages=messages, temperature=temperature
+                model=model, messages=messages, **kwargs
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -52,40 +54,42 @@ class OpenAiService(AbstractLlmService):
             raise e
 
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
-    def chat_completion_json(
-        self, messages, model, temperature=DEFAULT_TEMPERATURE
-    ) -> str:
+    def chat_completion_json(self, messages, model, **kwargs) -> str:
         """
         Fetches response from OpenAI's ChatCompletion API using JSON mode.
         """
+        if 'temperature' not in kwargs:
+            kwargs['temperature'] = DEFAULT_TEMPERATURE
         try:
             response = self.openai.chat.completions.create(
                 model=model,
                 messages=messages,
-                temperature=temperature,
                 response_format={"type": "json_object"},
+                **kwargs
             )
             return response.choices[0].message.content
         except Exception as e:
             print(f"Error in ChatCompletion: {e}")
             raise e
 
-    def json_completion(self, messages, model, temperature=DEFAULT_TEMPERATURE):
+    def json_completion(self, messages, model, **kwargs):
         """
         Fetches response from OpenAI's ChatCompletion API using JSON mode.
         """
+        if 'temperature' not in kwargs:
+            kwargs['temperature'] = DEFAULT_TEMPERATURE
         try:
             if Model.supports_json_mode(model):
                 chat_completion_response = self.chat_completion_json(
                     model=model,
                     messages=messages,
-                    temperature=temperature,
+                    **kwargs,
                 )
             else:
                 chat_completion_response = self.chat_completion(
                     model=model,
                     messages=messages,
-                    temperature=temperature,
+                    **kwargs,
                 )
 
             # Extract JSON object from LLM response
