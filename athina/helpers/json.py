@@ -1,4 +1,5 @@
 import json
+from typing import Any, Optional
 
 
 class JsonHelper:
@@ -35,3 +36,46 @@ class JsonHelper:
         response_json_format = JsonHelper._extract_json(text)
         response_json = JsonHelper._load_json_from_text(response_json_format)
         return response_json
+
+
+# New and improved JsonExtractor
+# - can extract top-level arrays as well
+# - uses stack based approach
+class JsonExtractor:
+    @staticmethod
+    def extract_first_json_entity(text: str) -> Optional[Any]:
+        """
+        Extracts the first top-level JSON entity from a given text string.
+
+        Args:
+            text (str): The input text containing JSON entities.
+
+        Returns:
+            dict or list: The first JSON object or array extracted from the text, or None if no valid JSON is found.
+        """
+        i = 0
+        length = len(text)
+
+        while i < length:
+            if text[i] in "{[":
+                start_idx = i
+                stack = [text[i]]
+                i += 1
+
+                while i < length and stack:
+                    if text[i] in "{[":
+                        stack.append(text[i])
+                    elif text[i] in "}]":
+                        stack.pop()
+                    i += 1
+
+                if not stack:
+                    json_str = text[start_idx:i]
+                    try:
+                        return json.loads(json_str)
+                    except json.JSONDecodeError:
+                        continue
+            else:
+                i += 1
+
+        return None
