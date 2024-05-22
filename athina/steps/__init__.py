@@ -3,6 +3,7 @@ from athina.steps.conditional import Assert, If
 from athina.steps.chain import Chain
 from athina.steps.iterator import Map
 from athina.steps.llm import PromptExecution
+from athina.steps.api import ApiCall
 from athina.steps.transform import ExtractJsonFromString
 
 __all__ = [
@@ -15,4 +16,5 @@ __all__ = [
     "Chain",
     "PromptExecution",
     "ExtractJsonFromString",
+    "ApiCall"
 ]
