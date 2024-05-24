@@ -35,7 +35,7 @@ class PromptTemplate(BaseModel):
     def resolve(self, **kwargs) -> List[PromptMessage]:
         """Render the template with given variables."""
 
-        # Create a custom Jinja2 environment with single curly brace delimiters and PreserveUndefined
+        # Create a custom Jinja2 environment with double curly brace delimiters and PreserveUndefined
         self.env = Environment(
             variable_start_string='{{', 
             variable_end_string='}}',

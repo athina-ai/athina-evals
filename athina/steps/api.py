@@ -35,7 +35,7 @@ class ApiCall(Step):
         if not isinstance(input_data, dict):
             raise TypeError("Input data must be a dictionary.")
 
-        # Create a custom Jinja2 environment with single curly brace delimiters and PreserveUndefined
+        # Create a custom Jinja2 environment with double curly brace delimiters and PreserveUndefined
         self.env = Environment(
             variable_start_string='{{', 
             variable_end_string='}}',
