@@ -1,4 +1,6 @@
 from typing import List, Optional, Dict, Any
+from jinja2 import Environment
+from athina.helpers.jinja_helper import PreserveUndefined
 
 from athina.llms.abstract_llm_service import AbstractLlmService
 from ..llm_evaluator import LlmEvaluator
@@ -51,6 +53,12 @@ class CustomPrompt(LlmEvaluator):
             llm_service=llm_service,
             **kwargs,
         )
+         # Create a custom Jinja2 environment with single curly brace delimiters and PreserveUndefined
+        self.env = Environment(
+            variable_start_string='{', 
+            variable_end_string='}',
+            undefined=PreserveUndefined
+        )
 
     @property
     def name(self):
@@ -85,6 +93,5 @@ class CustomPrompt(LlmEvaluator):
         return bool(result == "Fail")
 
     def _user_message(self, **kwargs) -> str:
-        return self._user_message_template.format(
-            **kwargs,
-        )
+        template = self.env.from_string(self._user_message_template)
+        return template.render(**kwargs)
