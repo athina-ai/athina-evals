@@ -25,6 +25,7 @@ class ModelOptions(BaseModel):
 
 class PromptTemplate(BaseModel):
     messages: List[PromptMessage]
+    env: Environment
 
     @staticmethod
     def simple(message: str) -> "PromptTemplate":

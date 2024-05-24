@@ -25,6 +25,7 @@ class ApiCall(Step):
     params: Optional[Dict[str, Any]] = None
     body: Optional[str] = None
     expected_status_codes: Iterable[int] = (200,)
+    env: Environment
 
     def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
         """Make an API call and return the response."""
