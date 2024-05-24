@@ -1,9 +1,9 @@
 # Step to make an external api call
 from typing import Union, Dict, Any, Iterable, Optional
-
 import requests
-
 from athina.steps import Step
+from jinja2 import Environment
+from athina.helpers.jinja_helper import PreserveUndefined
 
 
 class ApiCall(Step):
@@ -35,8 +35,16 @@ class ApiCall(Step):
         if not isinstance(input_data, dict):
             raise TypeError("Input data must be a dictionary.")
 
+        # Create a custom Jinja2 environment with single curly brace delimiters and PreserveUndefined
+        self.env = Environment(
+            variable_start_string='{{', 
+            variable_end_string='}}',
+            undefined=PreserveUndefined
+        )
+
         if self.body is not None:
-            self.body = self.body.format(**input_data)
+            body_template = self.env.from_string(self.body)
+            self.body = body_template.render(**input_data)
 
         response = requests.request(
             method=self.method,
