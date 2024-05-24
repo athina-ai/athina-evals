@@ -25,8 +25,10 @@ class ModelOptions(BaseModel):
 
 class PromptTemplate(BaseModel):
     messages: List[PromptMessage]
-    env: Environment
+    env: Environment = None
 
+    class Config:
+        arbitrary_types_allowed = True
     @staticmethod
     def simple(message: str) -> "PromptTemplate":
         """Create a PromptTemplate from a string representation."""

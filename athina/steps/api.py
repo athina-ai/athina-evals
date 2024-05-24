@@ -1,4 +1,5 @@
 # Step to make an external api call
+import json
 from typing import Union, Dict, Any, Iterable, Optional
 import requests
 from athina.steps import Step
@@ -25,7 +26,10 @@ class ApiCall(Step):
     params: Optional[Dict[str, Any]] = None
     body: Optional[str] = None
     expected_status_codes: Iterable[int] = (200,)
-    env: Environment
+    env: Environment = None
+
+    class Config:
+        arbitrary_types_allowed = True
 
     def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
         """Make an API call and return the response."""
@@ -52,7 +56,7 @@ class ApiCall(Step):
             url=self.url,
             headers=self.headers,
             params=self.params,
-            json=self.body,
+            json=json.loads(self.body),
         )
 
         if response.status_code in self.expected_status_codes:
