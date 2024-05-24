@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict
 from jinja2 import Environment
 from athina.helpers.jinja_helper import PreserveUndefined
 
