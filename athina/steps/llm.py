@@ -7,6 +7,8 @@ from athina.steps.base import Step
 from athina.llms.abstract_llm_service import AbstractLlmService
 from athina.keys import OpenAiApiKey
 from athina.llms.openai_service import OpenAiService
+from jinja2 import Environment
+from athina.helpers.jinja_helper import PreserveUndefined
 
 
 class PromptMessage(BaseModel):
@@ -23,7 +25,10 @@ class ModelOptions(BaseModel):
 
 class PromptTemplate(BaseModel):
     messages: List[PromptMessage]
+    env: Environment = None
 
+    class Config:
+        arbitrary_types_allowed = True
     @staticmethod
     def simple(message: str) -> "PromptTemplate":
         """Create a PromptTemplate from a string representation."""
@@ -32,11 +37,20 @@ class PromptTemplate(BaseModel):
 
     def resolve(self, **kwargs) -> List[PromptMessage]:
         """Render the template with given variables."""
+
+        # Create a custom Jinja2 environment with double curly brace delimiters and PreserveUndefined
+        self.env = Environment(
+            variable_start_string='{{', 
+            variable_end_string='}}',
+            undefined=PreserveUndefined
+        )
         resolved_messages = []
         for message in self.messages:
-            content = message.content.format(**kwargs)
+            content_template = self.env.from_string(message.content)
+            content = content_template.render(**kwargs)
             resolved_message = PromptMessage(role=message.role, content=content)
             resolved_messages.append(resolved_message)
+
         return resolved_messages
 
 
