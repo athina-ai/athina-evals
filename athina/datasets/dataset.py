@@ -15,6 +15,7 @@ class DatasetRow:
 class Dataset:
     id: str
     source: str
+    data_source: str
     name: str
     description: Optional[str] = None
     language_model_id: Optional[str] = None
@@ -39,6 +40,7 @@ class Dataset:
         """
         dataset_data = {
                 "source": "dev_sdk",
+                "data_source": "dev_sdk",
                 "name": name,
                 "description": description,
                 "language_model_id": language_model_id,
@@ -53,7 +55,7 @@ class Dataset:
             created_dataset_data = AthinaApiService.create_dataset(dataset_data)
         except Exception as e:
             raise
-        dataset = Dataset(id=created_dataset_data['id'], source=created_dataset_data['source'], name=created_dataset_data['name'], description=created_dataset_data['description'], language_model_id=created_dataset_data['language_model_id'], prompt_template=created_dataset_data['prompt_template'])
+        dataset = Dataset(id=created_dataset_data['id'], source=created_dataset_data['source'], data_source=created_dataset_data['data_source'], name=created_dataset_data['name'], description=created_dataset_data['description'], language_model_id=created_dataset_data['language_model_id'], prompt_template=created_dataset_data['prompt_template'])
         return dataset
 
     @staticmethod
