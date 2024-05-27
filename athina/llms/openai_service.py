@@ -24,13 +24,13 @@ class OpenAiService(AbstractLlmService):
             raise NoOpenAiApiKeyException()
         self.openai = OpenAI(api_key=openai_api_key)
 
-    def embeddings(self, text: str) -> list:
+    def embeddings(self, text: str, model: str) -> list:
         """
         Fetches response from OpenAI's Embeddings API.
         """
         try:
             response = self.openai.embeddings.create(
-                model="text-embedding-ada-002", input=text, encoding_format="float"
+                model=model, input=text, encoding_format="float"
             )
             return response.data[0].embedding
         except Exception as e:
