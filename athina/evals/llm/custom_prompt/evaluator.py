@@ -53,10 +53,10 @@ class CustomPrompt(LlmEvaluator):
             llm_service=llm_service,
             **kwargs,
         )
-         # Create a custom Jinja2 environment with single curly brace delimiters and PreserveUndefined
+         # Create a custom Jinja2 environment with double curly brace delimiters and PreserveUndefined
         self.env = Environment(
-            variable_start_string='{', 
-            variable_end_string='}',
+            variable_start_string='{{',
+            variable_end_string='}}',
             undefined=PreserveUndefined
         )
 
