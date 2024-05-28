@@ -18,6 +18,9 @@ class PineconeRetrieval(Step):
         top_k: How many chunks to fetch.
         metadata_filters: filters to apply to metadata.
         environment: pinecone environment.
+        api_key: api key for the pinecone server
+        input_column: column name in the input data
+        env: jinja environment
     """
 
     index_name: str
