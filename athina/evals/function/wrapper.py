@@ -201,7 +201,6 @@ class ContainsValidLink(FunctionEvaluator):
 class Equals(FunctionEvaluator):
     def __init__(
         self,
-        expected_text: str,
         case_sensitive: bool = False,
         display_name: Optional[str] = None,
     ):
@@ -209,13 +208,11 @@ class Equals(FunctionEvaluator):
         Initialize the Equals function evaluator.
 
         Args:
-            expected_text (str): The expected text to compare against.
             case_sensitive (bool, optional): If True, the comparison is case-sensitive. Defaults to False.
         """
         super().__init__(
             function_name=FunctionEvalTypeId.EQUALS.value,
             function_arguments={
-                "expected_text": expected_text,
                 "case_sensitive": case_sensitive,
             },
             display_name=display_name,
@@ -327,5 +324,34 @@ class ApiCall(FunctionEvaluator):
                 "payload": payload,
                 "headers": headers,
             },
+            display_name=display_name,
+        )
+
+class LengthBetween(FunctionEvaluator):
+    def __init__(self, min_length: int, max_length: int, display_name: Optional[str] = None):
+        """
+        Initialize the LengthBetween function evaluator.
+
+        Args:
+            min_length (int): The minimum length that the text should have.
+            max_length (int): The maximum length that the text should have.
+        """
+        super().__init__(
+            function_name=FunctionEvalTypeId.LENGTH_BETWEEN.value,
+            function_arguments={
+                "min_length": min_length,
+                "max_length": max_length,
+            },
+            display_name=display_name,
+        )
+
+class OneLine(FunctionEvaluator):
+    def __init__(self, display_name: Optional[str] = None):
+        """
+        Initialize the OneLine function evaluator.
+        """
+        super().__init__(
+            function_name=FunctionEvalTypeId.ONE_LINE.value,
+            function_arguments={},
             display_name=display_name,
         )

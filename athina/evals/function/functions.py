@@ -452,7 +452,7 @@ def equals(expected_text, text, case_sensitive=False, **kwargs):
         expected_text = expected_text.lower()
     if text == expected_text:
         result = True
-        reason = "✅ output exactly matches expected text"
+        reason = "✅ Text exactly matches expected text"
     else:
         result = False
         reason = "output does not exactly match expected text"
@@ -548,6 +548,44 @@ def length_greater_than(min_length, text, **kwargs):
             "reason": f"output length is less than {min_length} characters",
         }
 
+def length_between(min_length, max_length, text, **kwargs):
+    """
+    Check if the length of the text is between a specified minimum and maximum length.
+
+    Args:
+        min_length (int): The minimum length that the text should have.
+        max_length (int): The maximum length that the text should have.
+        text (str): The text string to check the length of.
+
+    Returns:
+        dict: A dictionary containing the result of the length check and the reason for the result.
+    """
+    if min_length <= len(text) <= max_length:
+        return {
+            "result": True,
+            "reason": f"output length is between {min_length} and {max_length} characters",
+        }
+    else:
+        return {
+            "result": False,
+            "reason": f"output length is not between {min_length} and {max_length} characters",
+        }
+
+def one_line(text, **kwargs):
+    """
+    Check if the text is a single line.
+
+    Args:
+        text (str): The text string to check.
+
+    Returns:
+        dict: A dictionary containing the result of the check and the reason for the result.
+    """
+    if "\n" in text or len(text.splitlines()) > 1:
+        return {"result": False, "reason": "output contains multiple lines"}
+    else:
+        return {"result": True, "reason": "output is a single line"}
+
 
 """
 A dictionary containing the available operations and their corresponding functions.
@@ -570,5 +608,7 @@ operations = {
     "EndsWith": ends_with,
     "LengthLessThan": length_less_than,
     "LengthGreaterThan": length_greater_than,
+    "LengthBetween": length_between,
     "ApiCall": api_call,
+    "OneLine": one_line
 }
