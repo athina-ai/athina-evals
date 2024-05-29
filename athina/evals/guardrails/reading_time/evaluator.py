@@ -13,7 +13,7 @@ from athina.interfaces.result import EvalResult, EvalResultMetric
 class ReadingTime(BaseEvaluator):
     def __init__(
         self,
-        reading_time: float # Time in minutes
+        reading_time: float # Time in seconds
     ):
         from guardrails.hub import ReadingTime as GuardrailsReadingTime
         
