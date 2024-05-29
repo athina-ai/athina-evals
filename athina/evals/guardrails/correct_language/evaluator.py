@@ -1,13 +1,10 @@
-# Guardrails Sensitive topics Evaluator
+# Guardrails CorrectLanguage Evaluator
 # https://hub.guardrailsai.com/validator/scb-10x/correct_language
 
-import os
 import time
 from typing import List, Optional, Dict
 from athina.interfaces.result import EvalResult, EvalResultMetric
 from athina.helpers.logger import logger
-from athina.errors.exceptions import NoOpenAiApiKeyException
-from athina.keys import OpenAiApiKey
 from ...base_evaluator import BaseEvaluator
 from athina.metrics.metric_type import MetricType
 
