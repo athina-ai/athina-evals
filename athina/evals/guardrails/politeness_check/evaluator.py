@@ -48,7 +48,7 @@ class PolitenessCheck(BaseEvaluator):
 
     @property
     def required_args(self) -> List[str]:
-        return ["text"]
+        return ["response"]
 
     @property
     def examples(self):
@@ -70,7 +70,7 @@ class PolitenessCheck(BaseEvaluator):
         self.validate_args(**kwargs)
         metrics = []
         try:
-            text = kwargs["text"]
+            text = kwargs["response"]
             # Setup Guard
             guard = Guard.from_string(validators=[self.validator])
             guard_result = guard.parse(text)
