@@ -1,8 +1,10 @@
+import os
 import json
 from typing import Any, List, Optional
 import requests
 from dataclasses import dataclass, field, asdict
 from athina.services.athina_api_service import AthinaApiService
+
 
 
 @dataclass
@@ -17,7 +19,6 @@ class DatasetRow:
 class Dataset:
     id: str
     source: str
-    data_source: str
     name: str
     description: Optional[str] = None
     language_model_id: Optional[str] = None
@@ -48,7 +49,6 @@ class Dataset:
         """
         dataset_data = {
             "source": "dev_sdk",
-            "data_source": "dev_sdk",
             "name": name,
             "description": description,
             "language_model_id": language_model_id,
@@ -66,7 +66,6 @@ class Dataset:
         dataset = Dataset(
             id=created_dataset_data["id"],
             source=created_dataset_data["source"],
-            data_source=created_dataset_data["data_source"],
             name=created_dataset_data["name"],
             description=created_dataset_data["description"],
             language_model_id=created_dataset_data["language_model_id"],
