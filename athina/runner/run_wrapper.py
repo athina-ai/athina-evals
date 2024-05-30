@@ -1,6 +1,7 @@
 from .run import EvalRunner
 
-def run(evals, data):
+
+def run(evals, data, max_parallel_evals=5):
     """
     A convenience wrapper to run evaluation suites.
 
@@ -8,4 +9,6 @@ def run(evals, data):
     :param data: The dataset over which evaluations are run.
     """
     # Call the EvalRunner's run_suite method directly
-    return EvalRunner.run_suite(evals=evals, data=data)
+    return EvalRunner.run_suite(
+        evals=evals, data=data, max_parallel_evals=max_parallel_evals
+    )

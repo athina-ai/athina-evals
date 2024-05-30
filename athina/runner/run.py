@@ -47,10 +47,12 @@ class EvalRunner:
     def flatten_eval_results(batch_eval_results) -> List:
         # Flatten the list of lists into a single list of evaluation results
         flattened_results = [
-            item for sublist in batch_eval_results for item in (sublist if sublist is not None else [None])
+            item
+            for sublist in batch_eval_results
+            for item in (sublist if sublist is not None else [None])
         ]
         return flattened_results
-    
+
     @staticmethod
     def _create_eval_request(eval_suite_name: str, data) -> Optional[str]:
         try:
@@ -62,7 +64,7 @@ class EvalRunner:
             return eval_request_id
         except Exception as e:
             return None
-    
+
     @staticmethod
     def _log_experiment(experiment, eval_request_id: Optional[str]):
         try:
@@ -75,15 +77,17 @@ class EvalRunner:
             pass
 
     @staticmethod
-    def _log_evaluation_results(eval_results: List[Optional[EvalResult]], eval_request_id: Optional[str]):
+    def _log_evaluation_results(
+        eval_results: List[Optional[EvalResult]], eval_request_id: Optional[str]
+    ):
         if eval_request_id:
-                try:
-                    AthinaLoggingHelper.log_eval_results(
-                        eval_request_id=eval_request_id,
-                        eval_results=eval_results,
-                    )
-                except Exception as e:
-                    pass
+            try:
+                AthinaLoggingHelper.log_eval_results(
+                    eval_request_id=eval_request_id,
+                    eval_results=eval_results,
+                )
+            except Exception as e:
+                pass
 
     @staticmethod
     def to_df(batch_eval_results):
@@ -103,13 +107,17 @@ class EvalRunner:
 
                 # Initialize the datapoint in the aggregated data if not already present
                 if datapoint_hash not in aggregated_data:
-                    aggregated_data[datapoint_hash] = eval_result["data"]  # Include datapoint details
+                    aggregated_data[datapoint_hash] = eval_result[
+                        "data"
+                    ]  # Include datapoint details
 
                 # Update the aggregated data with metrics from this evaluation
                 for metric in eval_result["metrics"]:
                     metric_name = metric["id"]
                     metric_value = metric["value"]
-                    aggregated_data[datapoint_hash][eval_result["display_name"] + " " + metric_name] = metric_value
+                    aggregated_data[datapoint_hash][
+                        eval_result["display_name"] + " " + metric_name
+                    ] = metric_value
 
         # Convert the aggregated data into a DataFrame
         df = pd.DataFrame(list(aggregated_data.values()))
@@ -117,7 +125,9 @@ class EvalRunner:
         return df
 
     @staticmethod
-    def _log_eval_results_with_config(eval_results: List[dict], eval: BaseEvaluator, dataset_id: str):
+    def _log_eval_results_with_config(
+        eval_results: List[dict], eval: BaseEvaluator, dataset_id: str
+    ):
         try:
             eval_config = eval.to_config()
             llm_engine = getattr(eval, "_model", None)
@@ -128,10 +138,10 @@ class EvalRunner:
                         "eval_type_id": eval.name,
                         "eval_display_name": eval.display_name,
                         "eval_config": eval_config,
-                        "llm_engine": llm_engine
-                    }
+                        "llm_engine": llm_engine,
+                    },
                 },
-                dataset_id=dataset_id
+                dataset_id=dataset_id,
             )
         except Exception as e:
             print(
@@ -145,11 +155,8 @@ class EvalRunner:
         """
         Logs the dataset to Athina
         """
-        try: 
-            dataset = Dataset.create(
-                name=generate_unique_dataset_name(),
-                rows=data
-            )
+        try:
+            dataset = Dataset.create(name=generate_unique_dataset_name(), rows=data)
             return dataset
         except Exception as e:
             print(f"Error logging dataset to Athina: {e}")
@@ -159,7 +166,7 @@ class EvalRunner:
     def run_suite(
         evals: List[BaseEvaluator],
         data: List[DataPoint],
-        max_parallel_evals: int = 1,
+        max_parallel_evals: int = 5,
     ) -> List[LlmBatchEvalResult]:
         """
         Run a suite of LLM evaluations against a dataset.
@@ -185,9 +192,11 @@ class EvalRunner:
                 eval_results = list(eval._run_batch_generator(data))
 
             if dataset:
-                EvalRunner._log_eval_results_with_config(eval_results=eval_results, eval=eval, dataset_id=dataset.id)
+                EvalRunner._log_eval_results_with_config(
+                    eval_results=eval_results, eval=eval, dataset_id=dataset.id
+                )
             batch_results.append(eval_results)
-        
+
         if dataset:
             print(f"You can view your dataset at: {Dataset.dataset_link(dataset.id)}")
 
