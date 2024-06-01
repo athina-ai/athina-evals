@@ -100,7 +100,7 @@ class PromptExecution(Step):
 
         response = self.template.resolve(**input_data)
         response = self.llm_service.chat_completion(
-            response, model=self.model, **self.model_options
+            response, model=self.model, **self.model_options.model_dump()
         )
 
         output_type = kwargs.get('output_type', None)
