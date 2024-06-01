@@ -69,7 +69,7 @@ class ReadingTime(BaseEvaluator):
             metrics.append(
                 EvalResultMetric(
                     id=MetricType.PASSED.value,
-                    value=guard_result.validation_passed,
+                    value=float(guard_result.validation_passed),
                 )
             )
         except Exception as e:
