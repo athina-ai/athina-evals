@@ -17,11 +17,13 @@ class TextLoader(BaseLoader):
     def __init__(
         self,
         col_text: str = "text",
+        col_expected_text: str = "expected_text",
     ):
         """
         Initializes the loader with specified or default column names.
         """
         self.col_text = col_text
+        self.col_expected_text = col_expected_text
         self._raw_dataset = {}
         self._processed_dataset: List[DataPoint] = []
 
@@ -40,6 +42,8 @@ class TextLoader(BaseLoader):
             processed_instance = {
                 "text": raw_instance[self.col_text],
             }
+            if self.col_expected_text in raw_instance:
+                processed_instance["expected_text"] = raw_instance[self.col_expected_text]
             # removing keys with None values
             processed_instance = {
                 k: v for k, v in processed_instance.items() if v is not None

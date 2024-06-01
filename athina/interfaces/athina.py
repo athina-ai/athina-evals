@@ -2,6 +2,8 @@ import json
 from enum import Enum
 from dataclasses import dataclass, asdict
 from typing import Optional, Dict, List, TypedDict, Any
+
+from pydantic import BaseModel, Field, validator
 from .openai import OpenAiPromptMessage
 from .result import EvalResultMetric, DatapointFieldAnnotation
 

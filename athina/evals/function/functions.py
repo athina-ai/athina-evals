@@ -3,6 +3,8 @@ import json
 import requests
 from typing import Any, Optional
 
+from athina.helpers.json import extract_json_path, validate_json
+
 
 def _standardize_url(url):
     """
@@ -586,6 +588,57 @@ def one_line(text, **kwargs):
     else:
         return {"result": True, "reason": "output is a single line"}
 
+def json_eval(expected_text, text, **kwargs):
+    """
+    Check if the JSON output matches the expected JSON using the schema definition and validation rules.
+
+    Args:
+        expected_text (str): The expected JSON string.
+        text (str): The JSON string to compare with the expected JSON.
+
+    """
+    try:
+        # Load the JSON strings
+        expected_json = json.loads(expected_text)
+        actual_json = json.loads(text)
+        # Extract the schema from the kwargs
+        schema = kwargs.get("schema")
+        schema_json = json.loads(schema)
+        # validate_json using the schema
+        actual_json_valid = validate_json(actual_json, schema_json)
+        expected_json_valid = validate_json(expected_json, schema_json)
+        # If either the expected or actual JSON is invalid, return False
+        if not actual_json_valid or not expected_json_valid:
+            return {
+                "result": False,
+                "reason": "Schema validation failed",
+            }
+        validations = kwargs.get("validations", []) 
+        for validation in validations:
+            validating_function = validation.get("validating_function")
+            json_path = validation.get("json_path")
+            if validating_function == "equals":
+                actual_value = extract_json_path(actual_json, json_path)
+                expected_value = extract_json_path(expected_json, json_path)
+                if actual_value != expected_value:
+                    return {
+                        "result": False,
+                        "reason": f"JSON path {json_path} does not match expected value",
+                    }
+            else:
+                return {
+                    "result": False,
+                    "reason": "Validation function not supported",
+                }
+        return {
+            "result": True,
+            "reason": "Json eval passed",
+        }
+    except json.JSONDecodeError:
+        return {
+            "result": False,
+            "reason": "Invalid JSON format",
+        }
 
 """
 A dictionary containing the available operations and their corresponding functions.
@@ -610,5 +663,6 @@ operations = {
     "LengthGreaterThan": length_greater_than,
     "LengthBetween": length_between,
     "ApiCall": api_call,
-    "OneLine": one_line
+    "OneLine": one_line,
+    "JsonEval": json_eval,
 }

@@ -355,3 +355,18 @@ class OneLine(FunctionEvaluator):
             function_arguments={},
             display_name=display_name,
         )
+
+
+class JsonEval(FunctionEvaluator):
+    def __init__(self, schema: str, validations = None, display_name: Optional[str] = None):
+        """
+        Initialize the JsonEval function evaluator.
+        """
+        super().__init__(
+            function_name=FunctionEvalTypeId.JSON_EVAL.value,
+            function_arguments={
+                "schema": schema,
+                "validations": validations,
+            },
+            display_name=display_name,
+        )
