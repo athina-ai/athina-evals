@@ -9,6 +9,7 @@ from athina.keys import OpenAiApiKey
 from athina.llms.openai_service import OpenAiService
 from jinja2 import Environment
 from athina.helpers.jinja_helper import PreserveUndefined
+from athina.steps.transform import ExtractJsonFromString
 
 
 class PromptMessage(BaseModel):
@@ -89,20 +90,38 @@ class PromptExecution(Step):
             model=model,
         )
 
-    def execute(self, input_data: dict) -> str:
+    def execute(self, input_data: dict, **kwargs) -> str:
         """Execute a prompt with the LLM service."""
         if input_data is None:
             input_data = {}
 
-        if (input_data is not isinstance(input_data, dict)) and self.input_key:
+        if not isinstance(input_data, dict) and self.input_key:
             raise ValueError("PromptExecution Error: Input data must be a dictionary")
 
         response = self.template.resolve(**input_data)
         response = self.llm_service.chat_completion(
             response, model=self.model, **self.model_options.model_dump()
-        )  # Simulated LLM service call
+        )
 
-        if type(response) is not str:
+        output_type = kwargs.get('output_type', None)
+
+        if output_type:
+            if output_type == "string":
+                if not isinstance(response, str):
+                    raise ValueError("LLM service response is not a string")
+            elif output_type == "array":
+                extracted_response = ExtractJsonFromString().execute(response)
+                if not isinstance(extracted_response, list):
+                    raise ValueError("LLM service response is not an array")
+                response = extracted_response
+
+            elif output_type == "object":
+                extracted_response = ExtractJsonFromString().execute(response)
+                if not isinstance(extracted_response, dict):
+                    raise ValueError("LLM service response is not an object")
+                response = extracted_response
+
+        elif not isinstance(response, str):
             raise ValueError("LLM service response is not a string")
 
         return response
