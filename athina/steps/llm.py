@@ -121,7 +121,7 @@ class PromptExecution(Step):
                     raise ValueError("LLM service response is not an object")
                 response = extracted_response
 
-        if not isinstance(response, str):
+        elif not isinstance(response, str):
             raise ValueError("LLM service response is not a string")
 
         return response
