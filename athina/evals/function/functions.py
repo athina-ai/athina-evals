@@ -1,9 +1,14 @@
+import os
 import re
 import json
 import requests
-from typing import Any, Optional
-
+from typing import Any, Dict, Optional, Union
+from athina.evals.grounded.similarity import CosineSimilarity
+from athina.helpers.logger import logger
+from athina.errors.exceptions import NoOpenAiApiKeyException
 from athina.helpers.json import extract_json_path, validate_json
+from athina.keys.openai_api_key import OpenAiApiKey
+from athina.llms.openai_service import OpenAiService
 
 
 def _standardize_url(url):
@@ -588,59 +593,249 @@ def one_line(text, **kwargs):
     else:
         return {"result": True, "reason": "output is a single line"}
 
-def json_eval(expected_text, text, **kwargs):
+def json_eval(
+    actual_json: Union[dict, str],
+    expected_json: Union[dict, str],
+    **kwargs
+) -> Dict[str, Any]:
     """
-    Check if the JSON output matches the expected JSON using the schema definition and validation rules.
+    Check if the actual JSON and expected JSON match the schema definition and follow validation rules.
 
     Args:
-        expected_text (str): The expected JSON string.
-        text (str): The JSON string to compare with the expected JSON.
+        actual_json (dict or str): The actual JSON string to compare against the expected JSON.
+        expected_json (dict or str): The expected JSON string to compare against the actual JSON.
 
     """
     try:
-        # Load the JSON strings
-        expected_json = json.loads(expected_text)
-        actual_json = json.loads(text)
-        # Extract the schema from the kwargs
-        schema = kwargs.get("schema")
-        schema_json = json.loads(schema)
-        # validate_json using the schema
-        actual_json_valid = validate_json(actual_json, schema_json)
-        expected_json_valid = validate_json(expected_json, schema_json)
-        # If either the expected or actual JSON is invalid, return False
-        if not actual_json_valid or not expected_json_valid:
-            return {
-                "result": False,
-                "reason": "Schema validation failed",
-            }
-        validations = kwargs.get("validations", []) 
+        actual_json = _load_json(actual_json)
+        expected_json = _load_json(expected_json)
+        schema = _get_schema(kwargs)
+
+        if not schema:
+            return {"result": False, "reason": "Schema not provided"}
+
+        if not (_validate_json_with_schema(actual_json, schema) and _validate_json_with_schema(expected_json, schema)):
+            return {"result": False, "reason": "Schema validation failed"}
+
+        validations = kwargs.get("validations", [])
         if validations:
             for validation in validations:
-                validating_function = validation.get("validating_function")
-                json_path = validation.get("json_path")
-                if validating_function == "equals":
-                    actual_value = extract_json_path(actual_json, json_path)
-                    expected_value = extract_json_path(expected_json, json_path)
-                    if actual_value != expected_value:
-                        return {
-                            "result": False,
-                            "reason": f"JSON path {json_path} does not match expected value",
-                        }
-                else:
-                    return {
-                        "result": False,
-                        "reason": "Validation function not supported",
-                    }
-        return {
-            "result": True,
-            "reason": "Json eval passed",
-        }
-    except json.JSONDecodeError:
-        return {
-            "result": False,
-            "reason": "Invalid JSON format",
-        }
+                if not _apply_validation(actual_json, expected_json, validation):
+                    return {"result": False, "reason": "Validation failed"}
 
+        return {"result": True, "reason": "Json eval passed"}
+    except Exception as e:
+        logger.error(f"Error occurred during eval: {e}")
+        raise e
+
+def _load_json(json_data: Union[dict, str]) -> dict:
+    if isinstance(json_data, str):
+        return json.loads(json_data)
+    return json_data
+
+def _get_schema(kwargs: Dict[str, Any]) -> dict:
+    schema = kwargs.get("schema")
+    if schema and isinstance(schema, str):
+        return json.loads(schema.replace("\n", "").replace("\t", ""))
+    return schema
+
+def _validate_json_with_schema(json_data: dict, schema: dict) -> bool:
+    return validate_json(json_data, schema)
+
+def _apply_validation(actual_json: dict, expected_json: dict, validation: dict) -> bool:
+    validating_function = validation.get("validating_function")
+    json_path = validation.get("json_path")
+    actual_value = extract_json_path(actual_json, json_path)
+    expected_value = extract_json_path(expected_json, json_path)
+
+    if validating_function == "Equals":
+        return _validate_equals(actual_value, expected_value, json_path)
+    elif validating_function == "Cosine Similarity":
+        return _validate_cosine_similarity(actual_value, expected_value, validation)
+    elif validating_function == "LLM Similarity":
+        return _validate_llm_similarity(actual_value, expected_value, validation)
+    else:
+        logger.error(f"Validation function {validating_function} not supported")
+        return False
+
+def _validate_equals(actual_value: Any, expected_value: Any, json_path: str) -> bool:
+    if actual_value != expected_value:
+        logger.error(f"JSON path {json_path} does not match expected value")
+        return False
+    return True
+
+def _validate_cosine_similarity(actual_value: str, expected_value: str, validation: dict) -> bool:
+    threshold = validation.get("pass_threshold", 0.8)
+    cosine_similarity = CosineSimilarity().compare(str(actual_value), str(expected_value))
+    if cosine_similarity < threshold:
+        logger.error(f"Cosine similarity score {cosine_similarity} is less than the threshold {threshold}")
+        return False
+    return True
+
+def _validate_llm_similarity(actual_value: str, expected_value: str, validation: dict) -> bool:
+    open_ai_api_key = validation.get("open_ai_api_key") or OpenAiApiKey.get_key() or os.environ.get("OPENAI_API_KEY")
+    if not open_ai_api_key:
+        raise NoOpenAiApiKeyException()
+
+    OpenAiApiKey.set_key(open_ai_api_key)
+    llm_service = OpenAiService()
+
+    system_message = """
+    You are an expert at evaluating whether two given strings are similar or not. Consider semantic similarity also while evaluating.
+    You MUST return a JSON object with the following fields: 
+    - result: Result must be either 'Pass' or 'Fail'.
+    - explanation: An explanation of why the result is Pass or Fail.
+    - score: Any matching score you have used to come to the result.
+    """
+
+    user_message = f"""
+    Following are two strings:
+    1. String 1: {actual_value}.
+    2. String 2: {expected_value}.
+    """
+
+    response = llm_service.json_completion(
+        model=validation.get("model", "gpt-3.5-turbo"),
+        messages=[
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_message},
+        ],
+        temperature=0.0,
+    )
+
+    try:
+        result = response["result"]
+        explanation = response["explanation"]
+        if result == "Fail":
+            logger.error(f"LLM Similarity validation failed: {explanation}")
+            return False
+        return True
+    except Exception as e:
+        logger.error(f"Error occurred during LLM similarity validation: {e}")
+        return False
+
+# def json_eval(actual_json, expected_json, **kwargs):
+#     """
+#     Check if the actual JSON and expected JSON match the schema definition and follow validation rules.
+
+#     Args:
+#         actual_json (dict or str): The actual JSON string to compare against the expected JSON.
+#         expected_json (dict or str): The expected JSON string to compare against the actual JSON.
+
+#     """
+#     try:
+#         if isinstance(actual_json, str):
+#             actual_json = json.loads(actual_json)
+#         if isinstance(expected_json, str):
+#             expected_json = json.loads(expected_json)
+#         # Extract the schema from the kwargs
+#         schema = kwargs.get("schema", None)
+#         if schema is None:
+#             return {
+#                 "result": False,
+#                 "reason": "Schema not provided",
+#             }
+#         if isinstance(schema, str):
+#             schema = schema.replace("\n", "").replace("\t", "")
+#             schema_json = json.loads(schema)
+#         else:
+#             schema_json = schema
+#         # validate_json using the schema
+#         actual_json_valid = validate_json(actual_json, schema_json)
+#         expected_json_valid = validate_json(expected_json, schema_json)
+#         # If either the expected or actual JSON is invalid, return False
+#         if not actual_json_valid or not expected_json_valid:
+#             return {
+#                 "result": False,
+#                 "reason": "Schema validation failed",
+#             }
+#         validations = kwargs.get("validations", []) 
+#         if validations:
+#             for validation in validations:
+#                 validating_function = validation.get("validating_function")
+#                 json_path = validation.get("json_path")
+#                 actual_value = extract_json_path(actual_json, json_path)
+#                 expected_value = extract_json_path(expected_json, json_path)
+#                 if validating_function == "Equals":
+#                     if actual_value != expected_value:
+#                         return {
+#                             "result": False,
+#                             "reason": f"JSON path {json_path} does not match expected value",
+#                         }
+#                 elif validating_function == "Cosine Similarity":
+#                     consine_similarity_threshold = validation.get("pass_threshold", 0.8)
+#                     cosine_similarity = CosineSimilarity()
+#                     cosine_similarity_value = cosine_similarity.compare(str(actual_value), str(expected_value))
+#                     if cosine_similarity_value < consine_similarity_threshold:
+#                         return {
+#                             "result": False,
+#                             "reason": f"JSON path {json_path} cosine similarity score is {round(cosine_similarity_value, 2)} which is less than the threshold {consine_similarity_threshold}",
+#                         }
+#                 elif validating_function == "LLM Similarity":
+#                     open_ai_api_key = validation.get("open_ai_api_key", None)
+#                     if open_ai_api_key is None:
+#                         if OpenAiApiKey.get_key() is None:
+#                             open_ai_api_key = os.environ.get("OPENAI_API_KEY", None)
+#                             if open_ai_api_key is None:
+#                                 raise NoOpenAiApiKeyException()
+#                             OpenAiApiKey.set_key(open_ai_api_key)
+#                     else:
+#                         OpenAiApiKey.set_key(open_ai_api_key)
+#                     llm_service = OpenAiService()
+
+#                     SYSTEM_MESSAGE_TEMPLATE = """ 
+#                     You are an expert at evaluating whether two given strings are similar or not. Consider semantic similarity also while evaluating.
+#                     You MUST return a JSON object with the following fields: 
+#                     - result: Result must be either 'Pass' or 'Fail'.
+#                     - explanation: An explanation of why the result is Pass or Fail.
+#                     - score: Any matching score you have used to come to the result.
+#                     """
+
+#                     USER_MESSAGE_TEMPLATE = """
+#                         Following are two strings:
+#                         1. String 1: {actual_value}.
+#                         2. String 2: {expected_value}.
+#                     """
+
+#                     chat_completion_response_json: dict = llm_service.json_completion(
+#                         model=kwargs.get("model", "gpt-3.5-turbo"),
+#                         messages=[
+#                             {
+#                                 "role": "system",
+#                                 "content": SYSTEM_MESSAGE_TEMPLATE,
+#                             },
+#                             {
+#                                 "role": "user",
+#                                 "content": USER_MESSAGE_TEMPLATE.format(actual_value=actual_value, expected_value=expected_value),
+#                             },
+#                         ],
+#                         temperature=0.0,
+#                     )
+#                     try:
+#                         result = chat_completion_response_json["result"]
+#                         explanation = chat_completion_response_json["explanation"]
+#                         failure = bool(result == "Fail")
+#                         if failure:
+#                             return {
+#                                 "result": False,
+#                                 "reason": explanation,
+#                             }
+#                     except Exception as e:
+#                         logger.error(f"Error occurred during eval: {e}")
+#                         raise e
+#                 else:
+#                     return {
+#                         "result": False,
+#                         "reason": "Validation function not supported",
+#                     }
+#         return {
+#             "result": True,
+#             "reason": "Json eval passed",
+#         }
+#     except Exception as e:
+#         logger.error(f"Error occurred during eval: {e}")
+#         raise e
+   
 """
 A dictionary containing the available operations and their corresponding functions.
 """

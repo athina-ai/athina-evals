@@ -47,9 +47,12 @@ def validate_json(json_data, schema):
         return False
 
 def extract_json_path(json_data, json_path):
-    jsonpath_expr = parse(json_path)
-    match = jsonpath_expr.find(json_data)
-    return [match.value for match in match] if match else None
+    try:
+        jsonpath_expr = parse(json_path)
+        match = jsonpath_expr.find(json_data)
+        return [match.value for match in match] if match else None
+    except Exception as e:
+        return None
 
 # New and improved JsonExtractor
 # - can extract top-level arrays as well
