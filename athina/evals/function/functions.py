@@ -614,22 +614,23 @@ def json_eval(expected_text, text, **kwargs):
                 "reason": "Schema validation failed",
             }
         validations = kwargs.get("validations", []) 
-        for validation in validations:
-            validating_function = validation.get("validating_function")
-            json_path = validation.get("json_path")
-            if validating_function == "equals":
-                actual_value = extract_json_path(actual_json, json_path)
-                expected_value = extract_json_path(expected_json, json_path)
-                if actual_value != expected_value:
+        if validations:
+            for validation in validations:
+                validating_function = validation.get("validating_function")
+                json_path = validation.get("json_path")
+                if validating_function == "equals":
+                    actual_value = extract_json_path(actual_json, json_path)
+                    expected_value = extract_json_path(expected_json, json_path)
+                    if actual_value != expected_value:
+                        return {
+                            "result": False,
+                            "reason": f"JSON path {json_path} does not match expected value",
+                        }
+                else:
                     return {
                         "result": False,
-                        "reason": f"JSON path {json_path} does not match expected value",
+                        "reason": "Validation function not supported",
                     }
-            else:
-                return {
-                    "result": False,
-                    "reason": "Validation function not supported",
-                }
         return {
             "result": True,
             "reason": "Json eval passed",
