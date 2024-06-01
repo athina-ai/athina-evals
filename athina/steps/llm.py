@@ -109,15 +109,14 @@ class PromptExecution(Step):
             if output_type == "string":
                 if not isinstance(response, str):
                     raise ValueError("LLM service response is not a string")
-
             elif output_type == "array":
-                extracted_response = ExtractJsonFromString(response)
+                extracted_response = ExtractJsonFromString().execute(response)
                 if not isinstance(extracted_response, list):
                     raise ValueError("LLM service response is not an array")
                 response = extracted_response
 
             elif output_type == "object":
-                extracted_response = ExtractJsonFromString(response)
+                extracted_response = ExtractJsonFromString().execute(response)
                 if not isinstance(extracted_response, dict):
                     raise ValueError("LLM service response is not an object")
                 response = extracted_response
