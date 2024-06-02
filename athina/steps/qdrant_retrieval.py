@@ -1,6 +1,8 @@
 # Step to make a call to pinecone index to fetch relevent chunks
 import pinecone
 from typing import Optional, Union, Dict, Any
+
+from pydantic import PrivateAttr
 from athina.steps import Step
 from jinja2 import Environment
 from llama_index.vector_stores import QdrantVectorStore
@@ -28,14 +30,18 @@ class QdrantRetrieval(Step):
     api_key: str
     input_column: str
     env: Environment = None
+    _qdrant_client: qdrant_client.QdrantClient = PrivateAttr()
+    _vector_store: QdrantVectorStore = PrivateAttr()
+    _vector_index: VectorStoreIndex = PrivateAttr()
+    _retriever: VectorIndexRetriever = PrivateAttr()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.qdrant_client = qdrant_client.QdrantClient(url=self.url, api_key=self.api_key)
-        self.vector_store = QdrantVectorStore(client=self.qdrant_client, collection_name=self.collection_name)
-        self.vector_index = VectorStoreIndex.from_vector_store(vector_store=self.vector_store)
-        self.retriever = VectorIndexRetriever(index=self.vector_index, similarity_top_k=self.top_k)
+        self._qdrant_client = qdrant_client.QdrantClient(url=self.url, api_key=self.api_key)
+        self._vector_store = QdrantVectorStore(client=self._qdrant_client, collection_name=self.collection_name)
+        self._vector_index = VectorStoreIndex.from_vector_store(vector_store=self._vector_store)
+        self._retriever = VectorIndexRetriever(index=self._vector_index, similarity_top_k=self.top_k)
 
     class Config:
         arbitrary_types_allowed = True
@@ -55,7 +61,7 @@ class QdrantRetrieval(Step):
             return None
 
         try:
-            response = self.retriever.retrieve(input_text)
+            response = self._retriever.retrieve(input_text)
             return [node.get_content() for node in response]
         except Exception as e:
             return None
