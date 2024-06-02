@@ -1,8 +1,5 @@
-import os
-import json
 from typing import Any, List, Optional
-import requests
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from athina.services.athina_api_service import AthinaApiService
 
 

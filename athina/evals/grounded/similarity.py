@@ -1,3 +1,4 @@
+import re
 import math
 from abc import ABC, abstractmethod
 
@@ -22,7 +23,16 @@ class CosineSimilarity(Comparator):
         return dot_product / (magnitude_vec1 * magnitude_vec2)
 
     def _tokenize(self, string):
-        return string.lower().split()
+        """
+        Tokenize the input string into a list of words.
+        
+        Args:
+            string (str): The string to tokenize.
+        
+        Returns:
+            list: A list of lowercased words from the string.
+        """
+        return re.findall(r'\b\w+\b', string.lower())
 
     def _create_combined_set(self, string1, string2):
         return set(self._tokenize(string1)).union(set(self._tokenize(string2)))

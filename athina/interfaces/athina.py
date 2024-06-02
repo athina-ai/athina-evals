@@ -1,7 +1,7 @@
-import json
 from enum import Enum
 from dataclasses import dataclass, asdict
 from typing import Optional, Dict, List, TypedDict, Any
+
 from .openai import OpenAiPromptMessage
 from .result import EvalResultMetric, DatapointFieldAnnotation
 

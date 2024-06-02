@@ -51,7 +51,8 @@ from athina.evals.function.wrapper import (
     LengthGreaterThan,
     LengthBetween,
     ApiCall,
-    OneLine
+    OneLine,
+    JsonEval
 )
 from athina.evals.grounded.wrapper import AnswerSimilarity, ContextSimilarity
 from athina.evals.guardrails.gibberish_text.evaluator import NotGibberishText
@@ -139,5 +140,6 @@ __all__ = [
     "NoSecretsPresent",
     "RestrictToTopic",
     "NotUnusualPrompt",
-    "PolitenessCheck"
+    "PolitenessCheck",
+    "JsonEval"
 ]

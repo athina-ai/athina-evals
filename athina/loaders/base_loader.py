@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import TypedDict, List
+from typing import List
 import json
 from athina.interfaces.data import DataPoint
 
