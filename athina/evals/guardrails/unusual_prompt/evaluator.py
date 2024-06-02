@@ -1,40 +1,46 @@
-# Guardrails NSFW Evaluator
-# https://hub.guardrailsai.com/validator/guardrails/nsfw_text
+# Guardrails Unusual Prompt
+# https://hub.guardrailsai.com/validator/guardrails/unusual_prompt
 
+import os
 import time
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 from athina.helpers.logger import logger
 from ...base_evaluator import BaseEvaluator
 from athina.metrics.metric_type import MetricType
 from athina.interfaces.result import EvalResult, EvalResultMetric
+from athina.errors.exceptions import NoOpenAiApiKeyException
+from athina.keys import OpenAiApiKey
 
-# Passes when the text is SFW, fails when the text is NSFW.
-class SafeForWorkText(BaseEvaluator):
-    _validation_method: str
-    _threshold: float
+# Passes when the text is not an unusual prompt, fails when the text is a unusual prompt.
+class NotUnusualPrompt(BaseEvaluator):
+    _llm_callable: str
 
     def __init__(
         self,
-        validation_method: str = "sentence",
-        threshold: float = 0.8,
+        llm_callable: str = "gpt3.5-turbo",
+        open_ai_api_key: Optional[str] = None
     ):
-        from guardrails.hub import NSFWText
-        self._validation_method = validation_method
-        self._threshold = threshold
+        from guardrails.hub import UnusualPrompt as GuardrailsUnusualPrompt
+        
+        open_ai_api_key = open_ai_api_key or OpenAiApiKey.get_key()
+        if open_ai_api_key is None:
+            raise NoOpenAiApiKeyException()
+        os.environ['OPENAI_API_KEY'] = open_ai_api_key
+
+        self._llm_callable = llm_callable
         # Initialize Validator
-        self.validator = NSFWText(
-            threshold=self._threshold,
-            validation_method=self._validation_method,
+        self.validator = GuardrailsUnusualPrompt(
+            llm_callable=self._llm_callable,
             on_fail="noop",
         )
 
     @property
     def name(self) -> str:
-        return "SafeForWorkText"
+        return "NotUnusualPrompt"
 
     @property
     def display_name(self) -> str:
-        return "Safe For Work Text"
+        return "Not Unusual Prompt"
 
     @property
     def metric_ids(self) -> List[str]:
@@ -42,7 +48,7 @@ class SafeForWorkText(BaseEvaluator):
 
     @property
     def required_args(self) -> List[str]:
-        return ["response"]  # TODO: allow running this on user_query OR response
+        return ["query"]
 
     @property
     def examples(self):
@@ -56,19 +62,19 @@ class SafeForWorkText(BaseEvaluator):
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
-        Run the Guardrails nsfw evaluator.
+        Run the Guardrails evaluator.
         """
         from guardrails import Guard
+
         start_time = time.time()
         self.validate_args(**kwargs)
         metrics = []
         try:
-            text = kwargs["response"]
+            text = kwargs["query"]
             # Setup Guard
             guard = Guard.from_string(validators=[self.validator])
-            # Pass LLM output through guard
             guard_result = guard.parse(text)
-            grade_reason = "Text is safe for work" if guard_result.validation_passed else "Text is NSFW"
+            grade_reason = "Text is not an unusual prompt" if guard_result.validation_passed else "Text is a unusual prompt"
             # Boolean evaluator
             metrics.append(
                 EvalResultMetric(

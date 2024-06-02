@@ -1,5 +1,5 @@
-# Guardrails Sensitive topics Evaluator
-# https://hub.guardrailsai.com/validator/guardrails/sensitive_topics
+# Guardrails Restrict To Topic
+# https://hub.guardrailsai.com/validator/tryolabs/restricttotopic
 
 import os
 import time
@@ -11,38 +11,43 @@ from athina.keys import OpenAiApiKey
 from ...base_evaluator import BaseEvaluator
 from athina.metrics.metric_type import MetricType
 
-# Passes when the text doesn't contain any sensitive topics, fails when the text contains.
-class ContainsNoSensitiveTopics(BaseEvaluator):
-    _sensitive_topics: List[str]
-    _default_sensitive_topics = ["adult content", "hate speech", "illegal activities", "politics", "violence"]
+# Passes when the text is restricted to the specified topics, fails when the text doesn't.
+class RestrictToTopic(BaseEvaluator):
+    _valid_topics: List[str]
+    _invalid_topics = []
 
     def __init__(
         self,
-        sensitive_topics: List[str] = _default_sensitive_topics, 
+        valid_topics: List[str], 
+        invalid_topics: List[str] = [],
         open_ai_api_key: Optional[str] = None
     ):
-        from guardrails.hub import SensitiveTopic
+        from guardrails.hub import RestrictToTopic
         if open_ai_api_key is None:
             if OpenAiApiKey.get_key() is None:
                 raise NoOpenAiApiKeyException()
             os.environ['OPENAI_API_KEY'] = OpenAiApiKey.get_key()
         else:
             self.open_ai_api_key = open_ai_api_key
+        self._valid_topics = valid_topics
+        self._invalid_topics = invalid_topics
+
         # Initialize Validator
-        self.validator = SensitiveTopic(
-            sensitive_topics=sensitive_topics,
+        self.validator = RestrictToTopic(
+            valid_topics=self._valid_topics,
+            invalid_topics=self._invalid_topics,
             disable_classifier=True,
             disable_llm=False,
-            on_fail="exception",
+            on_fail="noop",
         )
 
     @property
     def name(self) -> str:
-        return "ContainsNoSensitiveTopics"
+        return "RestrictToTopic"
 
     @property
     def display_name(self) -> str:
-        return "Contains No Sensitive Topics"
+        return "Restrict To Topic"
 
     @property
     def metric_ids(self) -> List[str]:
@@ -50,7 +55,7 @@ class ContainsNoSensitiveTopics(BaseEvaluator):
 
     @property
     def required_args(self) -> List[str]:
-        return ["response"]  # TODO: allow running this on user_query OR response
+        return ["response"]
 
     @property
     def examples(self):
@@ -79,7 +84,7 @@ class ContainsNoSensitiveTopics(BaseEvaluator):
             try:
                 guard_result = guard.parse(text)
                 validation_passed = guard_result.validation_passed
-                grade_reason = "Text doesn't contain sensitive topics" if validation_passed else "Text contains sensitive topics"
+                grade_reason = "Text is restricted to the specified topics" if validation_passed else "Text is not restricted to the specified topics"
             except Exception as e:
                 validation_passed = False
                 grade_reason = str(e).replace('Validation failed for field with errors:', '')

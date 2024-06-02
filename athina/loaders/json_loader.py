@@ -1,31 +1,32 @@
-from .base_loader import BaseLoader
 from typing import List, Optional
 from athina.interfaces.athina import AthinaFilters
 from athina.interfaces.data import DataPoint
 from athina.services.athina_api_service import AthinaApiService
+from .base_loader import BaseLoader
 from dataclasses import asdict
+import json
 
-
-class TextLoader(BaseLoader):
+class JsonLoader(BaseLoader):
     """
-    This class is a data loader for evals that only evaluate the response.
+    This class is a data loader for json evals
 
     Attributes:
-        col_text (str): The column name corresponding to the response.
+        col_actual_json (dict or str): The column name corresponding to the actual JSON.
+        col_expected_json (dict or str): The column name corresponding to the expected JSON.
         raw_dataset (dict): The raw dataset as loaded from the source.
         processed_dataset (list): The processed dataset with responses.
     """
 
     def __init__(
         self,
-        col_text: str = "text",
-        col_expected_text: str = "expected_text",
+        col_actual_json: str = "actual_json",
+        col_expected_json: str = "expected_json",
     ):
         """
         Initializes the loader with specified or default column names.
         """
-        self.col_text = col_text
-        self.col_expected_text = col_expected_text
+        self.col_actual_json = col_actual_json
+        self.col_expected_json = col_expected_json
         self._raw_dataset = {}
         self._processed_dataset: List[DataPoint] = []
 
@@ -38,14 +39,15 @@ class TextLoader(BaseLoader):
         """
         for raw_instance in self._raw_dataset:
             # Check for mandatory columns in raw_instance
-            if self.col_text not in raw_instance:
-                raise KeyError(f"'{self.col_text}' not found in provided data.")
+            if self.col_actual_json not in raw_instance:
+                raise KeyError(f"'{self.col_actual_json}' not found in provided data.")
             # Create a processed instance with mandatory fields
             processed_instance = {
-                "text": raw_instance[self.col_text],
+                # if self.col_actual_json is string then do a json load
+                "actual_json": json.loads(raw_instance[self.col_actual_json]) if isinstance(raw_instance[self.col_actual_json], str) else raw_instance[self.col_actual_json]
             }
-            if self.col_expected_text in raw_instance:
-                processed_instance["expected_text"] = raw_instance[self.col_expected_text]
+            if self.col_expected_json in raw_instance:
+                processed_instance["expected_json"] = json.loads(raw_instance[self.col_expected_json]) if isinstance(raw_instance[self.col_expected_json], str) else raw_instance[self.col_expected_json]
             # removing keys with None values
             processed_instance = {
                 k: v for k, v in processed_instance.items() if v is not None
@@ -61,13 +63,4 @@ class TextLoader(BaseLoader):
         """
         Load data from Athina API.
         """
-        self._raw_dataset = AthinaApiService.fetch_inferences(
-            filters=filters, limit=limit
-        )
-        for raw_dataset in self._raw_dataset:
-            raw_dataset_dict = asdict(raw_dataset)
-            processed_instance = {
-                "text": raw_dataset_dict["prompt_response"],
-            }
-            self._processed_dataset.append(processed_instance)
-        return self._processed_dataset
+        raise NotImplementedError("This loader does not support loading data from Athina API.")

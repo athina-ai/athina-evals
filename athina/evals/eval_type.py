@@ -26,7 +26,6 @@ class RagasEvalTypeId(Enum):
     RAGAS_COHERENCE = "RagasCoherence"
     RAGAS_CONCISENESS = "RagasConciseness"
 
-
 class FunctionEvalTypeId(Enum):
     REGEX = "Regex"
     CONTAINS_ANY = "ContainsAny"
@@ -45,6 +44,9 @@ class FunctionEvalTypeId(Enum):
     ENDS_WITH = "EndsWith"
     LENGTH_LESS_THAN = "LengthLessThan"
     LENGTH_GREATER_THAN = "LengthGreaterThan"
+    LENGTH_BETWEEN = "LengthBetween"
+    ONE_LINE = "OneLine"
+    JSON_EVAL = "JsonEval"
     API_CALL = "ApiCall"
     SAFE_FOR_WORK_TEXT = "SafeForWorkText"
     NOT_GIBBERISH_TEXT = "NotGibberishText"
@@ -52,7 +54,16 @@ class FunctionEvalTypeId(Enum):
     OPENAI_CONTENT_MODERATION = "OpenAiContentModeration"
     PII_DETECTION = "PiiDetection"
     PROMPT_INJECTION= "PromptInjection"
-    
+    PROFANITY_FREE = "ProfanityFree"
+    READING_TIME = "ReadingTime"
+    DETECT_PII = "DetectPII"
+    TOXIC_LANGUAGE = "ToxicLanguage"
+    CORRECT_LANGUAGE = "CorrectLanguage"
+    NO_SECRETS_PRESENT = "NoSecretsPresent"
+    RESTRICT_TO_TOPIC = "RestrictToTopic"
+    NOT_UNUSUAL_PROMPT = "NotUnusualPrompt"
+    POLITENESS_CHECK = "PolitenessCheck"
+
 class GroundedEvalTypeId(Enum):
     ANSWER_SIMILARITY = "AnswerSimilarity"
     CONTEXT_SIMILARITY = "ContextSimilarity"

@@ -1,6 +1,8 @@
 import json
+import jsonschema
+from jsonpath_ng import parse
+from jsonschema import validate
 from typing import Any, Optional
-
 
 class JsonHelper:
     @staticmethod
@@ -37,6 +39,20 @@ class JsonHelper:
         response_json = JsonHelper._load_json_from_text(response_json_format)
         return response_json
 
+def validate_json(json_data, schema):
+    try:
+        validate(instance=json_data, schema=schema)
+        return True
+    except jsonschema.exceptions.ValidationError as err:
+        return False
+
+def extract_json_path(json_data, json_path):
+    try:
+        jsonpath_expr = parse(json_path)
+        match = jsonpath_expr.find(json_data)
+        return [match.value for match in match] if match else None
+    except Exception as e:
+        return None
 
 # New and improved JsonExtractor
 # - can extract top-level arrays as well

@@ -1,40 +1,41 @@
-# Guardrails NSFW Evaluator
-# https://hub.guardrailsai.com/validator/guardrails/nsfw_text
+# Guardrails CorrectLanguage Evaluator
+# https://hub.guardrailsai.com/validator/scb-10x/correct_language
 
 import time
 from typing import List, Optional, Dict
+from athina.interfaces.result import EvalResult, EvalResultMetric
 from athina.helpers.logger import logger
 from ...base_evaluator import BaseEvaluator
 from athina.metrics.metric_type import MetricType
-from athina.interfaces.result import EvalResult, EvalResultMetric
 
-# Passes when the text is SFW, fails when the text is NSFW.
-class SafeForWorkText(BaseEvaluator):
-    _validation_method: str
+# Passes when the text matched the specified language, fails when the text doesn't match the specified language.
+class CorrectLanguage(BaseEvaluator):
+    _expected_language_iso: str
     _threshold: float
 
     def __init__(
         self,
-        validation_method: str = "sentence",
-        threshold: float = 0.8,
+        expected_language_iso: str = "en",
+        threshold: float = 0.75,
     ):
-        from guardrails.hub import NSFWText
-        self._validation_method = validation_method
+        from guardrails.hub import CorrectLanguage as GuardrailsCorrectLanguage
+        self._expected_language_iso = expected_language_iso
         self._threshold = threshold
+
         # Initialize Validator
-        self.validator = NSFWText(
+        self.validator = GuardrailsCorrectLanguage(
+            expected_language_iso=self._expected_language_iso,
             threshold=self._threshold,
-            validation_method=self._validation_method,
             on_fail="noop",
         )
 
     @property
     def name(self) -> str:
-        return "SafeForWorkText"
+        return "CorrectLanguage"
 
     @property
     def display_name(self) -> str:
-        return "Safe For Work Text"
+        return "Correct Language"
 
     @property
     def metric_ids(self) -> List[str]:
@@ -42,7 +43,7 @@ class SafeForWorkText(BaseEvaluator):
 
     @property
     def required_args(self) -> List[str]:
-        return ["response"]  # TODO: allow running this on user_query OR response
+        return ["response"]
 
     @property
     def examples(self):
@@ -55,10 +56,10 @@ class SafeForWorkText(BaseEvaluator):
         return not(bool(result))
 
     def _evaluate(self, **kwargs) -> EvalResult:
-        """
-        Run the Guardrails nsfw evaluator.
-        """
         from guardrails import Guard
+        """
+        Run the Guardrails evaluator.
+        """
         start_time = time.time()
         self.validate_args(**kwargs)
         metrics = []
@@ -66,14 +67,21 @@ class SafeForWorkText(BaseEvaluator):
             text = kwargs["response"]
             # Setup Guard
             guard = Guard.from_string(validators=[self.validator])
+            validation_passed = False
             # Pass LLM output through guard
-            guard_result = guard.parse(text)
-            grade_reason = "Text is safe for work" if guard_result.validation_passed else "Text is NSFW"
+            try:
+                guard_result = guard.parse(text)
+                validation_passed = guard_result.validation_passed
+                grade_reason = "Text doesn't match the specified language" if validation_passed else "Text matched the specified language"
+            except Exception as e:
+                validation_passed = False
+                grade_reason = str(e).replace('Validation failed for field with errors:', '')
+
             # Boolean evaluator
             metrics.append(
                 EvalResultMetric(
                     id=MetricType.PASSED.value,
-                    value=float(guard_result.validation_passed),
+                    value=float(validation_passed),
                 )
             )
         except Exception as e:
@@ -86,10 +94,10 @@ class SafeForWorkText(BaseEvaluator):
             name=self.name,
             display_name=self.display_name,
             data=kwargs,
-            failure=self.is_failure(guard_result.validation_passed),
+            failure=self.is_failure(validation_passed),
             reason=grade_reason,
             runtime=eval_runtime_ms,
-            model=None,
+            model="gpt-3.5-turbo",
             metrics=metrics,
         )
         return {k: v for k, v in llm_eval_result.items() if v is not None}

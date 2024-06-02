@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "athina"
-version = "1.3.2"
+version = "1.4.4"
 description = "Python SDK to configure and run evaluations for your LLM-based application"
 authors = ["Shiv Sakhuja <shiv@athina.ai>", "Akshat Gupta <akshat@athina.ai>", "Vivek Aditya <vivek@athina.ai>", "Akhil Bisht <akhil@athina.ai>"]
 readme = "README.md"
@@ -28,6 +28,9 @@ marvin = "^2.3.4"
 pydantic = "2.6.3"
 pydantic-settings = "2.2.1"
 pydantic_core = "2.16.3"
+tokenizers = ">=0.19,<0.20"
+jsonschema = "^4.20.0"
+jsonpath-ng = "^1.6.0"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.27.0"
