@@ -20,9 +20,6 @@ class ClassifyText(Step):
     llm_api_key: str
     language_model_id: str
 
-    class Config:
-        arbitrary_types_allowed = True
-
     def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
         """Classify the text and return the label."""
 

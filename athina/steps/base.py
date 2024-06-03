@@ -61,7 +61,7 @@ class Step(BaseModel):
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert step to dictionary."""
-        return self.dict()
+        return self.model_dump()
 
     def extract_input_data(self, context: Dict[str, Any]) -> Any:
         """
