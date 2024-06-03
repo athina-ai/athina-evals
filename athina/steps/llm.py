@@ -30,6 +30,7 @@ class PromptTemplate(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+        
     @staticmethod
     def simple(message: str) -> "PromptTemplate":
         """Create a PromptTemplate from a string representation."""
