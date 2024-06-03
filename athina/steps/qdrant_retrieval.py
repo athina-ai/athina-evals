@@ -1,5 +1,4 @@
 # Step to make a call to pinecone index to fetch relevent chunks
-import pinecone
 from typing import Optional, Union, Dict, Any
 
 from pydantic import PrivateAttr
