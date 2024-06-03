@@ -620,8 +620,11 @@ def json_eval(
         validations = kwargs.get("validations", [])
         if validations:
             for validation in validations:
-                if not _apply_validation(actual_json, expected_json, validation):
-                    return {"result": False, "reason": "Validation failed"}
+                validation_result = _apply_validation(actual_json, expected_json, validation)
+                validation_passed = validation_result[0]
+                validation_reason = validation_result[1]
+                if not validation_passed:
+                    return {"result": False, "reason": validation_reason}
 
         return {"result": True, "reason": "Json eval passed"}
     except Exception as e:
@@ -655,22 +658,25 @@ def _apply_validation(actual_json: dict, expected_json: dict, validation: dict) 
     elif validating_function == "LLM Similarity":
         return _validate_llm_similarity(actual_value, expected_value, validation)
     else:
-        logger.error(f"Validation function {validating_function} not supported")
-        return False
+        error_message = f"Validation function {validating_function} not supported"
+        logger.error(error_message)
+        return False, error_message
 
 def _validate_equals(actual_value: Any, expected_value: Any, json_path: str) -> bool:
     if actual_value != expected_value:
-        logger.error(f"JSON path {json_path} does not match expected value")
-        return False
-    return True
+        error_message = f"JSON path {json_path} does not match expected value"
+        logger.error(error_message)
+        return False, error_message
+    return True, None
 
 def _validate_cosine_similarity(actual_value: str, expected_value: str, validation: dict) -> bool:
     threshold = validation.get("pass_threshold", 0.8)
     cosine_similarity = CosineSimilarity().compare(str(actual_value), str(expected_value))
     if cosine_similarity < threshold:
-        logger.error(f"Cosine similarity score {cosine_similarity} is less than the threshold {threshold}")
-        return False
-    return True
+        error_message = f"Cosine similarity score {cosine_similarity} is less than the threshold {threshold}"
+        logger.error(error_message)
+        return False, error_message
+    return True, None
 
 def _validate_llm_similarity(actual_value: str, expected_value: str, validation: dict) -> bool:
     open_ai_api_key = validation.get("open_ai_api_key") or OpenAiApiKey.get_key() or os.environ.get("OPENAI_API_KEY")
@@ -707,12 +713,14 @@ def _validate_llm_similarity(actual_value: str, expected_value: str, validation:
         result = response["result"]
         explanation = response["explanation"]
         if result == "Fail":
-            logger.error(f"LLM Similarity validation failed: {explanation}")
-            return False
-        return True
+            error_message = f"LLM Similarity validation failed: {explanation}"
+            logger.error(error_message)
+            return False, error_message
+        return True, None
     except Exception as e:
-        logger.error(f"Error occurred during LLM similarity validation: {e}")
-        return False
+        error_message = f"Error occurred during LLM similarity validation: {e}"
+        logger.error(error_message)
+        return False, error_message
 
 """
 A dictionary containing the available operations and their corresponding functions.
