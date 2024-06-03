@@ -654,9 +654,9 @@ def _apply_validation(actual_json: dict, expected_json: dict, validation: dict) 
     if validating_function == "Equals":
         return _validate_equals(actual_value, expected_value, json_path)
     elif validating_function == "Cosine Similarity":
-        return _validate_cosine_similarity(actual_value, expected_value, validation)
+        return _validate_cosine_similarity(actual_value, expected_value, validation, json_path)
     elif validating_function == "LLM Similarity":
-        return _validate_llm_similarity(actual_value, expected_value, validation)
+        return _validate_llm_similarity(actual_value, expected_value, validation, json_path)
     else:
         error_message = f"Validation function {validating_function} not supported"
         logger.error(error_message)
@@ -669,16 +669,16 @@ def _validate_equals(actual_value: Any, expected_value: Any, json_path: str) -> 
         return False, error_message
     return True, None
 
-def _validate_cosine_similarity(actual_value: str, expected_value: str, validation: dict) -> bool:
+def _validate_cosine_similarity(actual_value: str, expected_value: str, validation: dict, json_path: str) -> bool:
     threshold = validation.get("pass_threshold", 0.8)
     cosine_similarity = CosineSimilarity().compare(str(actual_value), str(expected_value))
     if cosine_similarity < threshold:
-        error_message = f"Cosine similarity score {cosine_similarity} is less than the threshold {threshold}"
+        error_message = f"Cosine similarity score of {round(cosine_similarity, 2)} for {json_path} is less than the threshold ({threshold})."
         logger.error(error_message)
         return False, error_message
     return True, None
 
-def _validate_llm_similarity(actual_value: str, expected_value: str, validation: dict) -> bool:
+def _validate_llm_similarity(actual_value: str, expected_value: str, validation: dict, json_path: str) -> bool:
     open_ai_api_key = validation.get("open_ai_api_key") or OpenAiApiKey.get_key() or os.environ.get("OPENAI_API_KEY")
     if not open_ai_api_key:
         raise NoOpenAiApiKeyException()
@@ -713,12 +713,12 @@ def _validate_llm_similarity(actual_value: str, expected_value: str, validation:
         result = response["result"]
         explanation = response["explanation"]
         if result == "Fail":
-            error_message = f"LLM Similarity validation failed: {explanation}"
+            error_message = f"LLM Similarity validation failed for {json_path}. Reason: {explanation}"
             logger.error(error_message)
             return False, error_message
         return True, None
     except Exception as e:
-        error_message = f"Error occurred during LLM similarity validation: {e}"
+        error_message = f"Error occurred during LLM similarity validation for {json_path}"
         logger.error(error_message)
         return False, error_message
 
