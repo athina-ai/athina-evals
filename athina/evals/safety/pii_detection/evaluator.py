@@ -62,7 +62,7 @@ class PiiDetection(BaseEvaluator):
             runtime=int(runtime),
             model=None,
             metrics=[
-                EvalResultMetric(id=MetricType.PASSED.value, value=bool(not failure))
+                EvalResultMetric(id=MetricType.PASSED.value, value=float(not failure))
             ],
         )
 
