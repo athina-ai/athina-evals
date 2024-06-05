@@ -30,8 +30,6 @@ class RagasEvaluator(BaseEvaluator):
     ):
         if model is None:
             self._model = self.default_model
-        elif not Model.is_supported(model):
-            raise ValueError(f"Unsupported model: {model}")
         else:
             self._model = model
         
