@@ -163,10 +163,23 @@ class EvalRunner:
             return None
 
     @staticmethod
+    def _fetch_dataset_rows(dataset_id: str) -> List[any]:
+        """
+        Fetch the dataset rows from Athina
+        """
+        try:
+            rows = Dataset.fetch_dataset_rows(dataset_id=dataset_id)
+            return rows
+        except Exception as e:
+            print(f"Error fetching dataset rows: {e}")
+            return None
+
+    @staticmethod
     def run_suite(
         evals: List[BaseEvaluator],
-        data: List[DataPoint],
+        data: List[DataPoint] = None,
         max_parallel_evals: int = 5,
+        dataset_id: Optional[str] = None,
     ) -> List[LlmBatchEvalResult]:
         """
         Run a suite of LLM evaluations against a dataset.
@@ -181,8 +194,16 @@ class EvalRunner:
         eval_suite_name = "llm_eval_suite" + "_" + ",".join(eval.name for eval in evals)
         AthinaApiService.log_usage(eval_name=eval_suite_name, run_type="suite")
 
-        # Log Dataset to Athina
-        dataset = EvalRunner._log_dataset_to_athina(data)
+        if data:
+            # Log Dataset to Athina
+            dataset = EvalRunner._log_dataset_to_athina(data)
+            dataset_id = dataset.id
+        elif dataset_id is not None:
+            dataset = EvalRunner._fetch_dataset_rows(dataset_id)
+            data = dataset
+        else:
+            raise Exception("No data or dataset_id provided.")  
+
         batch_results = []
         for eval in evals:
             # Run the evaluations
@@ -193,11 +214,11 @@ class EvalRunner:
 
             if dataset:
                 EvalRunner._log_eval_results_with_config(
-                    eval_results=eval_results, eval=eval, dataset_id=dataset.id
+                    eval_results=eval_results, eval=eval, dataset_id=dataset_id
                 )
             batch_results.append(eval_results)
 
         if dataset:
-            print(f"You can view your dataset at: {Dataset.dataset_link(dataset.id)}")
+            print(f"You can view your dataset at: {Dataset.dataset_link(dataset_id)}")
 
         return EvalRunner.to_df(batch_results)
