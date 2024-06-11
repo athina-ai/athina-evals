@@ -167,8 +167,6 @@ class AthinaApiService:
                 endpoint,
                 headers=AthinaApiService._headers()
             )
-            print(response.status_code)
-            print(response.text)
             if response.status_code == 401:
                 response_json = response.json()
                 error_message = response_json.get('error', 'Unknown Error')
