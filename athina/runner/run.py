@@ -163,12 +163,12 @@ class EvalRunner:
             return None
 
     @staticmethod
-    def _fetch_dataset_rows(dataset_id: str) -> List[any]:
+    def _fetch_dataset_rows(dataset_id: str, number_of_rows: Optional[int] = None) -> List[any]:
         """
         Fetch the dataset rows from Athina
         """
         try:
-            rows = Dataset.fetch_dataset_rows(dataset_id=dataset_id)
+            rows = Dataset.fetch_dataset_rows(dataset_id=dataset_id, number_of_rows=number_of_rows)
             return rows
         except Exception as e:
             print(f"Error fetching dataset rows: {e}")
@@ -180,6 +180,7 @@ class EvalRunner:
         data: List[DataPoint] = None,
         max_parallel_evals: int = 5,
         dataset_id: Optional[str] = None,
+        number_of_rows: Optional[int] = None,
     ) -> List[LlmBatchEvalResult]:
         """
         Run a suite of LLM evaluations against a dataset.
@@ -199,7 +200,7 @@ class EvalRunner:
             dataset = EvalRunner._log_dataset_to_athina(data)
             dataset_id = dataset.id
         elif dataset_id is not None:
-            dataset = EvalRunner._fetch_dataset_rows(dataset_id)
+            dataset = EvalRunner._fetch_dataset_rows(dataset_id, number_of_rows)
             data = dataset
         else:
             raise Exception("No data or dataset_id provided.")  

@@ -91,14 +91,14 @@ class Dataset:
                 raise
 
     @staticmethod
-    def fetch_dataset_rows(dataset_id: str):
+    def fetch_dataset_rows(dataset_id: str, number_of_rows: Optional[int] = None):
         """
         Fetches the rows of a dataset.
 
         Parameters:
         - dataset_id (str): The ID of the dataset to fetch rows.
         """
-        return AthinaApiService.fetch_dataset_rows(dataset_id)
+        return AthinaApiService.fetch_dataset_rows(dataset_id, number_of_rows)
 
     @staticmethod
     def dataset_link(dataset_id: str):

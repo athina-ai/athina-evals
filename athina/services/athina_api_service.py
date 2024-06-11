@@ -152,14 +152,17 @@ class AthinaApiService:
     
     @staticmethod
     def fetch_dataset_rows(
-        dataset_id: str
+        dataset_id: str,
+        number_of_rows: Optional[int] = None
     ):
         """
         Fetch the dataset rows by calling the Athina API
 
         """
         try:
-            endpoint = f"{API_BASE_URL}/api/v1/dataset_v2/fetch-by-id/{dataset_id}?offset=0&limit=1000&include_dataset_rows=true"
+            if number_of_rows is None:
+                number_of_rows = 20
+            endpoint = f"{API_BASE_URL}/api/v1/dataset_v2/fetch-by-id/{dataset_id}?offset=0&limit={number_of_rows}&include_dataset_rows=true"
             response = requests.post(
                 endpoint,
                 headers=AthinaApiService._headers()
