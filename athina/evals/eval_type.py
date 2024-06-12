@@ -79,3 +79,6 @@ def is_function_eval(evaluator_type: str) -> bool:
 
 def is_grounded_eval(evaluator_type: str) -> bool:
     return any(evaluator_type == member.value for member in GroundedEvalTypeId)
+
+def is_conversation_eval(evaluator_type: str) -> bool:
+    return any(evaluator_type == member.value for member in ConversationEvalTypeId)
