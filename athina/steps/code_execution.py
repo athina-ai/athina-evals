@@ -1,4 +1,3 @@
-# Step to extract entities from text using the instructions.
 from typing import Union, Dict, Any
 from athina.steps import Step
 import subprocess
