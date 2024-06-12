@@ -1,6 +1,7 @@
 import time
 from typing import List, Optional, Dict
 
+from athina.helpers.logger import logger
 from athina.interfaces.model import Model
 from athina.interfaces.result import EvalResult, EvalResultMetric
 from athina.evals.llm.llm_evaluator import LlmEvaluator
