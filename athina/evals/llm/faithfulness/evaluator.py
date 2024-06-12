@@ -11,21 +11,23 @@ class Faithfulness(LlmEvaluator):
     """
 
     SYSTEM_MESSAGE_TEMPLATE = """ 
-    You are an expert at evaluating whether the response can be inferred using ONLY the information provided as context.
-    You are not concerned with factual correctness or accuracy. You are only determining whether the response can be inferred directly from the information provided as context.
+    You are an expert at evaluating whether the response can be inferred using ONLY the information provided as context and chat history. If chat history is not provided, consider only the context.
+    You are not concerned with factual correctness or accuracy. You are only determining whether the response can be inferred directly from the information provided as context and chat history.
     """
 
     USER_MESSAGE_TEMPLATE = """
         Let's think step by step.
         1. Consider the following: 
         context: {context}.
+        chat history: {chat_history}
         response: {response}.
-        2. Determine if the response can be inferred using ONLY the information provided in the context.
-        3. Provide a brief explanation of why the response can or cannot be inferred purely from the context, labeled as 'explanation', leading up to a verdict (Pass/Fail) labeled as 'result'.
-        4. Return a JSON object in the following format: "result": 'result', "explanation": 'explanation'.
+        2. Determine if the response can be inferred using ONLY the information provided in the context and chat history.
+        3. If the chat history is not provided, consider only the context.
+        4. Provide a brief explanation of why the response can or cannot be inferred purely from the context and chat history, labeled as 'explanation', leading up to a verdict (Pass/Fail) labeled as 'result'.
+        5. Return a JSON object in the following format: "result": 'result', "explanation": 'explanation'.
 
         ### EXAMPLES ###
-        Here's are some examples: 
+        Here are some examples: 
         {examples}
     """
 
@@ -73,8 +75,13 @@ class Faithfulness(LlmEvaluator):
         :return: A dictionary with formatted data for evaluation
         """
         joined_context = "\n".join(context)
+        # Check if chat_history is provided and format it
+        chat_history = kwargs.get('chat_history', [])
+        formatted_chat_history = "\n".join(chat_history) if chat_history else "No chat history provided."
+
         return self.USER_MESSAGE_TEMPLATE.format(
             context=joined_context,
             response=response,
-            examples=self._examples_str(),
+            chat_history=formatted_chat_history,
+            examples=self.examples,
         )
