@@ -11,8 +11,8 @@ class ContextContainsEnoughInformation(LlmEvaluator):
     """
 
     SYSTEM_MESSAGE_TEMPLATE = """
-    You are an expert at evaluating whether a chatbot can answer a user's query using ONLY the information provided to you as context.
-    You are not concerned with factual correctness or accuracy. You only care whether the context contains enough information to answer the user's query.
+    You are an expert at evaluating whether a chatbot can answer a user's query using ONLY the information provided to you as context and chat history. If chat history is not provided, consider only the context.
+    You are not concerned with factual correctness or accuracy. You only care whether the context and chat history contain enough information to answer the user's query.
     """
 
     USER_MESSAGE_TEMPLATE = """
