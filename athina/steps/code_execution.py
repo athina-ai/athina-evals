@@ -55,7 +55,6 @@ class CodeExecution(Step):
             custom_builtins = safe_builtins.copy()
             custom_builtins['type'] = type
             custom_builtins['__import__'] = __import__
-            import json
             custom_globals = safe_globals.copy()
             custom_globals.update({
                 '__builtins__': custom_builtins,
