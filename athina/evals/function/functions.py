@@ -686,7 +686,7 @@ def _get_result_from_code(code, **input_data):
         exec(byte_code, custom_globals, loc)
         result = loc['main'](**input_data)
     except Exception as e:
-        result = { "error": str(e) }
+        raise e
     return result
 
 
