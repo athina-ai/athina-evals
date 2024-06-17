@@ -9,10 +9,7 @@ from athina.errors.exceptions import NoOpenAiApiKeyException
 from athina.helpers.json import extract_json_path, validate_json
 from athina.keys.openai_api_key import OpenAiApiKey
 from athina.llms.openai_service import OpenAiService
-from typing import Union, Dict, Any
 import subprocess
-import os
-import json
 import tempfile 
 
 
