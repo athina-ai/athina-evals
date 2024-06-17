@@ -704,7 +704,7 @@ def custom_code_eval(code, **kwargs):
         dict: A dictionary containing the result of the check and the reason for the result.
     """
     result = _get_result_from_code(code, **kwargs)
-    if result:
+    if not result:
         return {"result": False, "reason": "Custom eval code failed"}
     else:
         return {"result": True, "reason": "Custom eval code passed"}
