@@ -356,6 +356,22 @@ class OneLine(FunctionEvaluator):
             display_name=display_name,
         )
 
+class CustomCodeEval(FunctionEvaluator):
+    def __init__(self, code: str, display_name: Optional[str] = None):
+        """
+        Initialize the Custom code evaluator.
+
+        Args:
+            code (str): The custom code to be executed.
+        """
+        super().__init__(
+            function_name=FunctionEvalTypeId.CUSTOM_CODE_EVAL.value,
+            function_arguments={
+                "code": code,
+            },
+            display_name=display_name,
+        )
+
 
 class JsonEval(FunctionEvaluator):
     def __init__(self, schema: str, validations = None, display_name: Optional[str] = None):

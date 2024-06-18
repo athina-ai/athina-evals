@@ -47,6 +47,7 @@ class FunctionEvalTypeId(Enum):
     LENGTH_BETWEEN = "LengthBetween"
     ONE_LINE = "OneLine"
     JSON_EVAL = "JsonEval"
+    CUSTOM_CODE_EVAL = "CustomCodeEval"
     API_CALL = "ApiCall"
     SAFE_FOR_WORK_TEXT = "SafeForWorkText"
     NOT_GIBBERISH_TEXT = "NotGibberishText"
