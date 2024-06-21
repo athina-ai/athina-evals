@@ -1,4 +1,4 @@
-from athina.evals import Regex, ContainsAny, ContainsAll, Contains, ContainsNone, ContainsJson, ContainsEmail, IsJson, IsEmail, NoInvalidLinks, ContainsLink, ContainsValidLink, Equals, StartsWith, EndsWith, LengthLessThan, LengthGreaterThan, LengthBetween, ApiCall, DoesResponseAnswerQuery, Faithfulness, BaseEvaluator, ContextContainsEnoughInformation, SummaryAccuracy, Groundedness, GradingCriteria, CustomPrompt, RagasContextRelevancy, RagasAnswerRelevancy, RagasAnswerCorrectness, RagasAnswerSemanticSimilarity, RagasCoherence, RagasConciseness, RagasContextPrecision, RagasContextRecall, RagasFaithfulness, RagasHarmfulness, RagasMaliciousness, NotGibberishText, SafeForWorkText, ContainsNoSensitiveTopics, OpenAiContentModeration, PiiDetection, PromptInjection, ProfanityFree, ReadingTime, DetectPII, ToxicLanguage, CorrectLanguage, NoSecretsPresent, RestrictToTopic, NotUnusualPrompt, PolitenessCheck, OneLine, JsonEval, CustomCodeEval, ConversationResolution, ConversationCoherence
+from athina.evals import Regex, ContainsAny, ContainsAll, Contains, ContainsNone, ContainsJson, ContainsEmail, IsJson, IsEmail, NoInvalidLinks, ContainsLink, ContainsValidLink, Equals, StartsWith, EndsWith, LengthLessThan, LengthGreaterThan, LengthBetween, ApiCall, DoesResponseAnswerQuery, Faithfulness, BaseEvaluator, ContextContainsEnoughInformation, SummaryAccuracy, Groundedness, GradingCriteria, CustomPrompt, RagasContextRelevancy, RagasAnswerRelevancy, RagasAnswerCorrectness, RagasAnswerSemanticSimilarity, RagasCoherence, RagasConciseness, RagasContextPrecision, RagasContextRecall, RagasFaithfulness, RagasHarmfulness, RagasMaliciousness, NotGibberishText, SafeForWorkText, ContainsNoSensitiveTopics, OpenAiContentModeration, PiiDetection, PromptInjection, ProfanityFree, ReadingTime, DetectPII, ToxicLanguage, CorrectLanguage, NoSecretsPresent, RestrictToTopic, NotUnusualPrompt, PolitenessCheck, OneLine, JsonSchema, JsonValidation, CustomCodeEval, ConversationResolution, ConversationCoherence
 from athina.evals.grounded.similarity import CosineSimilarity, JaccardSimilarity, JaroWincklerSimilarity, NormalisedLevenshteinSimilarity, SorensenDiceSimilarity
 from athina.evals.grounded.wrapper import AnswerSimilarity, ContextSimilarity
 
@@ -33,7 +33,8 @@ function_operations = {
     "LengthBetween": LengthBetween,
     "ApiCall": ApiCall,
     "OneLine": OneLine,
-    "JsonEval": JsonEval,
+    "JsonSchema": JsonSchema,
+    "JsonValidation": JsonValidation,
     "CustomCodeEval": CustomCodeEval
 }
 
