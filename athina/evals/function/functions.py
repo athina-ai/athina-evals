@@ -595,29 +595,43 @@ def one_line(text, **kwargs):
     else:
         return {"result": True, "reason": "output is a single line"}
 
-def json_eval(
+def json_schema(
+    actual_json: Union[dict, str],
+    **kwargs
+) -> Dict[str, Any]:
+    """
+    Check if the actual_json matched the schema definition.
+
+    Args:
+        actual_json (dict or str): The JSON string to check with the schema.
+    """
+    try:
+        actual_json = _load_json(actual_json)
+        schema = _get_schema(kwargs)
+        if not schema:
+            return {"result": False, "reason": "Schema not provided"}
+        if not (_validate_json_with_schema(actual_json, schema)):
+            return {"result": False, "reason": "Schema validation failed"}
+        return {"result": True, "reason": "Json schema passed"}
+    except Exception as e:
+        logger.error(f"Error occurred during eval: {e}")
+        raise e
+
+def json_validation(
     actual_json: Union[dict, str],
     expected_json: Union[dict, str],
     **kwargs
 ) -> Dict[str, Any]:
     """
-    Check if the actual JSON and expected JSON match the schema definition and follow validation rules.
+    Check if the actual JSON and expected JSON match the validation rules.
 
     Args:
         actual_json (dict or str): The actual JSON string to compare against the expected JSON.
         expected_json (dict or str): The expected JSON string to compare against the actual JSON.
-
     """
     try:
         actual_json = _load_json(actual_json)
         expected_json = _load_json(expected_json)
-        schema = _get_schema(kwargs)
-
-        if not schema:
-            return {"result": False, "reason": "Schema not provided"}
-
-        if not (_validate_json_with_schema(actual_json, schema) and _validate_json_with_schema(expected_json, schema)):
-            return {"result": False, "reason": "Schema validation failed"}
 
         validations = kwargs.get("validations", [])
         if validations:
@@ -628,9 +642,9 @@ def json_eval(
                 if not validation_passed:
                     return {"result": False, "reason": validation_reason}
 
-        return {"result": True, "reason": "Json eval passed"}
+        return {"result": True, "reason": "Json validation passed"}
     except Exception as e:
-        logger.error(f"Error occurred during eval: {e}")
+        logger.error(f"Error occurred during Json validation eval: {e}")
         raise e
 
 def _bandit_check(code: str) -> None:
@@ -822,6 +836,7 @@ operations = {
     "LengthBetween": length_between,
     "ApiCall": api_call,
     "OneLine": one_line,
-    "JsonEval": json_eval,
+    "JsonSchema": json_schema,
+    "JsonValidation": json_validation,
     "CustomCodeEval": custom_code_eval,
 }

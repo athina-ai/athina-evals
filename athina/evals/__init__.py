@@ -52,7 +52,8 @@ from athina.evals.function.wrapper import (
     LengthBetween,
     ApiCall,
     OneLine,
-    JsonEval,
+    JsonSchema,
+    JsonValidation,
     CustomCodeEval,
 )
 from athina.evals.grounded.wrapper import AnswerSimilarity, ContextSimilarity
@@ -142,6 +143,7 @@ __all__ = [
     "RestrictToTopic",
     "NotUnusualPrompt",
     "PolitenessCheck",
-    "JsonEval",
+    "JsonSchema",
+    "JsonValidation",
     "CustomCodeEval"
 ]

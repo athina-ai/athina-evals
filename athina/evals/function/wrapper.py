@@ -372,17 +372,28 @@ class CustomCodeEval(FunctionEvaluator):
             display_name=display_name,
         )
 
-
-class JsonEval(FunctionEvaluator):
-    def __init__(self, schema: str, validations = None, display_name: Optional[str] = None):
+class JsonSchema(FunctionEvaluator):
+    def __init__(self, schema: str, display_name: Optional[str] = None):
         """
-        Initialize the JsonEval function evaluator.
+        Initialize the JsonSchema function evaluator.
         """
         super().__init__(
-            function_name=FunctionEvalTypeId.JSON_EVAL.value,
+            function_name=FunctionEvalTypeId.JSON_SCHEMA.value,
             function_arguments={
-                "schema": schema,
-                "validations": validations,
+                "schema": schema
+            },
+            display_name=display_name,
+        )
+
+class JsonValidation(FunctionEvaluator):
+    def __init__(self, validations = None, display_name: Optional[str] = None):
+        """
+        Initialize the JsonValidation function evaluator.
+        """
+        super().__init__(
+            function_name=FunctionEvalTypeId.JSON_VALIDATION.value,
+            function_arguments={
+                "validations": validations
             },
             display_name=display_name,
         )
