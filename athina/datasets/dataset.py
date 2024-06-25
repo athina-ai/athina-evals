@@ -80,7 +80,7 @@ class Dataset:
         - rows (List[DatasetRow]): The rows to add to the dataset.
 
         Raises:
-        - Exception: If the API returns an error or the limit of 1000 rows is exceeded.
+        - Exception: If the API returns an error or the limit of 5000 rows is exceeded.
         """
         batch_size = 100
         for i in range(0, len(rows), batch_size):
