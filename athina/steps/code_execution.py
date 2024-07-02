@@ -3,6 +3,7 @@ from athina.steps import Step
 import subprocess
 import os
 import json
+import re
 import tempfile 
 
 class CodeExecution(Step):
@@ -51,19 +52,51 @@ class CodeExecution(Step):
             from RestrictedPython import safe_globals
             from RestrictedPython.Guards import safe_builtins
             from RestrictedPython.Eval import default_guarded_getitem, default_guarded_getiter
-
+            
             custom_builtins = safe_builtins.copy()
-            custom_builtins['type'] = type
-            custom_builtins['__import__'] = __import__
+            custom_builtins.update({
+                'type': type,
+                'dict': dict,
+                'list': list,
+                'set': set,
+                'tuple': tuple,
+                'str': str,
+                'int': int,
+                'float': float,
+                'bool': bool,
+                'len': len,
+                'range': range,
+                'enumerate': enumerate,
+                'zip': zip,
+                'sorted': sorted,
+                'min': min,
+                'max': max,
+                'sum': sum,
+                'abs': abs,
+                'all': all,
+                'any': any,
+                'isinstance': isinstance,
+                'issubclass': issubclass,
+                'Exception': Exception,
+                'ValueError': ValueError,
+                'TypeError': TypeError,
+                'KeyError': KeyError,
+                'IndexError': IndexError,
+                'AttributeError': AttributeError,
+                'ImportError': ImportError,
+                '__import__': __import__
+            })
+
             custom_globals = safe_globals.copy()
             custom_globals.update({
                 '__builtins__': custom_builtins,
                 'json': json,
+                're': re,
                 '_getitem_': default_guarded_getitem,
                 '_getiter_': default_guarded_getiter
             })
             # Whitelist of allowed modules
-            allowed_modules = {'json'}
+            allowed_modules = {'json', 're'}
             def guarded_import(name, *args, **kwargs):
                 if name not in allowed_modules:
                     raise ImportError(f"Importing '{name}' is not allowed")

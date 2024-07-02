@@ -715,11 +715,12 @@ def _get_result_from_code(code, **input_data):
         custom_globals.update({
             '__builtins__': custom_builtins,
             'json': json,
+            're': re,
             '_getitem_': default_guarded_getitem,
             '_getiter_': default_guarded_getiter
         })
         # Whitelist of allowed modules
-        allowed_modules = {'json'}
+        allowed_modules = {'json', 're'}
         def guarded_import(name, *args, **kwargs):
             if name not in allowed_modules:
                 raise ImportError(f"Importing '{name}' is not allowed")
