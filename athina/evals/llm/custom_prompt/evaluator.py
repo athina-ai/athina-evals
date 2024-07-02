@@ -14,6 +14,7 @@ class CustomPrompt(LlmEvaluator):
     """
 
     _eval_prompt: Optional[str] = None
+    _output_type: Optional[str] = None
     _display_name: str = None
     _metric_ids: List[str] = None
     _model: str = None
@@ -23,6 +24,7 @@ class CustomPrompt(LlmEvaluator):
     def __init__(
         self,
         eval_prompt: str,
+        output_type: str = None,
         display_name: str = None,
         metric_ids: List[str] = None,
         model: str = None,
@@ -37,6 +39,7 @@ class CustomPrompt(LlmEvaluator):
             raise ValueError("model is not defined")
 
         self._eval_prompt = eval_prompt
+        self._output_type = output_type
         self._display_name = display_name
         self._metric_ids = metric_ids
         self._model = model
