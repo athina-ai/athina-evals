@@ -148,13 +148,17 @@ class CustomPrompt(LlmEvaluator):
             if self._output_type == 'boolean':
                 result = chat_completion_response_json["result"]
                 explanation = chat_completion_response_json["explanation"]
+                print(f"result: {result}")
+                print(f"explanation: {explanation}")
                 failure = self.is_failure(result)
                 passed_value = 1 - float(failure)
                 metrics.append(EvalResultMetric(id=MetricType.PASSED.value, value=passed_value))
             elif self._output_type == 'numeric':
                 score = chat_completion_response_json["score"]
                 explanation = chat_completion_response_json["explanation"]
-                metrics.append(EvalResultMetric(id=MetricType.CUSTOM_PROMPT_SCORE.value, value=score))
+                print(f"score: {score}")
+                print(f"explanation: {explanation}")
+                metrics.append(EvalResultMetric(id=MetricType.SCORE.value, value=score))
                 failure = None  # Numeric evaluations don't have a pass/fail result
 
         except Exception as e:
