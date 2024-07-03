@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "athina"
-version = "1.4.21"
+version = "1.4.22"
 description = "Python SDK to configure and run evaluations for your LLM-based application"
 authors = ["Shiv Sakhuja <shiv@athina.ai>", "Akshat Gupta <akshat@athina.ai>", "Vivek Aditya <vivek@athina.ai>", "Akhil Bisht <akhil@athina.ai>"]
 readme = "README.md"
@@ -20,7 +20,7 @@ python-dotenv = "^1.0.0"
 requests = "^2.31.0"
 langchain-openai = "^0.0.3"
 llama-index = "^0.9.40"
-litellm = "1.35.6"
+litellm = "1.41.3"
 jinja2 = "^3.1.4"
 pinecone-client = "^4.1.0"
 qdrant-client = "^1.9.1"
