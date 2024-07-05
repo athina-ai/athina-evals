@@ -27,7 +27,7 @@ class CustomPrompt(LlmEvaluator):
     def __init__(
         self,
         eval_prompt: str,
-        output_type: str = None,
+        output_type: str = 'boolean',
         display_name: str = None,
         metric_ids: List[str] = None,
         model: str = None,
@@ -121,8 +121,6 @@ class CustomPrompt(LlmEvaluator):
                 "- score: The score based on the provided grading criteria.\n"
                 "- explanation: An explanation of the score.\n"
             )
-        else:
-            return super()._system_message()
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
@@ -148,16 +146,12 @@ class CustomPrompt(LlmEvaluator):
             if self._output_type == 'boolean':
                 result = chat_completion_response_json["result"]
                 explanation = chat_completion_response_json["explanation"]
-                print(f"result: {result}")
-                print(f"explanation: {explanation}")
                 failure = self.is_failure(result)
                 passed_value = 1 - float(failure)
                 metrics.append(EvalResultMetric(id=MetricType.PASSED.value, value=passed_value))
             elif self._output_type == 'numeric':
                 score = chat_completion_response_json["score"]
                 explanation = chat_completion_response_json["explanation"]
-                print(f"score: {score}")
-                print(f"explanation: {explanation}")
                 metrics.append(EvalResultMetric(id=MetricType.SCORE.value, value=score))
                 failure = None  # Numeric evaluations don't have a pass/fail result
 
