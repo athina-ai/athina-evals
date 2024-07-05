@@ -28,6 +28,7 @@ class MetricType(Enum):
     GROUNDEDNESS = "groundedness"
     PASSED = "passed"
     SIMILARITY_SCORE = "similarity_score"
+    SCORE = "score"
 
     # Conversation Metrics
     CONVERSATION_RESOLUTION = "conversation_resolution"

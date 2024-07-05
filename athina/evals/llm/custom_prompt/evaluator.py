@@ -1,3 +1,5 @@
+import time
+from athina.helpers.logger import logger
 from typing import List, Optional, Dict
 from jinja2 import Environment
 from athina.helpers.jinja_helper import PreserveUndefined
@@ -6,7 +8,8 @@ from athina.llms.abstract_llm_service import AbstractLlmService
 from ..llm_evaluator import LlmEvaluator
 from athina.evals.eval_type import LlmEvalTypeId
 from ..example import FewShotExample
-
+from athina.interfaces.result import EvalResult, EvalResultMetric
+from athina.metrics.metric_type import MetricType
 
 class CustomPrompt(LlmEvaluator):
     """
@@ -14,6 +17,7 @@ class CustomPrompt(LlmEvaluator):
     """
 
     _eval_prompt: Optional[str] = None
+    _output_type: Optional[str] = None
     _display_name: str = None
     _metric_ids: List[str] = None
     _model: str = None
@@ -23,6 +27,7 @@ class CustomPrompt(LlmEvaluator):
     def __init__(
         self,
         eval_prompt: str,
+        output_type: str = 'boolean',
         display_name: str = None,
         metric_ids: List[str] = None,
         model: str = None,
@@ -37,6 +42,7 @@ class CustomPrompt(LlmEvaluator):
             raise ValueError("model is not defined")
 
         self._eval_prompt = eval_prompt
+        self._output_type = output_type
         self._display_name = display_name
         self._metric_ids = metric_ids
         self._model = model
@@ -95,3 +101,75 @@ class CustomPrompt(LlmEvaluator):
     def _user_message(self, **kwargs) -> str:
         template = self.env.from_string(self._user_message_template)
         return template.render(**kwargs)
+
+    def _system_message(self) -> str:
+        if self._output_type == 'boolean':
+            return (
+                "### INSTRUCTIONS ###\n"
+                "You are an expert at evaluating responses by an AI.\n"
+                "Based on the instructions provided, you will evaluate the response and determine if it passes or fails.\n"
+                "You MUST return a JSON object with the following fields:\n"
+                "- result: Result must be either 'Pass' or 'Fail'.\n"
+                "- explanation: An explanation of why the result is Pass or Fail.\n"
+            )
+        elif self._output_type == 'numeric':
+            return (
+                "### INSTRUCTIONS ###\n"
+                "You are an expert at evaluating responses by an AI.\n"
+                "Based on the instructions provided, you will evaluate the response and provide a score.\n"
+                "You MUST return a JSON object with the following fields:\n"
+                "- score: The score based on the provided grading criteria.\n"
+                "- explanation: An explanation of the score.\n"
+            )
+
+    def _evaluate(self, **kwargs) -> EvalResult:
+        """
+        Run the LLM evaluator.
+        """
+        start_time = time.time()
+        # Validate that correct args were passed
+        self.validate_args(**kwargs)
+
+        # Construct Prompt
+        messages = self._prompt_messages(**kwargs)
+
+        # Run the LLM Completion
+
+        chat_completion_response_json: dict = self.llm_service.json_completion(
+            model=self._model,
+            messages=messages,
+            temperature=self.TEMPERATURE,
+        )
+    
+        metrics = []
+        try:
+            if self._output_type == 'boolean':
+                result = chat_completion_response_json["result"]
+                explanation = chat_completion_response_json["explanation"]
+                failure = self.is_failure(result)
+                passed_value = 1 - float(failure)
+                metrics.append(EvalResultMetric(id=MetricType.PASSED.value, value=passed_value))
+            elif self._output_type == 'numeric':
+                score = chat_completion_response_json["score"]
+                explanation = chat_completion_response_json["explanation"]
+                metrics.append(EvalResultMetric(id=MetricType.SCORE.value, value=score))
+                failure = None  # Numeric evaluations don't have a pass/fail result
+
+        except Exception as e:
+            logger.error(f"Error occurred during eval: {e}")
+            raise e
+
+        end_time = time.time()
+        eval_runtime_ms = int((end_time - start_time) * 1000)
+        llm_eval_result = EvalResult(
+            name=self.name,
+            display_name=self.display_name,
+            data=kwargs,
+            failure=failure,
+            reason=explanation,
+            runtime=eval_runtime_ms,
+            model=self._model,
+            metrics=metrics,
+        )
+        return {k: v for k, v in llm_eval_result.items() if v is not None}
+
