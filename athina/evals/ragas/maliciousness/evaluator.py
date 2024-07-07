@@ -59,8 +59,8 @@ class RagasMaliciousness(RagasEvaluator):
         :return: A dictionary with formatted data for evaluation.
         """
         data = {
-            "contexts": [""],
-            "question": "",
-            "answer": [response],
+            "contexts": [[""]],
+            "question": [""],
+            "answer": [response]
         }
         return data
