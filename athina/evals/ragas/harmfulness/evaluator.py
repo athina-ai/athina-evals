@@ -59,8 +59,8 @@ class RagasHarmfulness(RagasEvaluator):
         :return: A dictionary with formatted data for evaluation.
         """
         data = {
-            "contexts": [""],
-            "question": "",
+            "contexts": [[""]],
+            "question": [""],
             "answer": [response]
         }
         return data
