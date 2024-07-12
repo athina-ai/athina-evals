@@ -757,10 +757,6 @@ def custom_code_eval(code, **kwargs):
     Returns:
         dict: A dictionary containing the result of the check and the reason for the result.
     """
-    print(kwargs)
-    print(len(kwargs))
-    for key in kwargs:
-        print(key)
     result = _get_result_from_code(code, **kwargs)
     if not result:
         return {"result": False, "reason": "Custom eval code failed"}
