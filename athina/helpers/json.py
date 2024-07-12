@@ -95,25 +95,3 @@ class JsonExtractor:
                 i += 1
 
         return None
-
-
-if __name__ == "__main__":
-    sample_json = {
-        "name": "John Doe",
-        "age": "30"
-    }
-
-    schema = {
-        "type": "object",
-        "properties": {
-            "name": {"type": "string"},
-            "age": {"type": "integer"},
-        },
-        "required": ["name", "age"]
-    }
-
-    is_valid, reason = validate_json(sample_json, schema)
-    if is_valid:
-        print("JSON is valid.")
-    else:
-        print(f"JSON is invalid: {reason}")
