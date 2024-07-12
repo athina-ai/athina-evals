@@ -42,9 +42,9 @@ class JsonHelper:
 def validate_json(json_data, schema):
     try:
         validate(instance=json_data, schema=schema)
-        return True
+        return True, None
     except jsonschema.exceptions.ValidationError as err:
-        return False
+        return False, str(err)
 
 def extract_json_path(json_data, json_path):
     try:

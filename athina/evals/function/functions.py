@@ -2,7 +2,7 @@ import os
 import re
 import json
 import requests
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Tuple, Union
 from athina.evals.grounded.similarity import CosineSimilarity
 from athina.helpers.logger import logger
 from athina.errors.exceptions import NoOpenAiApiKeyException
@@ -606,15 +606,26 @@ def json_schema(
         actual_json (dict or str): The JSON string to check with the schema.
     """
     try:
+        # Load the actual JSON data from the input
         actual_json = _load_json(actual_json)
+        
+        # Retrieve the schema from the provided keyword arguments
         schema = _get_schema(kwargs)
         if not schema:
+            # Return failure if schema is not provided
             return {"result": False, "reason": "Schema not provided"}
-        if not (_validate_json_with_schema(actual_json, schema)):
-            return {"result": False, "reason": "Schema validation failed"}
-        return {"result": True, "reason": "Json schema passed"}
+        
+        # Validate the actual JSON against the schema
+        passed, reason = _validate_json_with_schema(actual_json, schema)
+        if not passed:
+            # Return failure if validation does not pass
+            return {"result": False, "reason": reason}
+        
+        # Return success if validation passes
+        return {"result": True, "reason": "JSON schema passed"}
     except Exception as e:
-        logger.error(f"Error occurred during eval: {e}")
+        # Log and raise any exceptions that occur during the process
+        logger.error(f"Error occurred during JSON schema validation: {e}")
         raise e
 
 def json_validation(
@@ -764,7 +775,7 @@ def _get_schema(kwargs: Dict[str, Any]) -> dict:
         return json.loads(schema.replace("\n", "").replace("\t", ""))
     return schema
 
-def _validate_json_with_schema(json_data: dict, schema: dict) -> bool:
+def _validate_json_with_schema(json_data: dict, schema: dict) -> Tuple[bool, str]:
     return validate_json(json_data, schema)
 
 def _apply_validation(actual_json: dict, expected_json: dict, validation: dict) -> bool:
