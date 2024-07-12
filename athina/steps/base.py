@@ -3,7 +3,7 @@ import json
 import logging
 from typing import Dict, Any, List, Iterable, Optional, Callable
 from pydantic import BaseModel
-from athina.helpers.json_helper import JsonHelper, JsonExtractor
+from athina.helpers.json import JsonHelper, JsonExtractor
 from athina.llms.abstract_llm_service import AbstractLlmService
 from athina.llms.openai_service import OpenAiService
 from athina.keys import OpenAiApiKey

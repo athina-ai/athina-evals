@@ -1,5 +1,5 @@
 from typing import Union, Dict, Iterable, Any
-from athina.helpers.json_helper import JsonExtractor
+from athina.helpers.json import JsonExtractor
 from athina.steps import Step
 
 

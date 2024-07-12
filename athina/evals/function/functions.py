@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Tuple, Union
 from athina.evals.grounded.similarity import CosineSimilarity
 from athina.helpers.logger import logger
 from athina.errors.exceptions import NoOpenAiApiKeyException
-from athina.helpers.json_helper import extract_json_path, validate_json
+from athina.helpers.json import extract_json_path, validate_json
 from athina.keys.openai_api_key import OpenAiApiKey
 from athina.llms.openai_service import OpenAiService
 import subprocess

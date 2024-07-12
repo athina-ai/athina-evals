@@ -1,7 +1,7 @@
 import os
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
-from athina.helpers.json_helper import JsonExtractor
+from athina.helpers.json import JsonExtractor
 from athina.interfaces.model import Model
 from athina.steps.base import Step
 from athina.llms.abstract_llm_service import AbstractLlmService
