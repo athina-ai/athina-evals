@@ -17,7 +17,6 @@ class ApiCall(Step):
         headers: Optional headers to include in the API request.
         params: Optional query parameters to include in the API request.
         body: Optional request body to include in the API request.
-        expected_status_codes: Expected HTTP status codes for a successful response.
     """
 
     url: str
@@ -25,7 +24,6 @@ class ApiCall(Step):
     headers: Optional[Dict[str, str]] = None
     params: Optional[Dict[str, Any]] = None
     body: Optional[str] = None
-    expected_status_codes: Iterable[int] = (200,)
     env: Environment = None
 
     class Config:
@@ -59,7 +57,10 @@ class ApiCall(Step):
             json=json.loads(self.body),
         )
 
-        if response.status_code in self.expected_status_codes:
-            return response.json()
-        else:
-            return None
+        return {
+            "status_code": response.status_code,
+            "response_text": response.text,
+            "headers": dict(response.headers)
+        }
+
+        return response
