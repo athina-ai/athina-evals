@@ -50,13 +50,13 @@ class OpenAiService(AbstractLlmService):
             )
             if response.choices[0].finish_reason == 'tool_calls':
                 tool_calls = [call.model_dump() for call in response.choices[0].message.tool_calls]
-                return json.dumps(tool_calls)
+                return json.dumps([{"arguments": call["function"]["arguments"], "name": call["function"]["name"]} for call in tool_calls])
             else:
                 prompt_response = response.choices[0].message.content
                 if not prompt_response:
                     if response.choices[0].message.tool_calls:
                         tool_calls = [call.model_dump() for call in response.choices[0].message.tool_calls]
-                        return json.dumps(tool_calls)
+                        return json.dumps([{"arguments": call["function"]["arguments"], "name": call["function"]["name"]} for call in tool_calls])
                     else:
                         return json.dumps(response.choices[0].message.__dict__)
                 return prompt_response
