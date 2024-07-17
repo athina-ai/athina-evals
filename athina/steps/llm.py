@@ -23,6 +23,10 @@ class ModelOptions(BaseModel):
     frequency_penalty: Optional[float] = None
     presence_penalty: Optional[float] = None
 
+class ToolConfig(BaseModel):
+    tool_choice: Optional[str] = None
+    tools: Optional[List[Any]] = None
+
 
 class PromptTemplate(BaseModel):
     messages: List[PromptMessage]
@@ -70,6 +74,7 @@ class PromptExecution(Step):
     template: PromptTemplate
     model: str
     model_options: ModelOptions
+    tool_config: Optional[ToolConfig] = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -101,9 +106,8 @@ class PromptExecution(Step):
 
         response = self.template.resolve(**input_data)
         response = self.llm_service.chat_completion(
-            response, model=self.model, **self.model_options.model_dump()
+            response, model=self.model, **self.model_options.model_dump(), **(self.tool_config.model_dump() if self.tool_config else {})
         )
-
         output_type = kwargs.get('output_type', None)
 
         if output_type:

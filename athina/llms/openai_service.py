@@ -6,7 +6,7 @@ from athina.keys import OpenAiApiKey
 from athina.interfaces.model import Model
 from athina.errors.exceptions import NoOpenAiApiKeyException
 from .abstract_llm_service import AbstractLlmService
-
+import json
 DEFAULT_TEMPERATURE = 0.0
 
 
@@ -48,7 +48,18 @@ class OpenAiService(AbstractLlmService):
             response = self.openai.chat.completions.create(
                 model=model, messages=messages, **kwargs
             )
-            return response.choices[0].message.content
+            if response.choices[0].finish_reason == 'tool_calls':
+                tool_calls = [call.model_dump() for call in response.choices[0].message.tool_calls]
+                return json.dumps(tool_calls)
+            else:
+                prompt_response = response.choices[0].message.content
+                if not prompt_response:
+                    if response.choices[0].message.tool_calls:
+                        tool_calls = [call.model_dump() for call in response.choices[0].message.tool_calls]
+                        return json.dumps(tool_calls)
+                    else:
+                        return json.dumps(response.choices[0].message.__dict__)
+                return prompt_response
         except Exception as e:
             print(f"Error in ChatCompletion: {e}")
             raise e
