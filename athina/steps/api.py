@@ -57,10 +57,14 @@ class ApiCall(Step):
             json=json.loads(self.body),
         )
 
+        if response.status_code >= 400:
+            return {
+                "status": "error",
+                "data": response.text,
+            }
+
         return {
-            "status_code": response.status_code,
-            "response_text": response.text,
-            "headers": dict(response.headers)
+            "status": "success",
+            "data": response.json(),
         }
 
-        return response
