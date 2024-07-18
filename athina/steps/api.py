@@ -15,14 +15,12 @@ class ApiCall(Step):
         url: The URL of the API endpoint to call.
         method: The HTTP method to use (e.g., 'GET', 'POST', 'PUT', 'DELETE').
         headers: Optional headers to include in the API request.
-        params: Optional query parameters to include in the API request.
         body: Optional request body to include in the API request.
     """
 
     url: str
     method: str
     headers: Optional[Dict[str, str]] = None
-    params: Optional[Dict[str, Any]] = None
     body: Optional[str] = None
     env: Environment = None
 
@@ -53,7 +51,6 @@ class ApiCall(Step):
             method=self.method,
             url=self.url,
             headers=self.headers,
-            params=self.params,
             json=json.loads(self.body),
         )
 

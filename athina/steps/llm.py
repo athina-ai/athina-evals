@@ -23,6 +23,9 @@ class ModelOptions(BaseModel):
     frequency_penalty: Optional[float] = None
     presence_penalty: Optional[float] = None
 
+class ToolConfig(BaseModel):
+    tool_choice: Optional[str] = None
+    tools: Optional[List[Any]] = None
 
 class PromptTemplate(BaseModel):
     messages: List[PromptMessage]
@@ -70,6 +73,7 @@ class PromptExecution(Step):
     template: PromptTemplate
     model: str
     model_options: ModelOptions
+    tool_config: Optional[ToolConfig] = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -99,30 +103,47 @@ class PromptExecution(Step):
         if not isinstance(input_data, dict) and self.input_key:
             raise ValueError("PromptExecution Error: Input data must be a dictionary")
 
-        response = self.template.resolve(**input_data)
-        response = self.llm_service.chat_completion(
-            response, model=self.model, **self.model_options.model_dump()
-        )
+        try:
+            tool_config_dump = self.tool_config.model_dump() if self.tool_config else {}
 
-        output_type = kwargs.get('output_type', None)
+            response = self.template.resolve(**input_data)
+            response = self.llm_service.chat_completion(
+                response, model=self.model, **self.model_options.model_dump(), **tool_config_dump
+            )
 
-        if output_type:
-            if output_type == "string":
-                if not isinstance(response, str):
-                    raise ValueError("LLM service response is not a string")
-            elif output_type == "array":
-                extracted_response = ExtractJsonFromString().execute(response)
-                if not isinstance(extracted_response, list):
-                    raise ValueError("LLM service response is not an array")
-                response = extracted_response
+            output_type = kwargs.get('output_type', None)
+            error = None
+            if output_type:
+                if output_type == "string":
+                    if not isinstance(response, str):
+                        error = "LLM response is not a string"
+                elif output_type == "array":
+                    extracted_response = ExtractJsonFromString().execute(response)
+                    if not isinstance(extracted_response, list):
+                        error = "LLM response is not an array"
+                    response = extracted_response
 
-            elif output_type == "object":
-                extracted_response = ExtractJsonFromString().execute(response)
-                if not isinstance(extracted_response, dict):
-                    raise ValueError("LLM service response is not an object")
-                response = extracted_response
+                elif output_type == "object":
+                    extracted_response = ExtractJsonFromString().execute(response)
+                    if not isinstance(extracted_response, dict):
+                        error = "LLM response is not an object"
+                    response = extracted_response
 
-        elif not isinstance(response, str):
-            raise ValueError("LLM service response is not a string")
+            elif not isinstance(response, str):
+                error = "LLM service response is not a string"
 
-        return response
+            if error:
+                return {
+                    "status": "error",
+                    "data": error
+                }
+            else: 
+                return {
+                    "status": "success",
+                    "data": response
+                }
+        except Exception as e:
+            return {
+                "status": "error",
+                "data": str(e)
+            }

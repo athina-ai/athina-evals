@@ -37,9 +37,17 @@ class ClassifyText(Step):
         marvin.settings.openai.api_key = self.llm_api_key
         marvin.settings.openai.chat.completions.model = self.language_model_id
 
-        result = marvin.classify(
-            input_text,
-            labels=self.labels,
-        )
-
-        return result
+        try:
+            result = marvin.classify(
+                input_text,
+                labels=self.labels,
+            )
+            return {
+                "status": "success",
+                "data": result,
+            }
+        except Exception as e:
+            return {
+                "status": "error",
+                "data": str(e),
+            }

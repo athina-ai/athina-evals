@@ -107,7 +107,14 @@ class CodeExecution(Step):
             byte_code = compile_restricted(self.code, '<inline>', 'exec')
             exec(byte_code, custom_globals, loc)
             result = loc['main'](**input_data)
+            return {
+                "status": "success",
+                "data": result,
+            }
         except Exception as e:
-            result = { "error": str(e) }
+            return {
+                "status": "error",
+                "data": str(e),
+            }
 
-        return result
+
