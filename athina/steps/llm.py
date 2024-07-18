@@ -26,6 +26,10 @@ class ModelOptions(BaseModel):
 class ToolConfig(BaseModel):
     tool_choice: Optional[str] = None
     tools: Optional[List[Any]] = None
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
 
 class PromptTemplate(BaseModel):
     messages: List[PromptMessage]
@@ -104,13 +108,10 @@ class PromptExecution(Step):
             raise ValueError("PromptExecution Error: Input data must be a dictionary")
 
         try:
-            tool_config_dump = self.tool_config.model_dump() if self.tool_config else {}
-
             response = self.template.resolve(**input_data)
             response = self.llm_service.chat_completion(
-                response, model=self.model, **self.model_options.model_dump(), **tool_config_dump
+                response, model=self.model, **self.model_options.model_dump(), **(self.tool_config.model_dump() if self.tool_config else {})
             )
-
             output_type = kwargs.get('output_type', None)
             error = None
             if output_type:
