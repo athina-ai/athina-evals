@@ -26,10 +26,6 @@ class ModelOptions(BaseModel):
 class ToolConfig(BaseModel):
     tool_choice: Optional[str] = None
     tools: Optional[List[Any]] = None
-<<<<<<< HEAD
-=======
-
->>>>>>> main
 
 class PromptTemplate(BaseModel):
     messages: List[PromptMessage]
