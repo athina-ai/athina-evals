@@ -37,6 +37,20 @@ class ExtractJsonPath(Step):
             else:
                 return None
             result = parse(self.json_path).find(input_json)
-            return [match.value for match in result]
-        except Exception:
-            return None
+            
+            if not result or len(result) == 0:
+                result = None
+            elif len(result) == 1:
+                result = result[0].value
+            else:
+                result = [match.value for match in result]
+
+            return {
+                "status": "success",
+                "data": result,
+            }
+        except Exception as e:
+            return {
+                "status": "error",
+                "data": str(e),
+            }

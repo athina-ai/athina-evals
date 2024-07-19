@@ -36,9 +36,18 @@ class ExtractEntities(Step):
         
         marvin.settings.openai.api_key = self.llm_api_key
         marvin.settings.openai.chat.completions.model = self.language_model_id
-
-        result = marvin.extract(
-            input_text,
-            instructions=self.instructions,
-        )
-        return result    
+        
+        try:
+            result = marvin.extract(
+                input_text,
+                instructions=self.instructions,
+            )
+            return {
+                "status": "success",
+                "data": result,
+            }
+        except Exception as e:
+            return {
+                "status": "error",
+                "data": str(e),
+            }

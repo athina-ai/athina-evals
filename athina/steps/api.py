@@ -15,17 +15,13 @@ class ApiCall(Step):
         url: The URL of the API endpoint to call.
         method: The HTTP method to use (e.g., 'GET', 'POST', 'PUT', 'DELETE').
         headers: Optional headers to include in the API request.
-        params: Optional query parameters to include in the API request.
         body: Optional request body to include in the API request.
-        expected_status_codes: Expected HTTP status codes for a successful response.
     """
 
     url: str
     method: str
     headers: Optional[Dict[str, str]] = None
-    params: Optional[Dict[str, Any]] = None
     body: Optional[str] = None
-    expected_status_codes: Iterable[int] = (200,)
     env: Environment = None
 
     class Config:
@@ -55,11 +51,17 @@ class ApiCall(Step):
             method=self.method,
             url=self.url,
             headers=self.headers,
-            params=self.params,
             json=json.loads(self.body),
         )
 
-        if response.status_code in self.expected_status_codes:
-            return response.json()
-        else:
-            return None
+        if response.status_code >= 400:
+            return {
+                "status": "error",
+                "data": response.text,
+            }
+
+        return {
+            "status": "success",
+            "data": response.json(),
+        }
+

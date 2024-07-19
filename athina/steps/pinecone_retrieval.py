@@ -73,6 +73,14 @@ class PineconeRetrieval(Step):
 
         try:
             response = self._retriever.retrieve(input_text)
-            return [node.get_content() for node in response]
+            result = [node.get_content() for node in response]
+            return {
+                "status": "success",
+                "data": result,
+            }
         except Exception as e:
-            return None
+            return {
+                "status": "error",
+                "data": str(e),
+            }
+
