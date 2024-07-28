@@ -1,43 +1,45 @@
 import math
 from abc import abstractmethod
-from typing import Optional
+from typing import Dict, Optional, Any, List
+
+from pydantic import BaseModel
 from athina.interfaces.athina import AthinaExperiment
 from athina.interfaces.model import Model
 import time
-from typing import Optional, Any, List
 from athina.interfaces.result import EvalResult, EvalResultMetric
-from athina.interfaces.model import Model
 from athina.helpers.logger import logger
 from ..base_evaluator import BaseEvaluator
 from datasets import Dataset
-from langchain_openai.chat_models import ChatOpenAI
+from langchain_openai.chat_models import ChatOpenAI, AzureChatOpenAI
 from ragas.llms import LangchainLLM
 from ragas import evaluate
 from athina.keys import OpenAiApiKey
 
+class ConfigToSend(BaseModel):
+    completion_config: List[Dict[str, Any]]
+    env_config: List[Dict[str, Any]]
 
 class RagasEvaluator(BaseEvaluator):
     _model: str
-    _openai_api_key: Optional[str]
+    _provider: str
+    _config: Optional[ConfigToSend] = None
+    _api_key: Optional[str]
     _experiment: Optional[AthinaExperiment] = None
     _failure_threshold: Optional[float] = None
 
     def __init__(
         self,
-        openai_api_key: Optional[str] = None,
-        model: Optional[str] = None,
+        api_key: str,
+        model: str,
+        provider: str,
+        config: Optional[ConfigToSend] = None,
         failure_threshold: Optional[float] = None
     ):
-        if model is None:
-            self._model = self.default_model
-        else:
-            self._model = model
+        self._model = model
+        self._provider = provider
+        self._api_key = api_key
+        self._config = config
         
-        if openai_api_key is None:
-            self._openai_api_key = OpenAiApiKey.get_key()
-        else:
-            self._openai_api_key = openai_api_key
-
         if failure_threshold is not None:
             self._failure_threshold = failure_threshold
 
@@ -57,7 +59,29 @@ class RagasEvaluator(BaseEvaluator):
         raise NotImplementedError
     
     def _get_model(self):
-        return ChatOpenAI(model_name=self._model, api_key=self._openai_api_key)
+        if self._provider == 'openai':
+            return ChatOpenAI(model_name=self._model, api_key=self._api_key)
+        elif self._provider == 'azure':
+            # Extracting azure configuration from completion_config
+            azure_endpoint = None
+            api_version = None
+            for item in self._config.completion_config:
+                if "api_base" in item:
+                    azure_endpoint = item["api_base"]
+                if "api_version" in item:
+                    api_version = item["api_version"]
+            
+            if azure_endpoint is None or api_version is None:
+                raise ValueError("Azure configuration is missing required fields 'api_base' or 'api_version'")
+
+            return AzureChatOpenAI(
+                api_version=api_version,
+                azure_endpoint=azure_endpoint,
+                azure_deployment=self._model,
+                api_key=self._api_key
+            )
+        else:
+            raise ValueError(f"Unsupported provider: {self._provider}")
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
@@ -95,5 +119,3 @@ class RagasEvaluator(BaseEvaluator):
             metrics=metrics,
         )
         return {k: v for k, v in llm_eval_result.items() if v is not None}
-
-
