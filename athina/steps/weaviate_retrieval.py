@@ -91,3 +91,9 @@ class WeaviateRetrieval(Step):
                 "status": "error",
                 "data": str(e),
             }
+    
+    def close(self):
+        """Closes the connection to the Weaviate client."""
+        if self._client:
+            self._client.close()
+            self._client = None
