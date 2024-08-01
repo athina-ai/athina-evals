@@ -8,6 +8,7 @@ from athina.steps.extract_entities import ExtractEntities
 from athina.steps.classify_text import ClassifyText
 from athina.steps.pinecone_retrieval import PineconeRetrieval
 from athina.steps.qdrant_retrieval import QdrantRetrieval
+from athina.steps.weaviate_retrieval import WeaviateRetrieval
 from athina.steps.transform import ExtractJsonFromString
 
 __all__ = [
@@ -25,4 +26,5 @@ __all__ = [
     "ClassifyText",
     "PineconeRetrieval",
     "QdrantRetrieval",
+    "WeaviateRetrieval",
 ]
