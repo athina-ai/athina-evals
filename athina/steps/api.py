@@ -21,12 +21,14 @@ class ApiCall(Step):
         url: The URL of the API endpoint to call.
         method: The HTTP method to use (e.g., 'GET', 'POST', 'PUT', 'DELETE').
         headers: Optional headers to include in the API request.
+        params: Optional params to include in the API request.
         body: Optional request body to include in the API request.
     """
 
     url: str
     method: str
     headers: Optional[Dict[str, str]] = None
+    params: Optional[Dict[str, str]] = None
     body: Optional[str] = None
     env: Environment = None
 
@@ -54,6 +56,15 @@ class ApiCall(Step):
             prepared_input_data = prepare_input_data(input_data)
             self.body = body_template.render(**prepared_input_data)
         
+        if self.headers is not None:
+            for key, value in self.headers.items():
+                self.headers[key] = self.env.from_string(value).render(**prepared_input_data)
+
+        if self.params is not None:
+            for key, value in self.params.items():
+                self.params[key] = self.env.from_string(value).render(**prepared_input_data)
+                self.params[key] = requests.utils.quote(self.params[key])
+
         retries = 3  # number of retries
         timeout = 5  # seconds
         for attempt in range(retries):
@@ -62,6 +73,7 @@ class ApiCall(Step):
                     method=self.method,
                     url=self.url,
                     headers=self.headers,
+                    params=self.params,
                     json=json.loads(self.body) if self.body else None,
                     timeout=timeout,
                 )
