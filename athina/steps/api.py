@@ -21,6 +21,7 @@ class ApiCall(Step):
         url: The URL of the API endpoint to call.
         method: The HTTP method to use (e.g., 'GET', 'POST', 'PUT', 'DELETE').
         headers: Optional headers to include in the API request.
+        params: Optional params to include in the API request.
         body: Optional request body to include in the API request.
     """
 
