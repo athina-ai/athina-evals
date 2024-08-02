@@ -822,7 +822,7 @@ def _validate_llm_similarity(actual_value: str, expected_value: str, validation:
 
     OpenAiApiKey.set_key(open_ai_api_key)
     llm_service = OpenAiService()
-    messages = _get_messages(validation)
+    messages = _get_messages(validation, actual_value, expected_value)
 
     response = llm_service.json_completion(
         model=validation.get("model", "gpt-3.5-turbo"),
