@@ -6,6 +6,7 @@ import requests
 from athina.steps import Step
 from jinja2 import Environment
 from athina.helpers.jinja_helper import PreserveUndefined
+import urllib.parse
 
 
 def prepare_input_data(data):
@@ -50,11 +51,12 @@ class ApiCall(Step):
             variable_end_string='}}',
             undefined=PreserveUndefined
         )
+        prepared_body = None
         # Add a filter to the Jinja2 environment to convert the input data to JSON
         if self.body is not None:
             body_template = self.env.from_string(self.body)
             prepared_input_data = prepare_input_data(input_data)
-            self.body = body_template.render(**prepared_input_data)
+            prepared_body = body_template.render(**prepared_input_data)
         
         if self.headers is not None:
             for key, value in self.headers.items():
@@ -63,7 +65,7 @@ class ApiCall(Step):
         if self.params is not None:
             for key, value in self.params.items():
                 self.params[key] = self.env.from_string(value).render(**prepared_input_data)
-                self.params[key] = requests.utils.quote(self.params[key])
+                self.params[key] =  urllib.parse.quote(self.params[key], safe='')
 
         retries = 3  # number of retries
         timeout = 5  # seconds
@@ -74,7 +76,7 @@ class ApiCall(Step):
                     url=self.url,
                     headers=self.headers,
                     params=self.params,
-                    json=json.loads(self.body) if self.body else None,
+                    json=json.loads(prepared_body, strict=False) if prepared_body else None,
                     timeout=timeout,
                 )
                 if response.status_code >= 400:
