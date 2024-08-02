@@ -785,7 +785,7 @@ def _apply_validation(actual_json: dict, expected_json: dict, validation: dict) 
     expected_value = extract_json_path(expected_json, json_path)
 
     if validating_function == "Equals":
-        return _validate_equals(actual_value, expected_value, json_path)
+        return _validate_equals(actual_value, expected_value, validation, json_path)
     elif validating_function == "Cosine Similarity":
         return _validate_cosine_similarity(actual_value, expected_value, validation, json_path)
     elif validating_function == "LLM Similarity":
@@ -795,7 +795,11 @@ def _apply_validation(actual_json: dict, expected_json: dict, validation: dict) 
         logger.error(error_message)
         return False, error_message
 
-def _validate_equals(actual_value: Any, expected_value: Any, json_path: str) -> bool:
+def _validate_equals(actual_value: Any, expected_value: Any, validation: dict, json_path: str) -> bool:
+    case_sensitive = validation.get("case_sensitive", False)
+    if not case_sensitive and isinstance(actual_value, str) and isinstance(expected_value, str):
+        actual_value = str(actual_value).lower()
+        expected_value = str(expected_value).lower()
     if actual_value != expected_value:
         error_message = f"JSON path {json_path} does not match expected value"
         logger.error(error_message)
@@ -818,27 +822,11 @@ def _validate_llm_similarity(actual_value: str, expected_value: str, validation:
 
     OpenAiApiKey.set_key(open_ai_api_key)
     llm_service = OpenAiService()
-
-    system_message = """
-    You are an expert at evaluating whether two given strings are similar or not. Consider semantic similarity also while evaluating.
-    You MUST return a JSON object with the following fields: 
-    - result: Result must be either 'Pass' or 'Fail'.
-    - explanation: An explanation of why the result is Pass or Fail.
-    - score: Any matching score you have used to come to the result.
-    """
-
-    user_message = f"""
-    Following are two strings:
-    1. String 1: {actual_value}.
-    2. String 2: {expected_value}.
-    """
+    messages = _get_messages(validation, actual_value, expected_value)
 
     response = llm_service.json_completion(
         model=validation.get("model", "gpt-3.5-turbo"),
-        messages=[
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": user_message},
-        ],
+        messages=messages,
         temperature=0.0,
     )
 
@@ -854,6 +842,34 @@ def _validate_llm_similarity(actual_value: str, expected_value: str, validation:
         error_message = f"Error occurred during LLM similarity validation for {json_path}"
         logger.error(error_message)
         return False, error_message
+
+def _get_messages(validation: dict, actual_value: Any, expected_value: Any) -> list:
+    if validation.get("system_message") and validation.get("user_message"):
+        return [
+            {"role": "system", "content": validation.get("system_message")},
+            {"role": "user", "content": validation.get("user_message")},
+        ]
+    else:
+        # Default messages
+        system_message = """
+        You are an expert at evaluating whether two given strings are similar or not. Consider semantic similarity also while evaluating.
+        You MUST return a JSON object with the following fields: 
+        - result: Result must be either 'Pass' or 'Fail'.
+        - explanation: An explanation of why the result is Pass or Fail.
+        - score: Any matching score you have used to come to the result.
+        """
+
+        user_message = f"""
+        Following are two strings:
+        1. String 1: {actual_value}.
+        2. String 2: {expected_value}.
+        """
+
+        return [
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_message},
+        ]
+
 
 """
 A dictionary containing the available operations and their corresponding functions.
