@@ -11,6 +11,8 @@ from athina.keys.openai_api_key import OpenAiApiKey
 from athina.llms.openai_service import OpenAiService
 import subprocess
 import tempfile 
+from jinja2 import Environment
+from athina.helpers.jinja_helper import PreserveUndefined
 
 
 def _standardize_url(url):
@@ -845,9 +847,17 @@ def _validate_llm_similarity(actual_value: str, expected_value: str, validation:
 
 def _get_messages(validation: dict, actual_value: Any, expected_value: Any) -> list:
     if validation.get("system_message") and validation.get("user_message"):
+        env = Environment(
+            variable_start_string='{{',
+            variable_end_string='}}',
+            undefined=PreserveUndefined
+        )
+        render_context = {"actual": actual_value, "expected": expected_value}
+        system_message = env.from_string(validation.get("system_message")).render(render_context)
+        user_message = env.from_string(validation.get("user_message")).render(render_context)
         return [
-            {"role": "system", "content": validation.get("system_message")},
-            {"role": "user", "content": validation.get("user_message")},
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_message},
         ]
     else:
         # Default messages
