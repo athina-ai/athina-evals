@@ -1,11 +1,11 @@
 import math
+import time
 from abc import abstractmethod
 from typing import Dict, Optional, Any, List
 
-from pydantic import BaseModel
 from athina.interfaces.athina import AthinaExperiment
+from athina.interfaces.custom_model_config import CustomModelConfig
 from athina.interfaces.model import Model
-import time
 from athina.interfaces.result import EvalResult, EvalResultMetric
 from athina.helpers.logger import logger
 from ..base_evaluator import BaseEvaluator
@@ -13,16 +13,11 @@ from datasets import Dataset
 from langchain_openai.chat_models import ChatOpenAI, AzureChatOpenAI
 from ragas.llms import LangchainLLM
 from ragas import evaluate
-from athina.keys import OpenAiApiKey
-
-class ConfigToSend(BaseModel):
-    completion_config: List[Dict[str, Any]]
-    env_config: List[Dict[str, Any]]
 
 class RagasEvaluator(BaseEvaluator):
     _model: str
     _provider: str
-    _config: Optional[ConfigToSend] = None
+    _config: Optional[CustomModelConfig] = None
     _api_key: Optional[str]
     _experiment: Optional[AthinaExperiment] = None
     _failure_threshold: Optional[float] = None
@@ -32,7 +27,7 @@ class RagasEvaluator(BaseEvaluator):
         api_key: str,
         model: str,
         provider: str,
-        config: Optional[ConfigToSend] = None,
+        config: Optional[CustomModelConfig] = None,
         failure_threshold: Optional[float] = None
     ):
         self._model = model
