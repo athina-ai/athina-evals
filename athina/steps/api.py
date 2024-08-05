@@ -65,7 +65,6 @@ class ApiCall(Step):
         if self.params is not None:
             for key, value in self.params.items():
                 self.params[key] = self.env.from_string(value).render(**prepared_input_data)
-                self.params[key] =  urllib.parse.quote(self.params[key], safe='')
 
         retries = 3  # number of retries
         timeout = 5  # seconds
