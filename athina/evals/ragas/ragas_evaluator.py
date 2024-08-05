@@ -1,7 +1,7 @@
 import math
 import time
 from abc import abstractmethod
-from typing import Dict, Optional, Any, List
+from typing import Optional, Any
 
 from athina.interfaces.athina import AthinaExperiment
 from athina.interfaces.custom_model_config import CustomModelConfig
