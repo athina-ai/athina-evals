@@ -4,9 +4,9 @@ from typing import Optional, Union, Dict, Any
 from pydantic import PrivateAttr
 from athina.steps import Step
 from jinja2 import Environment
-from llama_index.vector_stores import QdrantVectorStore
-from llama_index import VectorStoreIndex
-from llama_index.retrievers import VectorIndexRetriever
+from llama_index.vector_stores.qdrant import QdrantVectorStore
+from llama_index.core import VectorStoreIndex
+from llama_index.core.retrievers import VectorIndexRetriever
 import qdrant_client
 
 
