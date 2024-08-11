@@ -65,6 +65,6 @@ class RagasAnswerCorrectness(RagasEvaluator):
         data = {
             "question": [query],
             "answer": [response],
-            "ground_truths": [[expected_response]]
+            "ground_truth": [expected_response]
         }
         return data

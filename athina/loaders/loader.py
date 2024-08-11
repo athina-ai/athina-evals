@@ -4,7 +4,7 @@ from athina.interfaces.data import DataPoint as BaseDataPoint
 from .base_loader import BaseLoader
 from dataclasses import asdict
 from athina.services.athina_api_service import AthinaApiService
-from llama_index.indices.query.base import BaseQueryEngine
+from llama_index.core.query_engine import BaseQueryEngine
 
 
 class DataPoint(BaseDataPoint):
