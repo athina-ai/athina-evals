@@ -61,7 +61,7 @@ class ContextContainsEnoughInformation(LlmEvaluator):
     def is_failure(self, result) -> Optional[bool]:
         return bool(result == "Fail")
 
-    def _user_message(self, query: str, context: str, **kwargs) -> str:
+    def _user_message(self, query: str, context: List[str], **kwargs) -> str:
         """
         Generates data for evaluation.
 

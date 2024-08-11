@@ -63,7 +63,7 @@ class Faithfulness(LlmEvaluator):
 
     def _user_message(
         self,
-        context: str,
+        context: List[str],
         response: str,
         **kwargs,
     ) -> str:
