@@ -2,7 +2,6 @@ import math
 import time
 from abc import abstractmethod
 from typing import Optional, Any
-
 from athina.interfaces.athina import AthinaExperiment
 from athina.interfaces.custom_model_config import CustomModelConfig
 from athina.interfaces.model import Model
@@ -89,7 +88,10 @@ class RagasEvaluator(BaseEvaluator):
             self.ragas_metric.llm = LangchainLLMWrapper(langchain_llm=self._get_model())
             data = self.generate_data_to_evaluate(**kwargs)
             dataset = Dataset.from_dict(data)
+
+            # Directly call evaluate, no need to use asyncio.run or loop.run_until_complete
             scores = evaluate(dataset, metrics=[self.ragas_metric])
+
             metric_value = scores[self.ragas_metric_name]
             if isinstance(metric_value, (int, float)) and not math.isnan(metric_value):
                 metrics.append(EvalResultMetric(id=self.metric_ids[0], value=metric_value))
