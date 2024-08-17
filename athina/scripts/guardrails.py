@@ -5,7 +5,7 @@ def install():
         try:
             from guardrails import Guard
         except Exception as e:
-            result = subprocess.call(["pip", "install", "-U", "guardrails-ai==0.4.2"])
+            result = subprocess.call(["pip", "install", "-U", "guardrails-ai==0.5.4"])
             if result != 0:
                 print("Guardrails installation failed")
 
