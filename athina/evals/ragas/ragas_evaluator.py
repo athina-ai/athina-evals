@@ -1,6 +1,5 @@
 import math
 import time
-import asyncio
 from abc import abstractmethod
 from typing import Optional, Any
 from athina.interfaces.athina import AthinaExperiment
