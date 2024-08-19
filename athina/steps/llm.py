@@ -1,6 +1,6 @@
 import os
-from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
+from pydantic import BaseModel, HttpUrl
+from typing import List, Dict, Any, Optional, Union
 from athina.helpers.json import JsonExtractor
 from athina.interfaces.model import Model
 from athina.steps.base import Step
@@ -12,9 +12,20 @@ from athina.helpers.jinja_helper import PreserveUndefined
 from athina.steps.transform import ExtractJsonFromString
 
 
+class ImageUrl(BaseModel):
+    url: HttpUrl
+
+
+class ContentItem(BaseModel):
+    type: str
+    text: Optional[str] = None
+    image_url: Optional[ImageUrl] = None
+
+
 class PromptMessage(BaseModel):
     role: str
-    content: str
+    content: Union[str, List[ContentItem]]
+
 
 class ModelOptions(BaseModel):
     max_tokens: Optional[int] = None
@@ -35,8 +46,8 @@ class PromptTemplate(BaseModel):
         arbitrary_types_allowed = True
         
     @staticmethod
-    def simple(message: str) -> "PromptTemplate":
-        """Create a PromptTemplate from a string representation."""
+    def simple(message: Union[str, List[ContentItem]]) -> "PromptTemplate":
+        """Create a PromptTemplate from a string or array of content item (multimodal input) representation."""
         messages = [PromptMessage(role="user", content=message)]
         return PromptTemplate(messages=messages)
 
@@ -51,11 +62,22 @@ class PromptTemplate(BaseModel):
         )
         resolved_messages = []
         for message in self.messages:
-            content_template = self.env.from_string(message.content)
-            content = content_template.render(**kwargs)
-            resolved_message = PromptMessage(role=message.role, content=content)
-            resolved_messages.append(resolved_message)
+            if isinstance(message.content, str):
+                content_template = self.env.from_string(message.content)
+                content = content_template.render(**kwargs)
+                resolved_message = PromptMessage(role=message.role, content=content)
+            elif isinstance(message.content, list):  # assumes image url will not refer to any variable inside it
+                content_items = []
+                for item in message.content:
+                    content_item = item.model_copy()
+                    if item.text:
+                        content_item.text = self.env.from_string(item.text).render(**kwargs)
+                    content_items.append(content_item)
+                resolved_message = PromptMessage(role=message.role, content=content_items)
+            else:
+                raise ValueError("Unsupported content type in message")
 
+            resolved_messages.append(resolved_message)
         return resolved_messages
 
 
@@ -86,7 +108,7 @@ class PromptExecution(Step):
         arbitrary_types_allowed = True
 
     @staticmethod
-    def simple(message: str, model: str = Model.GPT4_O.value) -> "PromptExecution":
+    def simple(message: Union[str, List[ContentItem]], model: str = Model.GPT4_O.value) -> "PromptExecution":
         OpenAiApiKey.set_key(os.getenv("OPENAI_API_KEY"))
         openai_service = OpenAiService()
         return PromptExecution(
