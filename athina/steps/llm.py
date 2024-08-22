@@ -1,6 +1,6 @@
 import os
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 from athina.helpers.json import JsonExtractor
 from athina.interfaces.model import Model
 from athina.steps.base import Step
@@ -24,7 +24,7 @@ class ModelOptions(BaseModel):
     presence_penalty: Optional[float] = None
 
 class ToolConfig(BaseModel):
-    tool_choice: Optional[str] = None
+    tool_choice: Optional[Union[str, Dict[str, Any]]] = None
     tools: Optional[List[Any]] = None
 
 class PromptTemplate(BaseModel):
