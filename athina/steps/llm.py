@@ -86,13 +86,14 @@ class PromptExecution(Step):
         arbitrary_types_allowed = True
 
     @staticmethod
-    def simple(message: str, model: str = Model.GPT4_O.value) -> "PromptExecution":
+    def simple(message: str, model: str = Model.GPT4_O.value, model_options: ModelOptions = {}) -> "PromptExecution":
         OpenAiApiKey.set_key(os.getenv("OPENAI_API_KEY"))
         openai_service = OpenAiService()
         return PromptExecution(
             llm_service=openai_service,
             template=PromptTemplate.simple(message),
             model=model,
+            model_options=model_options
         )
 
     def execute(self, input_data: dict, **kwargs) -> str:

@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Optional, Dict
+import asyncio
+import traceback
 from athina.helpers.logger import logger
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.helpers.dataset_helper import generate_unique_dataset_name
@@ -8,8 +10,6 @@ from athina.interfaces.data import DataPoint
 from athina.interfaces.result import BatchRunResult, EvalResult, GuardResult
 from athina.services.athina_api_service import AthinaApiService
 from athina.datasets import Dataset
-import traceback
-
 
 class BaseEvaluator(ABC):
     
@@ -60,7 +60,6 @@ class BaseEvaluator(ABC):
     # Common methods
     def _examples_str(self) -> str:
         return "" if self.examples is None else "\n".join(map(str, self.examples))
-
 
     def validate_args(self, **kwargs) -> None:
         """
@@ -150,7 +149,7 @@ class BaseEvaluator(ABC):
         with ThreadPoolExecutor(max_workers=max_parallel_evals) as executor:
             # Submit all tasks to the executor and store them with their original index
             future_to_index = {
-                executor.submit(self._evaluate, **entry): i
+                executor.submit(self._evaluate_in_thread, **entry): i
                 for i, entry in enumerate(data)
             }
 
@@ -168,6 +167,22 @@ class BaseEvaluator(ABC):
                     results[index] = None
 
             return results
+
+    def _evaluate_in_thread(self, **kwargs):
+        try:
+            loop = asyncio.get_event_loop()
+        except (RuntimeError, AttributeError):
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+        # Execute the synchronous evaluation
+        result = self._evaluate(**kwargs)
+
+        # Close the loop if it was newly created
+        if not loop.is_running():
+            loop.close()
+
+        return result
 
     def _run_batch_generator(self, data: List[DataPoint]):
         """
@@ -240,7 +255,6 @@ class BaseEvaluator(ABC):
             self._log_eval_results_to_athina(eval_results, dataset.id)
             print(f"You can view your dataset at: {Dataset.dataset_link(dataset.id)}")
         
-
         return BatchRunResult(
             eval_results=eval_results,
         )
