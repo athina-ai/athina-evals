@@ -9,7 +9,7 @@ from athina.steps.classify_text import ClassifyText
 from athina.steps.pinecone_retrieval import PineconeRetrieval
 from athina.steps.qdrant_retrieval import QdrantRetrieval
 from athina.steps.weaviate_retrieval import WeaviateRetrieval
-from athina.steps.transform import ExtractJsonFromString
+from athina.steps.transform import ExtractJsonFromString, ExtractNumberFromString
 
 __all__ = [
     "Step",
@@ -21,6 +21,7 @@ __all__ = [
     "Chain",
     "PromptExecution",
     "ExtractJsonFromString",
+    "ExtractNumberFromString",
     "ApiCall",
     "ExtractEntities",
     "ClassifyText",

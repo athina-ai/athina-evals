@@ -9,7 +9,7 @@ from athina.keys import OpenAiApiKey
 from athina.llms.openai_service import OpenAiService
 from jinja2 import Environment
 from athina.helpers.jinja_helper import PreserveUndefined
-from athina.steps.transform import ExtractJsonFromString
+from athina.steps.transform import ExtractJsonFromString, ExtractNumberFromString
 
 
 class PromptMessage(BaseModel):
@@ -114,6 +114,12 @@ class PromptExecution(Step):
                 if output_type == "string":
                     if not isinstance(response, str):
                         error = "LLM response is not a string"
+                elif output_type == "number":
+                    extracted_response = ExtractNumberFromString().execute(response)
+                    if not isinstance(extracted_response, (int, float)):
+                        error = "LLM response is not an number"
+                    response = extracted_response
+
                 elif output_type == "array":
                     extracted_response = ExtractJsonFromString().execute(response)
                     if not isinstance(extracted_response, list):
