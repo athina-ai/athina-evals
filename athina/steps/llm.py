@@ -117,7 +117,7 @@ class PromptExecution(Step):
                 elif output_type == "number":
                     extracted_response = ExtractNumberFromString().execute(response)
                     if not isinstance(extracted_response, (int, float)):
-                        error = "LLM response is not an number"
+                        error = "LLM response is not a number"
                     response = extracted_response
 
                 elif output_type == "array":
