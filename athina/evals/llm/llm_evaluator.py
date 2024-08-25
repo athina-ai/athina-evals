@@ -119,7 +119,6 @@ class LlmEvaluator(BaseEvaluator):
 
         # Construct Prompt
         messages = self._prompt_messages(**kwargs)
-        print(messages)
         # Run the LLM Completion
 
         chat_completion_response_json: dict = self.llm_service.json_completion(
