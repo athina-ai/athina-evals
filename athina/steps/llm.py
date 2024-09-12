@@ -109,25 +109,26 @@ class PromptExecution(Step):
             response = self.llm_service.chat_completion(
                 response, model=self.model, **self.model_options.model_dump(), **(self.tool_config.model_dump() if self.tool_config else {})
             )
+            llmresponse = response["value"]
             output_type = kwargs.get('output_type', None)
             error = None
             if output_type:
                 if output_type == "string":
-                    if not isinstance(response, str):
+                    if not isinstance(llmresponse, str):
                         error = "LLM response is not a string"
                 elif output_type == "array":
-                    extracted_response = ExtractJsonFromString().execute(response)
+                    extracted_response = ExtractJsonFromString().execute(llmresponse)
                     if not isinstance(extracted_response, list):
                         error = "LLM response is not an array"
                     response = extracted_response
 
                 elif output_type == "object":
-                    extracted_response = ExtractJsonFromString().execute(response)
+                    extracted_response = ExtractJsonFromString().execute(llmresponse)
                     if not isinstance(extracted_response, dict):
                         error = "LLM response is not an object"
                     response = extracted_response
 
-            elif not isinstance(response, str):
+            elif not isinstance(llmresponse, str):
                 error = "LLM service response is not a string"
 
             if error:
@@ -138,7 +139,8 @@ class PromptExecution(Step):
             else: 
                 return {
                     "status": "success",
-                    "data": response
+                    "data": response["value"],
+                    "metadata": response["metadata"]
                 }
         except Exception as e:
             return {
