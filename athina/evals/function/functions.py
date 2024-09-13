@@ -13,7 +13,7 @@ import subprocess
 import tempfile 
 from jinja2 import Environment
 from athina.helpers.jinja_helper import PreserveUndefined
-
+from textatistic import Textatistic
 
 def _standardize_url(url):
     """
@@ -714,6 +714,7 @@ def _get_result_from_code(code, **input_data):
             'any': any,
             'isinstance': isinstance,
             'issubclass': issubclass,
+            'Textatistic': Textatistic,
             'Exception': Exception,
             'ValueError': ValueError,
             'TypeError': TypeError,

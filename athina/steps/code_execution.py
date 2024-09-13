@@ -4,6 +4,7 @@ import subprocess
 import os
 import json
 import re
+from textatistic import Textatistic
 import tempfile 
 
 class CodeExecution(Step):
@@ -77,6 +78,7 @@ class CodeExecution(Step):
                 'any': any,
                 'isinstance': isinstance,
                 'issubclass': issubclass,
+                'Textatistic': Textatistic,
                 'Exception': Exception,
                 'ValueError': ValueError,
                 'TypeError': TypeError,
