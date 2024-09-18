@@ -95,7 +95,8 @@ class CodeExecution(Step):
                 'json': json,
                 're': re,
                 '_getitem_': default_guarded_getitem,
-                '_getiter_': default_guarded_getiter
+                '_getiter_': default_guarded_getiter,
+                '_write_': lambda x: x
             })
             # Whitelist of allowed modules
             allowed_modules = {'json', 're'}
