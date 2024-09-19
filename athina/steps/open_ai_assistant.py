@@ -1,4 +1,4 @@
-# Step to classify text into one of the provided labels.
+# Step to chat with OpenAI's Assistant API.
 from typing import Union, Dict, Any
 from athina.steps import Step
 from openai import OpenAI
