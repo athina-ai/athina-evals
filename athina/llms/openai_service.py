@@ -118,6 +118,7 @@ class OpenAiService(AbstractLlmService):
                     messages=messages,
                     **kwargs,
                 )
+                chat_completion_response = chat_completion_response["value"]
 
             # Extract JSON object from LLM response
             return JsonHelper.extract_json_from_text(chat_completion_response)
