@@ -7,6 +7,8 @@ from athina.interfaces.model import Model
 from athina.errors.exceptions import NoOpenAiApiKeyException
 from .abstract_llm_service import AbstractLlmService
 import json
+import time 
+
 DEFAULT_TEMPERATURE = 0.0
 
 
@@ -45,21 +47,35 @@ class OpenAiService(AbstractLlmService):
         if 'temperature' not in kwargs:
             kwargs['temperature'] = DEFAULT_TEMPERATURE
         try:
+            start_time = time.time()
             response = self.openai.chat.completions.create(
                 model=model, messages=messages, **kwargs
             )
+            end_time = time.time()
+            completion_time = (end_time - start_time) * 1000
+            metadata = json.dumps({
+                "usage": {
+                    "completion_tokens": response.usage.completion_tokens,
+                    "prompt_tokens": response.usage.prompt_tokens,
+                    "total_tokens": response.usage.total_tokens,
+                },
+                "response_time": completion_time
+            })
             if response.choices[0].finish_reason == 'tool_calls':
                 tool_calls = [call.model_dump() for call in response.choices[0].message.tool_calls]
-                return json.dumps([{"arguments": call["function"]["arguments"], "name": call["function"]["name"]} for call in tool_calls])
+                tool_calls_data = [{"arguments": call["function"]["arguments"], "name": call["function"]["name"]} for call in tool_calls]
+                return {"value": json.dumps(tool_calls_data), "metadata": metadata}
             else:
                 prompt_response = response.choices[0].message.content
+                
                 if not prompt_response:
                     if response.choices[0].message.tool_calls:
                         tool_calls = [call.model_dump() for call in response.choices[0].message.tool_calls]
-                        return json.dumps([{"arguments": call["function"]["arguments"], "name": call["function"]["name"]} for call in tool_calls])
+                        tool_calls_data = [{"arguments": call["function"]["arguments"], "name": call["function"]["name"]} for call in tool_calls]
+                        return {"value": json.dumps(tool_calls_data), "metadata": metadata}
                     else:
-                        return json.dumps(response.choices[0].message.__dict__)
-                return prompt_response
+                        return {"value": json.dumps(response.choices[0].message.__dict__), "metadata": metadata}
+                return {"value": prompt_response, "metadata": metadata}
         except Exception as e:
             print(f"Error in ChatCompletion: {e}")
             raise e
