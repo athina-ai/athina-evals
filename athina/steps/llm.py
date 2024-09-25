@@ -104,19 +104,21 @@ class PromptExecution(Step):
             raise ValueError("PromptExecution Error: Input data must be a dictionary")
 
         try:
-            response = self.template.resolve(**input_data)
-            response = self.llm_service.chat_completion(
-                response, model=self.model, **self.model_options.model_dump(), **(self.tool_config.model_dump() if self.tool_config else {})
+            messages = self.template.resolve(**input_data)
+            llm_service_response = self.llm_service.chat_completion(
+                messages, model=self.model, **self.model_options.model_dump(), **(self.tool_config.model_dump() if self.tool_config else {})
             )
-            llmresponse = response["value"]
+            llmresponse = llm_service_response["value"]
             output_type = kwargs.get('output_type', None)
             error = None
             if output_type:
                 if output_type == "string":
                     if not isinstance(llmresponse, str):
                         error = "LLM response is not a string"
+                    response = llmresponse
+
                 elif output_type == "number":
-                    extracted_response = ExtractNumberFromString().execute(response)
+                    extracted_response = ExtractNumberFromString().execute(llmresponse)
                     if not isinstance(extracted_response, (int, float)):
                         error = "LLM response is not a number"
                     response = extracted_response
@@ -144,8 +146,8 @@ class PromptExecution(Step):
             else: 
                 return {
                     "status": "success",
-                    "data": response["value"],
-                    "metadata": response["metadata"]
+                    "data": response,
+                    "metadata": llm_service_response["metadata"]
                 }
         except Exception as e:
             return {
