@@ -138,6 +138,9 @@ class PromptExecution(Step):
             elif not isinstance(llmresponse, str):
                 error = "LLM service response is not a string"
 
+            else:
+                response = llmresponse
+
             if error:
                 return {
                     "status": "error",
@@ -150,6 +153,7 @@ class PromptExecution(Step):
                     "metadata": llm_service_response["metadata"]
                 }
         except Exception as e:
+            traceback.print_exc()
             return {
                 "status": "error",
                 "data": str(e)
