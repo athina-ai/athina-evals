@@ -10,7 +10,7 @@ from athina.llms.openai_service import OpenAiService
 from jinja2 import Environment
 from athina.helpers.jinja_helper import PreserveUndefined
 from athina.steps.transform import ExtractJsonFromString, ExtractNumberFromString
-
+import traceback
 
 class PromptMessage(BaseModel):
     role: str
@@ -150,7 +150,7 @@ class PromptExecution(Step):
                 return {
                     "status": "success",
                     "data": response,
-                    "metadata": llm_service_response["metadata"]
+                    "metadata": llm_service_response.get("metadata", {})
                 }
         except Exception as e:
             traceback.print_exc()
