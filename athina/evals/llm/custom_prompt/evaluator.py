@@ -170,7 +170,7 @@ class CustomPrompt(LlmEvaluator):
 
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
-            if isinstance(e, ValueError):
+            if isinstance(e, (ValueError, KeyError)):
                 raise ValueError("LLM evals must return a result/score and explanation. The LLM response did not return the correct structure for parsing evaluation results.")
             else:
                 raise e
