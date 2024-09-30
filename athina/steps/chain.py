@@ -53,13 +53,9 @@ class Chain(BaseModel):
         cumulative_context = input_data.copy() 
         latest_step_output = None
         for step in self.sequence:
-            print(step.name)
-            print(cumulative_context)
             step_output = step.execute(input_data=cumulative_context)
             if step.name:
                 cumulative_context[step.name] = step_output.get('data')
-            print(step_output)
             latest_step_output = step_output 
         response = {'chain_output': latest_step_output, 'all_steps_output': cumulative_context}
-        print(response)
         return response
