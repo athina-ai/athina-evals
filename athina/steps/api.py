@@ -32,6 +32,7 @@ class ApiCall(Step):
     params: Optional[Dict[str, str]] = None
     body: Optional[str] = None
     env: Environment = None
+    name: Optional[str] = None
 
     class Config:
         arbitrary_types_allowed = True

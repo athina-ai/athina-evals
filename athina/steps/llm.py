@@ -74,7 +74,8 @@ class PromptExecution(Step):
     model: str
     model_options: ModelOptions
     tool_config: Optional[ToolConfig] = None
-
+    name: Optional[str] = None
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if kwargs.get("llm_service"):

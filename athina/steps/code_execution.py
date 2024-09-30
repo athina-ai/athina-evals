@@ -1,4 +1,4 @@
-from typing import Union, Dict, Any
+from typing import Union, Dict, Any, Optional
 from athina.steps import Step
 import subprocess
 import os
@@ -16,6 +16,7 @@ class CodeExecution(Step):
     """
 
     code: str
+    name: Optional[str] = None
 
     def bandit_check(self, code: str) -> None:
         """
