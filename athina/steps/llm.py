@@ -74,8 +74,9 @@ class PromptExecution(Step):
     model: str
     model_options: ModelOptions
     tool_config: Optional[ToolConfig] = None
+    response_format: Optional[dict] = None
     name: Optional[str] = None
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if kwargs.get("llm_service"):
@@ -107,7 +108,7 @@ class PromptExecution(Step):
         try:
             messages = self.template.resolve(**input_data)
             llm_service_response = self.llm_service.chat_completion(
-                messages, model=self.model, **self.model_options.model_dump(), **(self.tool_config.model_dump() if self.tool_config else {})
+                messages, model=self.model, **self.model_options.model_dump(), **(self.tool_config.model_dump() if self.tool_config else {}), **({'response_format':self.response_format})
             )
             llmresponse = llm_service_response["value"]
             output_type = kwargs.get('output_type', None)
