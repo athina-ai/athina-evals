@@ -13,7 +13,6 @@ import subprocess
 import tempfile 
 from jinja2 import Environment
 from athina.helpers.jinja_helper import PreserveUndefined
-from textatistic import Textatistic
 
 def _standardize_url(url):
     """
@@ -689,7 +688,10 @@ def _get_result_from_code(code, **input_data):
         from RestrictedPython import safe_globals
         from RestrictedPython.Guards import safe_builtins
         from RestrictedPython.Eval import default_guarded_getitem, default_guarded_getiter
-        
+        from textatistic import Textatistic
+        import editdistance
+        import textdistance
+
         custom_builtins = safe_builtins.copy()
         custom_builtins.update({
             'type': type,
@@ -730,12 +732,14 @@ def _get_result_from_code(code, **input_data):
             '__builtins__': custom_builtins,
             'json': json,
             're': re,
+            'editdistance': editdistance,
+            'textdistance': textdistance,
             '_getitem_': default_guarded_getitem,
             '_getiter_': default_guarded_getiter,
             '_write_': lambda x: x
         })
         # Whitelist of allowed modules
-        allowed_modules = {'json', 're'}
+        allowed_modules = {'json', 're', 'editdistance', 'textdistance'}
         def guarded_import(name, *args, **kwargs):
             if name not in allowed_modules:
                 raise ImportError(f"Importing '{name}' is not allowed")
