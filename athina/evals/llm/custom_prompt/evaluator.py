@@ -1,3 +1,4 @@
+import json
 import time
 from athina.helpers.logger import logger
 from typing import List, Optional, Dict
@@ -108,6 +109,8 @@ class CustomPrompt(LlmEvaluator):
         return bool(result == "Fail")
 
     def _user_message(self, **kwargs) -> str:
+        if 'chat_history' in kwargs:
+            kwargs['chat_history'] = json.dumps(kwargs['chat_history'], indent=2)
         template = self.env.from_string(self._user_message_template)
         return template.render(**kwargs)
 
@@ -138,6 +141,7 @@ class CustomPrompt(LlmEvaluator):
         """
         Run the LLM evaluator.
         """
+
         start_time = time.time()
         # Validate that correct args were passed
         self.validate_args(**kwargs)
