@@ -38,6 +38,7 @@ hyphenator = "^0.6.0"
 textatistic = "^0.0.1"
 editdistance = "^0.8.1"
 textdistance = "^4.6.3"
+tiktoken = "^0.8.0"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.27.0"
