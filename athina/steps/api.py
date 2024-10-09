@@ -70,8 +70,8 @@ class ApiCall(Step):
             for key, value in prepared_params.items():
                 prepared_params[key] = self.env.from_string(value).render(**prepared_input_data)
 
-        retries = 3  # number of retries
-        timeout = 5  # seconds
+        retries = 2  # number of retries
+        timeout = 30  # seconds
         for attempt in range(retries):
             try:
                 response = requests.request(
