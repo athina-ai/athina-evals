@@ -56,6 +56,8 @@ class CodeExecution(Step):
             from textatistic import Textatistic
             import editdistance
             import textdistance
+            from datetime import datetime
+            import time
             
             custom_builtins = safe_builtins.copy()
             custom_builtins.update({
@@ -82,6 +84,7 @@ class CodeExecution(Step):
                 'isinstance': isinstance,
                 'issubclass': issubclass,
                 'Textatistic': Textatistic,
+                'datetime': datetime,
                 'Exception': Exception,
                 'ValueError': ValueError,
                 'TypeError': TypeError,
@@ -99,12 +102,14 @@ class CodeExecution(Step):
                 're': re,
                 'editdistance': editdistance,
                 'textdistance': textdistance,
+                'datetime': datetime,
+                'time': time,
                 '_getitem_': default_guarded_getitem,
                 '_getiter_': default_guarded_getiter,
                 '_write_': lambda x: x
             })
             # Whitelist of allowed modules
-            allowed_modules = {'json', 're', 'editdistance', 'textdistance'}
+            allowed_modules = {'json', 're', 'editdistance', 'textdistance', 'datetime', 'time'}
             def guarded_import(name, *args, **kwargs):
                 if name not in allowed_modules:
                     raise ImportError(f"Importing '{name}' is not allowed")
