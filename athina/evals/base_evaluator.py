@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import functools
 from typing import List, Optional, Dict
-import asyncio
-import traceback
 from athina.helpers.logger import logger
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.helpers.dataset_helper import generate_unique_dataset_name
@@ -10,6 +9,9 @@ from athina.interfaces.data import DataPoint
 from athina.interfaces.result import BatchRunResult, EvalResult, GuardResult
 from athina.services.athina_api_service import AthinaApiService
 from athina.datasets import Dataset
+import asyncio
+import traceback
+
 
 class BaseEvaluator(ABC):
     
@@ -101,7 +103,6 @@ class BaseEvaluator(ABC):
             pass
         return eval_request_id
 
-
     def _log_evaluation_results(
         self, eval_request_id: Optional[str], eval_results: List[EvalResult]
     ):
@@ -146,16 +147,21 @@ class BaseEvaluator(ABC):
     def _run_batch_generator_async(
         self, data: List[DataPoint], max_parallel_evals: int
     ):
+        def run_evaluate_in_thread(entry):
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                return loop.run_until_complete(self._evaluate_async(**entry))
+            finally:
+                loop.close()
+
         with ThreadPoolExecutor(max_workers=max_parallel_evals) as executor:
-            # Submit all tasks to the executor and store them with their original index
             future_to_index = {
-                executor.submit(self._evaluate_in_thread, **entry): i
+                executor.submit(run_evaluate_in_thread, entry): i
                 for i, entry in enumerate(data)
             }
 
-            # Create a list to store results in the original order
             results = [None] * len(data)
-
             for future in as_completed(future_to_index):
                 index = future_to_index[future]
                 try:
@@ -166,23 +172,12 @@ class BaseEvaluator(ABC):
                     traceback.print_exc()
                     results[index] = None
 
-            return results
+        return results
 
-    def _evaluate_in_thread(self, **kwargs):
-        try:
-            loop = asyncio.get_event_loop()
-        except (RuntimeError, AttributeError):
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-
-        # Execute the synchronous evaluation
-        result = self._evaluate(**kwargs)
-
-        # Close the loop if it was newly created
-        if not loop.is_running():
-            loop.close()
-
-        return result
+    async def _evaluate_async(self, **kwargs):
+        loop = asyncio.get_event_loop()
+        partial_func = functools.partial(self._evaluate, **kwargs)
+        return await loop.run_in_executor(None, partial_func)
 
     def _run_batch_generator(self, data: List[DataPoint]):
         """
@@ -235,7 +230,7 @@ class BaseEvaluator(ABC):
             pass
     
     def run_batch(
-        self, data: List[DataPoint], max_parallel_evals: int = 5
+        self, data: List[DataPoint], max_parallel_evals: int = 1
     ) -> BatchRunResult:
         """
         Runs the evaluator on a batch of data.
