@@ -691,7 +691,7 @@ def _get_result_from_code(code, **input_data):
         from textatistic import Textatistic
         import editdistance
         import textdistance
-        from datatime import datetime
+        from datetime import datetime
         import time
 
         custom_builtins = safe_builtins.copy()
