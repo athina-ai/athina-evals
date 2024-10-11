@@ -32,6 +32,7 @@ class ApiCall(Step):
     params: Optional[Dict[str, str]] = None
     body: Optional[str] = None
     env: Environment = None
+    name: Optional[str] = None
 
     class Config:
         arbitrary_types_allowed = True
@@ -58,23 +59,26 @@ class ApiCall(Step):
             prepared_input_data = prepare_input_data(input_data)
             prepared_body = body_template.render(**prepared_input_data)
         
-        if self.headers is not None:
-            for key, value in self.headers.items():
-                self.headers[key] = self.env.from_string(value).render(**prepared_input_data)
+        prepared_headers = self.headers.copy() if self.headers is not None else None
+        prepared_params = self.params.copy() if self.params is not None else None
 
-        if self.params is not None:
-            for key, value in self.params.items():
-                self.params[key] = self.env.from_string(value).render(**prepared_input_data)
+        if prepared_headers is not None:
+            for key, value in prepared_headers.items():
+                prepared_headers[key] = self.env.from_string(value).render(**prepared_input_data)
 
-        retries = 3  # number of retries
-        timeout = 5  # seconds
+        if prepared_params is not None:
+            for key, value in prepared_params.items():
+                prepared_params[key] = self.env.from_string(value).render(**prepared_input_data)
+
+        retries = 2  # number of retries
+        timeout = 30  # seconds
         for attempt in range(retries):
             try:
                 response = requests.request(
                     method=self.method,
                     url=self.url,
-                    headers=self.headers,
-                    params=self.params,
+                    headers=prepared_headers,
+                    params=prepared_params,
                     json=json.loads(prepared_body, strict=False) if prepared_body else None,
                     timeout=timeout,
                 )

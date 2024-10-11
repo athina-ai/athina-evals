@@ -57,6 +57,7 @@ class LlmEvaluator(BaseEvaluator):
         system_message_template: Optional[str] = None,
         user_message_template: Optional[str] = None,
         llm_service: Optional[AbstractLlmService] = None,
+        **kwargs,
     ):
         if llm_service is not None and isinstance(llm_service, AbstractLlmService):
             self.llm_service = llm_service
@@ -118,7 +119,6 @@ class LlmEvaluator(BaseEvaluator):
 
         # Construct Prompt
         messages = self._prompt_messages(**kwargs)
-
         # Run the LLM Completion
 
         chat_completion_response_json: dict = self.llm_service.json_completion(

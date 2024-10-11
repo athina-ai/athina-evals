@@ -1,5 +1,71 @@
-from athina.evals import Regex, ContainsAny, ContainsAll, Contains, ContainsNone, ContainsJson, ContainsEmail, IsJson, IsEmail, NoInvalidLinks, ContainsLink, ContainsValidLink, Equals, StartsWith, EndsWith, LengthLessThan, LengthGreaterThan, LengthBetween, ApiCall, DoesResponseAnswerQuery, Faithfulness, BaseEvaluator, ContextContainsEnoughInformation, SummaryAccuracy, Groundedness, GradingCriteria, CustomPrompt, RagasContextRelevancy, RagasAnswerRelevancy, RagasAnswerCorrectness, RagasAnswerSemanticSimilarity, RagasCoherence, RagasConciseness, RagasContextPrecision, RagasContextRecall, RagasFaithfulness, RagasHarmfulness, RagasMaliciousness, NotGibberishText, SafeForWorkText, ContainsNoSensitiveTopics, OpenAiContentModeration, PiiDetection, PromptInjection, ProfanityFree, ReadingTime, DetectPII, ToxicLanguage, CorrectLanguage, NoSecretsPresent, RestrictToTopic, NotUnusualPrompt, PolitenessCheck, OneLine, JsonSchema, JsonValidation, CustomCodeEval, ConversationResolution, ConversationCoherence
-from athina.evals.grounded.similarity import CosineSimilarity, JaccardSimilarity, JaroWincklerSimilarity, NormalisedLevenshteinSimilarity, SorensenDiceSimilarity
+from athina.evals import (
+    Regex,
+    ContainsAny,
+    ContainsAll,
+    Contains,
+    ContainsNone,
+    ContainsJson,
+    ContainsEmail,
+    IsJson,
+    IsEmail,
+    NoInvalidLinks,
+    ContainsLink,
+    ContainsValidLink,
+    Equals,
+    StartsWith,
+    EndsWith,
+    LengthLessThan,
+    LengthGreaterThan,
+    LengthBetween,
+    ApiCall,
+    DoesResponseAnswerQuery,
+    Faithfulness,
+    BaseEvaluator,
+    ContextContainsEnoughInformation,
+    SummaryAccuracy,
+    Groundedness,
+    GradingCriteria,
+    CustomPrompt,
+    RagasContextRelevancy,
+    RagasAnswerRelevancy,
+    RagasAnswerCorrectness,
+    RagasAnswerSemanticSimilarity,
+    RagasCoherence,
+    RagasConciseness,
+    RagasContextPrecision,
+    RagasContextRecall,
+    RagasFaithfulness,
+    RagasHarmfulness,
+    RagasMaliciousness,
+    NotGibberishText,
+    SafeForWorkText,
+    ContainsNoSensitiveTopics,
+    OpenAiContentModeration,
+    PiiDetection,
+    PromptInjection,
+    ProfanityFree,
+    ReadingTime,
+    DetectPII,
+    ToxicLanguage,
+    CorrectLanguage,
+    NoSecretsPresent,
+    RestrictToTopic,
+    NotUnusualPrompt,
+    PolitenessCheck,
+    OneLine,
+    JsonSchema,
+    JsonValidation,
+    CustomCodeEval,
+    ConversationResolution,
+    ConversationCoherence,
+)
+from athina.evals.grounded.similarity import (
+    CosineSimilarity,
+    JaccardSimilarity,
+    JaroWincklerSimilarity,
+    NormalisedLevenshteinSimilarity,
+    SorensenDiceSimilarity,
+)
 from athina.evals.grounded.wrapper import AnswerSimilarity, ContextSimilarity
 
 grounded_operations = {
@@ -9,7 +75,7 @@ grounded_operations = {
 
 conversation_operations = {
     "ConversationResolution": ConversationResolution,
-    "ConversationCoherence": ConversationCoherence
+    "ConversationCoherence": ConversationCoherence,
 }
 
 function_operations = {
@@ -35,14 +101,14 @@ function_operations = {
     "OneLine": OneLine,
     "JsonSchema": JsonSchema,
     "JsonValidation": JsonValidation,
-    "CustomCodeEval": CustomCodeEval
+    "CustomCodeEval": CustomCodeEval,
 }
 
 safety_operations = {
     "SafeForWorkText": SafeForWorkText,
     "NotGibberishText": NotGibberishText,
     "ContainsNoSensitiveTopics": ContainsNoSensitiveTopics,
-    "OpenAiContentModeration" : OpenAiContentModeration,
+    "OpenAiContentModeration": OpenAiContentModeration,
     "PiiDetection": PiiDetection,
     "PromptInjection": PromptInjection,
     "ProfanityFree": ProfanityFree,
@@ -53,7 +119,7 @@ safety_operations = {
     "NoSecretsPresent": NoSecretsPresent,
     "RestrictToTopic": RestrictToTopic,
     "NotUnusualPrompt": NotUnusualPrompt,
-    "PolitenessCheck": PolitenessCheck
+    "PolitenessCheck": PolitenessCheck,
 }
 
 llm_operations = {
@@ -78,8 +144,9 @@ ragas_operations = {
     "RagasContextRecall": RagasContextRecall,
     "RagasFaithfulness": RagasFaithfulness,
     "RagasHarmfulness": RagasHarmfulness,
-    "RagasMaliciousness": RagasMaliciousness
+    "RagasMaliciousness": RagasMaliciousness,
 }
+
 
 def get_evaluator(evaluator_type):
     if evaluator_type in function_operations:
@@ -97,6 +164,7 @@ def get_evaluator(evaluator_type):
     else:
         raise ValueError(f"Invalid evaluator type: {evaluator_type}")
 
+
 # TODO : Remove the following methods from workers repo to reduce code duplication
 def get_comparator(comparator_name):
     if comparator_name is None:
@@ -106,16 +174,21 @@ def get_comparator(comparator_name):
         "NormalisedLevenshteinSimilarity": NormalisedLevenshteinSimilarity(),
         "JaroWincklerSimilarity": JaroWincklerSimilarity(),
         "JaccardSimilarity": JaccardSimilarity(),
-        "SorensenDiceSimilarity": SorensenDiceSimilarity()
+        "SorensenDiceSimilarity": SorensenDiceSimilarity(),
     }
     comparator = comparators.get(comparator_name, None)
     if comparator is None:
         raise NotImplementedError(f"Comparator {comparator_name} not implemented.")
     return comparator
 
+
 def create_grounded_evaluator(grounded_eval_name, comparator, failure_threshold):
     grounded_evaluator_class = grounded_operations.get(grounded_eval_name, None)
     if grounded_evaluator_class is None:
-        raise NotImplementedError(f"Grounded eval {grounded_eval_name} not implemented.")
+        raise NotImplementedError(
+            f"Grounded eval {grounded_eval_name} not implemented."
+        )
     else:
-        return grounded_evaluator_class(comparator=comparator, failure_threshold=failure_threshold)
+        return grounded_evaluator_class(
+            comparator=comparator, failure_threshold=failure_threshold
+        )

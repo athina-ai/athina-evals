@@ -1,6 +1,6 @@
 import os
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 from athina.helpers.json import JsonExtractor
 from athina.interfaces.model import Model
 from athina.steps.base import Step
@@ -9,8 +9,8 @@ from athina.keys import OpenAiApiKey
 from athina.llms.openai_service import OpenAiService
 from jinja2 import Environment
 from athina.helpers.jinja_helper import PreserveUndefined
-from athina.steps.transform import ExtractJsonFromString
-
+from athina.steps.transform import ExtractJsonFromString, ExtractNumberFromString
+import traceback
 
 class PromptMessage(BaseModel):
     role: str
@@ -24,7 +24,7 @@ class ModelOptions(BaseModel):
     presence_penalty: Optional[float] = None
 
 class ToolConfig(BaseModel):
-    tool_choice: Optional[str] = None
+    tool_choice: Optional[Union[str, Dict[str, Any]]] = None
     tools: Optional[List[Any]] = None
 
 class PromptTemplate(BaseModel):
@@ -74,6 +74,8 @@ class PromptExecution(Step):
     model: str
     model_options: ModelOptions
     tool_config: Optional[ToolConfig] = None
+    response_format: Optional[dict] = None
+    name: Optional[str] = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -104,30 +106,42 @@ class PromptExecution(Step):
             raise ValueError("PromptExecution Error: Input data must be a dictionary")
 
         try:
-            response = self.template.resolve(**input_data)
-            response = self.llm_service.chat_completion(
-                response, model=self.model, **self.model_options.model_dump(), **(self.tool_config.model_dump() if self.tool_config else {})
+            messages = self.template.resolve(**input_data)
+            llm_service_response = self.llm_service.chat_completion(
+                messages, model=self.model, **self.model_options.model_dump(), **(self.tool_config.model_dump() if self.tool_config else {}), **({'response_format':self.response_format})
             )
+            llmresponse = llm_service_response["value"]
             output_type = kwargs.get('output_type', None)
             error = None
             if output_type:
                 if output_type == "string":
-                    if not isinstance(response, str):
+                    if not isinstance(llmresponse, str):
                         error = "LLM response is not a string"
+                    response = llmresponse
+
+                elif output_type == "number":
+                    extracted_response = ExtractNumberFromString().execute(llmresponse)
+                    if not isinstance(extracted_response, (int, float)):
+                        error = "LLM response is not a number"
+                    response = extracted_response
+
                 elif output_type == "array":
-                    extracted_response = ExtractJsonFromString().execute(response)
+                    extracted_response = ExtractJsonFromString().execute(llmresponse)
                     if not isinstance(extracted_response, list):
                         error = "LLM response is not an array"
                     response = extracted_response
 
                 elif output_type == "object":
-                    extracted_response = ExtractJsonFromString().execute(response)
+                    extracted_response = ExtractJsonFromString().execute(llmresponse)
                     if not isinstance(extracted_response, dict):
                         error = "LLM response is not an object"
                     response = extracted_response
 
-            elif not isinstance(response, str):
+            elif not isinstance(llmresponse, str):
                 error = "LLM service response is not a string"
+
+            else:
+                response = llmresponse
 
             if error:
                 return {
@@ -137,9 +151,11 @@ class PromptExecution(Step):
             else: 
                 return {
                     "status": "success",
-                    "data": response
+                    "data": response,
+                    "metadata": llm_service_response.get("metadata", {})
                 }
         except Exception as e:
+            traceback.print_exc()
             return {
                 "status": "error",
                 "data": str(e)

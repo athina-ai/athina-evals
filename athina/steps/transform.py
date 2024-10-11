@@ -25,3 +25,21 @@ class ExtractJsonFromString(Step):
         if output is None:
             raise ValueError("No valid JSON data found in the input string.")
         return output
+
+class ExtractNumberFromString(Step):
+    """
+    Step that extracts a number from a string.
+    """
+
+    def execute(self, input_data: str) -> Union[int, float]:
+        """Extract a number from the input string."""
+        try:
+            # First, try to convert to an integer
+            return int(input_data)
+        except ValueError:
+            try:
+                # If that fails, try to convert to a float
+                return float(input_data)
+            except ValueError:
+                # If both conversions fail, raise an error
+                raise ValueError("Input string is not a valid number")

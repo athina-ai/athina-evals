@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 from athina.steps.base import Step
 from athina.llms.abstract_llm_service import AbstractLlmService
 
@@ -12,7 +12,6 @@ class Chain(BaseModel):
         sequence (List[Step]): The sequence of steps to execute.
         context (Dict[str, Any]): The context shared across steps.
     """
-
     sequence: List[Step]
     context: Dict[str, Any] = {}
 
@@ -48,3 +47,15 @@ class Chain(BaseModel):
                 else None
             )
         return self.context.get(key, None)
+
+    def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
+        """Execute the sequence of steps with the provided inputs."""
+        cumulative_context = input_data.copy() 
+        latest_step_output = None
+        for step in self.sequence:
+            step_output = step.execute(input_data=cumulative_context)
+            if step.name:
+                cumulative_context[step.name] = step_output.get('data')
+            latest_step_output = step_output 
+        response = {'chain_output': latest_step_output, 'all_steps_output': cumulative_context}
+        return response
