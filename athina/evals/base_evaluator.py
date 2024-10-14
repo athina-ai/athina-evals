@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Optional, Dict
 from athina.helpers.logger import logger
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
-from athina.helpers.dataset_helper import generate_unique_dataset_name
+from athina.helpers.dataset_helper import generate_unique_dataset_name, generate_eval_display_name
 from athina.interfaces.data import DataPoint
 from athina.interfaces.result import BatchRunResult, EvalResult, GuardResult
 from athina.services.athina_api_service import AthinaApiService
@@ -208,7 +208,7 @@ class BaseEvaluator(ABC):
                     "eval_results": eval_results,
                     "development_eval_config": {
                         "eval_type_id": self.name,
-                        "eval_display_name": self.display_name,
+                        "eval_display_name": generate_eval_display_name(self.display_name),
                         "eval_config": eval_config,
                         "llm_engine": llm_engine
                     }
