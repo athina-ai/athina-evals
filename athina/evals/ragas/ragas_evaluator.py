@@ -16,7 +16,7 @@ from ragas import evaluate
 
 class RagasEvaluator(BaseEvaluator):
     _model: str
-    _provider: str
+    _provider: Optional[str] = None
     _config: Optional[CustomModelConfig] = None
     _api_key: Optional[str]
     _experiment: Optional[AthinaExperiment] = None
@@ -24,9 +24,9 @@ class RagasEvaluator(BaseEvaluator):
 
     def __init__(
         self,
-        api_key: str,
         model: str,
-        provider: str,
+        api_key: Optional[str] = None,
+        provider: Optional[str] = 'openai',  # Default provider set to 'openai'
         config: Optional[CustomModelConfig] = None,
         failure_threshold: Optional[float] = None
     ):

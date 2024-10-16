@@ -1,12 +1,9 @@
-from datetime import datetime, timezone
-import random
-import string
 from typing import List, TypedDict, Optional
 from athina.datasets.dataset import Dataset
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.evals.llm.llm_evaluator import LlmEvaluator
 from athina.evals.base_evaluator import BaseEvaluator
-from athina.helpers.dataset_helper import generate_unique_dataset_name
+from athina.helpers.dataset_helper import generate_unique_dataset_name, generate_eval_display_name
 from athina.interfaces.result import EvalResult, BatchRunResult
 from athina.interfaces.data import DataPoint
 from athina.interfaces.athina import AthinaExperiment
@@ -128,19 +125,6 @@ class EvalRunner:
         return df
 
     @staticmethod
-    def generate_eval_display_name(eval_display_name: str) -> str:
-        # Get current UTC timestamp in human-readable format
-        timestamp = datetime.now(timezone.utc).strftime("%B%d_%Y_%H%M%S")
-        
-        # Generate a random suffix
-        random_suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
-        
-        # Combine to form the display name
-        eval_display_name = f"{eval_display_name}_{timestamp}_{random_suffix}"
-        
-        return eval_display_name
-
-    @staticmethod
     def _log_eval_results_with_config(
         eval_results: List[dict], eval: BaseEvaluator, dataset_id: str
     ):
@@ -152,7 +136,7 @@ class EvalRunner:
                     "eval_results": eval_results,
                     "development_eval_config": {
                         "eval_type_id": eval.name,
-                        "eval_display_name": EvalRunner.generate_eval_display_name(eval.display_name),
+                        "eval_display_name": generate_eval_display_name(eval.display_name),
                         "eval_config": eval_config,
                         "llm_engine": llm_engine,
                     },
