@@ -14,7 +14,8 @@ import traceback
 
 class PromptMessage(BaseModel):
     role: str
-    content: str
+    content: Optional[str] = None
+    tool_call: Optional[str] = None
 
 class ModelOptions(BaseModel):
     max_tokens: Optional[int] = None
@@ -49,12 +50,47 @@ class PromptTemplate(BaseModel):
             variable_end_string='}}',
             undefined=PreserveUndefined
         )
-        resolved_messages = []
+
+        final_messages = []
         for message in self.messages:
-            content_template = self.env.from_string(message.content)
-            content = content_template.render(**kwargs)
-            resolved_message = PromptMessage(role=message.role, content=content)
-            resolved_messages.append(resolved_message)
+            if message.role == 'import':
+                # Find the value wrapped in {{}}
+                import_key = message.content.strip('{}')
+                
+                # Find the value in the row
+                if import_key in kwargs:
+                    value = kwargs[import_key]
+                    
+                    # Check if it is a list/array
+                    if isinstance(value, list):
+                        # Iterate over the list and create a new PromptMessage for each item
+                        for item in value:
+                            if isinstance(item, dict):
+                                # If item has tool_call, then parse tool_call and create a new PromptMessage
+                                if 'tool_call' in item:
+                                    try:
+                                        tool_call_message = PromptMessage(
+                                            role=item.role,
+                                            tool_call=self.env.from_string(item.get('tool_call')).render(**kwargs)
+                                        )
+                                        final_messages.append(tool_call_message)
+                                    except Exception as e:
+                                        print(f"Error parsing tool_call: {e}")
+                                else:
+                                    new_message = PromptMessage(**item)
+                                    final_messages.append(new_message)
+            else:
+                final_messages.append(message)
+
+        resolved_messages = []
+        for message in final_messages:
+            if message.content is None:
+                resolved_messages.append(message)
+            else :
+                content_template = self.env.from_string(message.content)
+                content = content_template.render(**kwargs)
+                resolved_message = PromptMessage(role=message.role, content=content)
+                resolved_messages.append(resolved_message)
 
         return resolved_messages
 
