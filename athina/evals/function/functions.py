@@ -4,15 +4,16 @@ import json
 import requests
 from typing import Any, Dict, Optional, Tuple, Union
 from athina.evals.grounded.similarity import CosineSimilarity
-from athina.helpers.logger import logger
 from athina.errors.exceptions import NoOpenAiApiKeyException
+from athina.helpers.jinja_helper import PreserveUndefined
 from athina.helpers.json import extract_json_path, validate_json
+from athina.helpers.logger import logger
 from athina.keys.openai_api_key import OpenAiApiKey
 from athina.llms.openai_service import OpenAiService
+from athina.steps.code_execution import CodeExecution
 import subprocess
 import tempfile 
 from jinja2 import Environment
-from athina.helpers.jinja_helper import PreserveUndefined
 
 def _standardize_url(url):
     """
@@ -678,88 +679,6 @@ def _bandit_check(code: str) -> None:
         os.remove(temp_file_path)
     return None
 
-
-def _get_result_from_code(code, **input_data):
-    try:
-        issues = _bandit_check(code)
-        if not issues:
-            return { "error": "Security check failed. " + issues }
-        from RestrictedPython import compile_restricted
-        from RestrictedPython import safe_globals
-        from RestrictedPython.Guards import safe_builtins
-        from RestrictedPython.Eval import default_guarded_getitem, default_guarded_getiter
-        from textatistic import Textatistic
-        import editdistance
-        import textdistance
-        from datetime import datetime
-        import time
-
-        custom_builtins = safe_builtins.copy()
-        custom_builtins.update({
-            'type': type,
-            'dict': dict,
-            'list': list,
-            'set': set,
-            'tuple': tuple,
-            'str': str,
-            'int': int,
-            'float': float,
-            'bool': bool,
-            'len': len,
-            'range': range,
-            'enumerate': enumerate,
-            'zip': zip,
-            'sorted': sorted,
-            'min': min,
-            'max': max,
-            'sum': sum,
-            'abs': abs,
-            'all': all,
-            'any': any,
-            'isinstance': isinstance,
-            'issubclass': issubclass,
-            'Textatistic': Textatistic,
-            'datetime': datetime,
-            'Exception': Exception,
-            'ValueError': ValueError,
-            'TypeError': TypeError,
-            'KeyError': KeyError,
-            'IndexError': IndexError,
-            'AttributeError': AttributeError,
-            'ImportError': ImportError,
-            '__import__': __import__
-        })
-
-        custom_globals = safe_globals.copy()
-        custom_globals.update({
-            '__builtins__': custom_builtins,
-            'json': json,
-            're': re,
-            'editdistance': editdistance,
-            'textdistance': textdistance,
-            'datetime': datetime,
-            'time': time,
-            '_getitem_': default_guarded_getitem,
-            '_getiter_': default_guarded_getiter,
-            '_write_': lambda x: x
-        })
-        # Whitelist of allowed modules
-        allowed_modules = {'json', 're', 'editdistance', 'textdistance', 'datetime', 'time'}
-        def guarded_import(name, *args, **kwargs):
-            if name not in allowed_modules:
-                raise ImportError(f"Importing '{name}' is not allowed")
-            return __import__(name, *args, **kwargs)
-
-        custom_builtins['__import__'] = guarded_import
-        loc = {}
-        byte_code = compile_restricted(code, '<inline>', 'exec')
-        exec(byte_code, custom_globals, loc)
-        result = loc['main'](**input_data)
-    except Exception as e:
-        raise e
-    return result
-
-
 def custom_code_eval(code, **kwargs):
     """
     Run custom code provided by the user.
@@ -770,11 +689,20 @@ def custom_code_eval(code, **kwargs):
     Returns:
         dict: A dictionary containing the result of the check and the reason for the result.
     """
-    result = _get_result_from_code(code, **kwargs)
-    if not result:
-        return {"result": False, "reason": "Custom eval code failed"}
+    # Create an instance of CodeExecution
+    code_execution = CodeExecution(code=code)
+
+    # Execute the code using the CodeExecution instance
+    result = code_execution.execute(kwargs)
+
+    # Check the result and return the appropriate response
+    if result.get("status") == "success":
+        if result.get("data"):
+            return {"result": True, "reason": "Custom eval code passed"}
+        else:
+            return {"result": False, "reason": "Custom eval code failed"}
     else:
-        return {"result": True, "reason": "Custom eval code passed"}
+        return {"result": False, "reason": result.get("data", "Error in custom eval code eval")}
 
 
 def _load_json(json_data: Union[dict, str]) -> dict:
