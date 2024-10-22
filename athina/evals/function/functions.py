@@ -774,7 +774,7 @@ def _validate_llm_similarity(actual_value: str, expected_value: str, validation:
     try:
         result = response["result"]
         explanation = response["explanation"]
-        if result == "Fail":
+        if bool(str(result).lower() == "fail"):
             error_message = f"LLM Similarity validation failed for {json_path}. Reason: {explanation}"
             logger.error(error_message)
             return False, error_message
