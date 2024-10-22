@@ -37,7 +37,7 @@ class CodeExecution(Step):
         return None
     
     def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
-        """Extract the JsonPath from the input data."""
+        """Execute the code with the input data."""
 
         if input_data is None:
             input_data = {}
@@ -120,14 +120,24 @@ class CodeExecution(Step):
             byte_code = compile_restricted(self.code, '<inline>', 'exec')
             exec(byte_code, custom_globals, loc)
             result = loc['main'](**input_data)
+            
+            def wrap_non_serializable(obj):
+                if isinstance(obj, (str, int, float, list, dict)):
+                    if isinstance(obj, list):
+                        return [wrap_non_serializable(item) for item in obj]
+                    elif isinstance(obj, dict):
+                        return {key: wrap_non_serializable(value) for key, value in obj.items()}
+                    return obj
+                return str(obj)
+            
+            wrapped_result = wrap_non_serializable(result)
             return {
                 "status": "success",
-                "data": result,
+                "data": wrapped_result,
             }
         except Exception as e:
             return {
                 "status": "error",
-                "data": str(e),
+                "data": f"Failed to execute the code.\nDetails:\n{str(e)}",
             }
-
 
