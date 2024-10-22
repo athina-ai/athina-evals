@@ -59,7 +59,7 @@ class ContextContainsEnoughInformation(LlmEvaluator):
         return CONTEXT_CONTAINS_ENOUGH_INFORMATION_EXAMPLES
 
     def is_failure(self, result) -> Optional[bool]:
-        return bool(result == "Fail")
+        return bool(str(result).lower() == "fail")
 
     def _user_message(self, query: str, context: str, **kwargs) -> str:
         """

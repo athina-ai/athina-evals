@@ -59,7 +59,7 @@ class Faithfulness(LlmEvaluator):
         return FAITHFULNESS_EVAL_EXAMPLES
 
     def is_failure(self, result) -> Optional[bool]:
-        return bool(result == "Fail")
+        return bool(str(result).lower() == "fail")
 
     def _user_message(
         self,
