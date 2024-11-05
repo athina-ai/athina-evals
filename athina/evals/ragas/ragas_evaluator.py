@@ -55,7 +55,7 @@ class RagasEvaluator(BaseEvaluator):
     
     def _get_model(self):
         if self._provider == 'openai':
-            return ChatOpenAI(model_name=self._model, api_key=self._api_key)
+            return ChatOpenAI(model_name=self._model, openai_api_key=self._api_key)
         elif self._provider == 'azure':
             # Extracting azure configuration from completion_config
             azure_endpoint = None
