@@ -17,6 +17,9 @@ class PromptMessage(BaseModel):
     content: Optional[str] = None
     tool_call: Optional[str] = None
 
+    class Config:
+        exclude_none = True
+
 class ModelOptions(BaseModel):
     max_tokens: Optional[int] = None
     temperature: Optional[float] = None
@@ -38,7 +41,7 @@ class PromptTemplate(BaseModel):
     @staticmethod
     def simple(message: str) -> "PromptTemplate":
         """Create a PromptTemplate from a string representation."""
-        messages = [PromptMessage(role="user", content=message)]
+        messages = [PromptMessage(role="user", content=message, tool_call=None)]
         return PromptTemplate(messages=messages)
 
     def resolve(self, **kwargs) -> List[PromptMessage]:
@@ -86,7 +89,7 @@ class PromptTemplate(BaseModel):
         for message in final_messages:
             if message.content is None:
                 resolved_messages.append(message)
-            else :
+            else:
                 content_template = self.env.from_string(message.content)
                 content = content_template.render(**kwargs)
                 resolved_message = PromptMessage(role=message.role, content=content)
@@ -144,7 +147,7 @@ class PromptExecution(Step):
         try:
             messages = self.template.resolve(**input_data)
             llm_service_response = self.llm_service.chat_completion(
-                messages, model=self.model, **self.model_options.model_dump(), **(self.tool_config.model_dump() if self.tool_config else {}), **({'response_format':self.response_format})
+                messages, model=self.model, **self.model_options.model_dump(), **(self.tool_config.model_dump() if self.tool_config else {}), **({'response_format':self.response_format}), **(kwargs.get('search_domain_filter', None) if 'search_domain_filter' in kwargs else {})
             )
             llmresponse = llm_service_response["value"]
             output_type = kwargs.get('output_type', None)

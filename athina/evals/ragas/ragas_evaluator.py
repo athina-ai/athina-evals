@@ -34,7 +34,7 @@ class RagasEvaluator(BaseEvaluator):
         self._provider = provider
         self._api_key = api_key
         self._config = config
-        print(f"Running ragas with api_key: {api_key}")
+        
         if failure_threshold is not None:
             self._failure_threshold = failure_threshold
 
@@ -55,10 +55,7 @@ class RagasEvaluator(BaseEvaluator):
     
     def _get_model(self):
         if self._provider == 'openai':
-            print(f"Getting model with api_key: {self._api_key}")
-            model = ChatOpenAI(model_name=self._model, openai_api_key=self._api_key)
-            print(f"Model: {model}")
-            return model
+            return ChatOpenAI(model_name=self._model, api_key=self._api_key)
         elif self._provider == 'azure':
             # Extracting azure configuration from completion_config
             azure_endpoint = None
