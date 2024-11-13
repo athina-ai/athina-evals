@@ -1,5 +1,5 @@
 import time
-from typing import List
+from typing import Optional, List
 from athina.interfaces.athina import (
     AthinaEvalRequestCreateRequest,
     AthinaEvalRequestSource,
@@ -42,10 +42,10 @@ class AthinaLoggingHelper:
                 request_data_type=request_type,
                 source=AthinaEvalRequestSource.DEV_SDK.value,
             )
-            eval_request_id = AthinaApiService.create_eval_request(eval_request)[
+            created_eval_request = AthinaApiService.create_eval_request(eval_request)[
                 "data"
-            ]["eval_request"]["id"]
-            return eval_request_id
+            ]
+            return created_eval_request
         except Exception as e:
             print(
                 f"An error occurred while creating eval request",
@@ -57,6 +57,8 @@ class AthinaLoggingHelper:
     def log_eval_results(
         eval_request_id: str,
         eval_results: List[EvalResult],
+        org_id: Optional[str] = None,
+        workspace_slug: Optional[str] = None,
     ):
         try:
             if not AthinaApiKey.is_set():
@@ -94,6 +96,8 @@ class AthinaLoggingHelper:
                         eval_type=eval_result["name"],
                         language_model_id=eval_result["model"] if "model" in eval_result else None,
                         eval_result=athina_eval_result,
+                        org_id=org_id,
+                        workspace_slug=workspace_slug,
                     )
                 )
                 athina_eval_result_create_request_dict = {

@@ -65,6 +65,7 @@ class AthinaEvalRequestCreateRequest(TypedDict):
 
 class AthinaEvalResultCreateRequest(TypedDict):
     org_id: Optional[str]
+    workspace_slug: Optional[str]
     prompt_run_id: Optional[str]
     job_config_id: Optional[str]
     eval_job_id: Optional[str]
@@ -93,9 +94,12 @@ class AthinaInterfaceHelper:
         eval_type: str,
         language_model_id: str,
         eval_result: AthinaEvalResult,
+        org_id: Optional[str] = None,
+        workspace_slug: Optional[str] = None,
     ) -> AthinaEvalResultCreateRequest:
         return AthinaEvalResultCreateRequest(
-            org_id=None,
+            org_id=org_id,
+            workspace_slug=workspace_slug,
             prompt_run_id=None,
             job_config_id=None,
             eval_job_id=None,

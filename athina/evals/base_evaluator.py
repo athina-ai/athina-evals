@@ -93,18 +93,18 @@ class BaseEvaluator(ABC):
         """
         Logs usage to Athina for analytics and creates an evaluation request.
         """
-        eval_request_id = None
+        eval_request = None
         try:
-            eval_request_id = AthinaLoggingHelper.create_eval_request(
+            eval_request = AthinaLoggingHelper.create_eval_request(
                 eval_name=self.name, request_data={"data": data}, request_type="batch"
             )
         except Exception as e:
             pass
-        return eval_request_id
+        return eval_request
 
 
     def _log_evaluation_results(
-        self, eval_request_id: Optional[str], eval_results: List[EvalResult]
+        self, eval_request_id: Optional[str], eval_results: List[EvalResult], org_id: Optional[str] = None, workspace_slug: Optional[str] = None
     ):
         """
         Logs the evaluation results to Athina if the eval_request_id is available.
@@ -114,6 +114,8 @@ class BaseEvaluator(ABC):
                 AthinaLoggingHelper.log_eval_results(
                     eval_request_id=eval_request_id,
                     eval_results=eval_results,
+                    org_id=org_id,
+                    workspace_slug=workspace_slug
                 )
             except Exception as e:
                 pass
@@ -123,14 +125,14 @@ class BaseEvaluator(ABC):
         Run the LLM evaluator, and log results to Athina.
         """
         AthinaApiService.log_usage(eval_name=self.name, run_type="batch")
-        eval_request_id = self._log_evaluation_request(kwargs)
+        eval_request = self._log_evaluation_request(kwargs)
         eval_result = self._evaluate(**kwargs)
         self._log_evaluation_results(
-            eval_request_id=eval_request_id, eval_results=[eval_result]
+            eval_request_id=eval_request["eval_request"]["id"], eval_results=[eval_result], org_id=eval_request["eval_request"]["org_id"], workspace_slug=eval_request["eval_request"]["workspace_slug"]
         )
 
         return BatchRunResult(
-            eval_request_id=eval_request_id,
+            eval_request_id=eval_request["eval_request"]["id"],
             eval_results=[eval_result],
         )
 

@@ -56,12 +56,12 @@ class EvalRunner:
     @staticmethod
     def _create_eval_request(eval_suite_name: str, data) -> Optional[str]:
         try:
-            eval_request_id = AthinaLoggingHelper.create_eval_request(
+            eval_request = AthinaLoggingHelper.create_eval_request(
                 eval_name=eval_suite_name,
                 request_data={"data": data},
                 request_type="suite",
             )
-            return eval_request_id
+            return eval_request["eval_request"]["id"]
         except Exception as e:
             return None
 

@@ -8,6 +8,9 @@ class AnswerSimilarity(GroundedEvaluator):
     def required_args(self):
         return ["response", "expected_response"]
 
+    @property
+    def name(self):
+        return "AnswerSimilarity"
 
     def __init__(self, comparator: Comparator, failure_threshold: float = None):
         """
@@ -31,6 +34,9 @@ class ContextSimilarity(GroundedEvaluator):
     def required_args(self):
         return ["response", "context"]
 
+    @property
+    def name(self):
+        return "ContextSimilarity"
 
     def __init__(self, comparator: Comparator, failure_threshold: float = None):
         """
