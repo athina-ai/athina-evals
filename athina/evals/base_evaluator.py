@@ -10,7 +10,6 @@ from athina.services.athina_api_service import AthinaApiService
 from athina.datasets import Dataset
 import traceback
 
-
 class BaseEvaluator(ABC):
     
     # Abstract properties

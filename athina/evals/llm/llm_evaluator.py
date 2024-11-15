@@ -150,6 +150,7 @@ class LlmEvaluator(BaseEvaluator):
             runtime=eval_runtime_ms,
             model=self._model,
             metrics=metrics,
+            metadata=chat_completion_response_json["metadata"] if "metadata" in chat_completion_response_json else {},
         )
         return {k: v for k, v in llm_eval_result.items() if v is not None}
     
