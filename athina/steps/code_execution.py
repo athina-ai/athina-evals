@@ -53,12 +53,12 @@ class CodeExecution(Step):
             from RestrictedPython import safe_globals
             from RestrictedPython.Guards import safe_builtins
             from RestrictedPython.Eval import default_guarded_getitem, default_guarded_getiter
-            from textatistic import Textatistic
             import editdistance
             import textdistance
             from datetime import datetime
             import time
-            
+            import textstat
+
             custom_builtins = safe_builtins.copy()
             custom_builtins.update({
                 'type': type,
@@ -83,7 +83,6 @@ class CodeExecution(Step):
                 'any': any,
                 'isinstance': isinstance,
                 'issubclass': issubclass,
-                'Textatistic': Textatistic,
                 'datetime': datetime,
                 'Exception': Exception,
                 'ValueError': ValueError,
@@ -104,12 +103,13 @@ class CodeExecution(Step):
                 'textdistance': textdistance,
                 'datetime': datetime,
                 'time': time,
+                'textstat': textstat,
                 '_getitem_': default_guarded_getitem,
                 '_getiter_': default_guarded_getiter,
                 '_write_': lambda x: x
             })
             # Whitelist of allowed modules
-            allowed_modules = {'json', 're', 'editdistance', 'textdistance', 'datetime', 'time'}
+            allowed_modules = {'json', 're', 'editdistance', 'textdistance', 'datetime', 'time', 'textstat'}
             def guarded_import(name, *args, **kwargs):
                 if name not in allowed_modules:
                     raise ImportError(f"Importing '{name}' is not allowed")
