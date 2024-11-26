@@ -2,7 +2,7 @@
 
 [[package]]
 name = "aiohttp"
-version = "3.9.5"
+version = "3.9.6"
 description = "Async http client/server framework (asyncio)"
 optional = false
 python-versions = ">=3.8"
