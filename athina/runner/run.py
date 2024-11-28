@@ -3,10 +3,7 @@ from athina.datasets.dataset import Dataset
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.evals.llm.llm_evaluator import LlmEvaluator
 from athina.evals.base_evaluator import BaseEvaluator
-from athina.helpers.dataset_helper import (
-    generate_unique_dataset_name,
-    generate_eval_display_name,
-)
+from athina.helpers.dataset_helper import generate_unique_dataset_name, generate_eval_display_name
 from athina.interfaces.result import EvalResult, BatchRunResult
 from athina.interfaces.data import DataPoint
 from athina.interfaces.athina import AthinaExperiment
@@ -139,9 +136,7 @@ class EvalRunner:
                     "eval_results": eval_results,
                     "development_eval_config": {
                         "eval_type_id": eval.name,
-                        "eval_display_name": generate_eval_display_name(
-                            eval.display_name
-                        ),
+                        "eval_display_name": generate_eval_display_name(eval.display_name),
                         "eval_config": eval_config,
                         "llm_engine": llm_engine,
                     },
@@ -168,16 +163,12 @@ class EvalRunner:
             return None
 
     @staticmethod
-    def _fetch_dataset_rows(
-        dataset_id: str, number_of_rows: Optional[int] = None
-    ) -> List[any]:
+    def _fetch_dataset_rows(dataset_id: str, number_of_rows: Optional[int] = None) -> List[any]:
         """
         Fetch the dataset rows from Athina
         """
         try:
-            rows = Dataset.fetch_dataset_rows(
-                dataset_id=dataset_id, number_of_rows=number_of_rows
-            )
+            rows = Dataset.fetch_dataset_rows(dataset_id=dataset_id, number_of_rows=number_of_rows)
             return rows
         except Exception as e:
             print(f"Error fetching dataset rows: {e}")
@@ -212,7 +203,7 @@ class EvalRunner:
             dataset = EvalRunner._fetch_dataset_rows(dataset_id, number_of_rows)
             data = dataset
         else:
-            raise Exception("No data or dataset_id provided.")
+            raise Exception("No data or dataset_id provided.")  
 
         batch_results = []
         for eval in evals:

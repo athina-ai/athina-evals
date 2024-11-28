@@ -8,9 +8,8 @@ from .base_loader import BaseLoader
 
 class SummaryDataPoint(DataPoint):
     """Data point for an LLM generated summary."""
-
     document: str
-    response: str  # summary
+    response: str # summary
 
 
 class SummaryLoader(BaseLoader):
@@ -71,12 +70,12 @@ class SummaryLoader(BaseLoader):
         """
         self._raw_dataset = AthinaApiService.fetch_inferences(
             filters=filters, limit=limit
-        )
+        ) 
         for raw_dataset in self._raw_dataset:
             raw_dataset_dict = asdict(raw_dataset)
             processed_instance = {
-                "document": raw_dataset_dict["context"],
-                "response": raw_dataset_dict["prompt_response"],
+                "document": raw_dataset_dict['context'],
+                "response": raw_dataset_dict['prompt_response'],
             }
             self._processed_dataset.append(processed_instance)
         return self._processed_dataset

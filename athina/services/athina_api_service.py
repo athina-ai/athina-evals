@@ -49,15 +49,14 @@ class AthinaApiService:
             )
             if response.status_code == 401:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = "please check your athina api key and try again"
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
                 raise CustomException(error_message, details_message)
             elif response.status_code != 200 and response.status_code != 201:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = response_json.get("details", {}).get(
-                    "message", "No Details"
-                )
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get(
+                    'details', {}).get('message', 'No Details')
                 raise CustomException(error_message, details_message)
             inferences = response.json()["data"]["inferences"]
             return list(map(lambda x: AthinaInference(**x), inferences))
@@ -105,15 +104,14 @@ class AthinaApiService:
             )
             if response.status_code == 401:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = "please check your athina api key and try again"
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
                 raise CustomException(error_message, details_message)
             elif response.status_code != 200 and response.status_code != 201:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = response_json.get("details", {}).get(
-                    "message", "No Details"
-                )
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get(
+                    'details', {}).get('message', 'No Details')
                 raise CustomException(error_message, details_message)
             return response.json()
         except Exception as e:
@@ -122,9 +120,11 @@ class AthinaApiService:
                 str(e),
             )
             raise
-
+    
     @staticmethod
-    def create_dataset(dataset: Dict):
+    def create_dataset(
+        dataset: Dict
+    ):
         """
         Creates a dataset by calling the Athina API
         """
@@ -137,22 +137,24 @@ class AthinaApiService:
             )
             if response.status_code == 401:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = "please check your athina api key and try again"
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
                 raise CustomException(error_message, details_message)
             elif response.status_code != 200 and response.status_code != 201:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = response_json.get("details", {}).get(
-                    "message", "No Details"
-                )
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get(
+                    'details', {}).get('message', 'No Details')
                 raise CustomException(error_message, details_message)
-            return response.json()["data"]["dataset"]
+            return response.json()['data']['dataset']
         except Exception as e:
             raise
-
+    
     @staticmethod
-    def fetch_dataset_rows(dataset_id: str, number_of_rows: Optional[int] = None):
+    def fetch_dataset_rows(
+        dataset_id: str,
+        number_of_rows: Optional[int] = None
+    ):
         """
         Fetch the dataset rows by calling the Athina API
 
@@ -161,20 +163,22 @@ class AthinaApiService:
             if number_of_rows is None:
                 number_of_rows = 20
             endpoint = f"{API_BASE_URL}/api/v1/dataset_v2/fetch-by-id/{dataset_id}?offset=0&limit={number_of_rows}&include_dataset_rows=true"
-            response = requests.post(endpoint, headers=AthinaApiService._headers())
+            response = requests.post(
+                endpoint,
+                headers=AthinaApiService._headers()
+            )
             if response.status_code == 401:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = "please check your athina api key and try again"
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
                 raise CustomException(error_message, details_message)
             elif response.status_code != 200 and response.status_code != 201:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = response_json.get("details", {}).get(
-                    "message", "No Details"
-                )
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get(
+                    'details', {}).get('message', 'No Details')
                 raise CustomException(error_message, details_message)
-            return response.json()["data"]["dataset_rows"]
+            return response.json()['data']['dataset_rows']
         except Exception as e:
             raise
 
@@ -202,17 +206,15 @@ class AthinaApiService:
             )
             if response.status_code == 401:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = "please check your athina api key and try again"
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
                 raise CustomException(error_message, details_message)
             elif response.status_code != 200 and response.status_code != 201:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = response_json.get("details", {}).get(
-                    "message", "No Details"
-                )
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get('details', {}).get('message', 'No Details')
                 raise CustomException(error_message, details_message)
-            return response.json()["data"]
+            return response.json()['data']
         except Exception as e:
             raise
 
@@ -232,15 +234,14 @@ class AthinaApiService:
             )
             if response.status_code == 401:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = "please check your athina api key and try again"
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
                 raise CustomException(error_message, details_message)
             elif response.status_code != 200 and response.status_code != 201:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = response_json.get("details", {}).get(
-                    "message", "No Details"
-                )
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get(
+                    'details', {}).get('message', 'No Details')
                 raise CustomException(error_message, details_message)
             return response.json()
         except Exception as e:
@@ -277,15 +278,14 @@ class AthinaApiService:
             )
             if response.status_code == 401:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = "please check your athina api key and try again"
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
                 raise CustomException(error_message, details_message)
             elif response.status_code != 200 and response.status_code != 201:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = response_json.get("details", {}).get(
-                    "message", "No Details"
-                )
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get(
+                    'details', {}).get('message', 'No Details')
                 raise CustomException(error_message, details_message)
             return response.json()
         except Exception as e:
@@ -321,15 +321,14 @@ class AthinaApiService:
             print(response.status_code)
             if response.status_code == 401:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = "please check your athina api key and try again"
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
                 raise CustomException(error_message, details_message)
             elif response.status_code != 200 and response.status_code != 201:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = response_json.get("details", {}).get(
-                    "message", "No Details"
-                )
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get(
+                    'details', {}).get('message', 'No Details')
                 raise CustomException(error_message, details_message)
             return response.json()
         except Exception as e:
@@ -338,7 +337,7 @@ class AthinaApiService:
                 str(e),
             )
             raise
-
+    
     @staticmethod
     def log_eval_results_with_config(eval_results_with_config: dict):
         try:
@@ -350,15 +349,14 @@ class AthinaApiService:
             )
             if response.status_code == 401:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = "please check your athina api key and try again"
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = 'please check your athina api key and try again'
                 raise CustomException(error_message, details_message)
             elif response.status_code != 200 and response.status_code != 201:
                 response_json = response.json()
-                error_message = response_json.get("error", "Unknown Error")
-                details_message = response_json.get("details", {}).get(
-                    "message", "No Details"
-                )
+                error_message = response_json.get('error', 'Unknown Error')
+                details_message = response_json.get(
+                    'details', {}).get('message', 'No Details')
                 raise CustomException(error_message, details_message)
             return response.json()
         except Exception as e:

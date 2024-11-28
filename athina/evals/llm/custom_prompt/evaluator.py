@@ -109,8 +109,8 @@ class CustomPrompt(LlmEvaluator):
         return bool(str(result).lower() == "fail")
 
     def _user_message(self, **kwargs) -> str:
-        if "chat_history" in kwargs:
-            kwargs["chat_history"] = json.dumps(kwargs["chat_history"], indent=2)
+        if 'chat_history' in kwargs:
+            kwargs['chat_history'] = json.dumps(kwargs['chat_history'], indent=2)
         template = self.env.from_string(self._user_message_template)
         return template.render(**kwargs)
 
@@ -175,9 +175,7 @@ class CustomPrompt(LlmEvaluator):
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
             if isinstance(e, (ValueError, KeyError)):
-                raise ValueError(
-                    "LLM evals must return a result/score and explanation. The LLM response did not return the correct structure for parsing evaluation results."
-                )
+                raise ValueError("LLM evals must return a result/score and explanation. The LLM response did not return the correct structure for parsing evaluation results.")
             else:
                 raise e
 

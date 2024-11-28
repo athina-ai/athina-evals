@@ -25,11 +25,11 @@ class OpenAiContentModeration(BaseEvaluator):
     @property
     def required_args(self):
         return ["text"]
-
+    
     @property
     def examples(self):
         return None
-
+    
     def __init__(self, open_ai_api_key: Optional[str] = None):
         if open_ai_api_key is None:
             if OpenAiApiKey.get_key() is None:
@@ -39,28 +39,24 @@ class OpenAiContentModeration(BaseEvaluator):
             self.open_ai_api_key = open_ai_api_key
 
     def is_failure(self, content_moderation_response: dict) -> Optional[bool]:
-        results = content_moderation_response.get("results", [])
+        results = content_moderation_response.get('results',[])
         if results and len(results) > 0:
             # If the result is flagged, return True else False
-            return bool(results[0].get("flagged", False))
+            return bool(results[0].get('flagged', False))
         # Assuming when no results are returned, it is not a failure
         return False
 
     def get_reason(self, content_moderation_response: dict) -> Optional[str]:
-        results = content_moderation_response.get("results", [])
-        if results and len(results) > 0 and results[0].get("flagged", False):
+        results = content_moderation_response.get('results',[])
+        if results and len(results) > 0 and results[0].get('flagged', False):
             result = results[0]
-            if results[0].get("flagged", False):
-                flagged_categories = [
-                    category
-                    for category, flagged in result["categories"].items()
-                    if flagged
-                ]
+            if results[0].get('flagged', False):
+                flagged_categories = [category for category, flagged in result['categories'].items() if flagged]
                 # Form a comma-separated string of flagged categories
-                reason = ", ".join(flagged_categories)
+                reason = ', '.join(flagged_categories)
                 return f"The text was flagged in these categories: {reason}"
         return "The text was not flagged"
-
+    
     def _evaluate(self, **kwargs) -> EvalResult:
         # Start timer
         start_time = time.perf_counter()
@@ -123,13 +119,13 @@ class OpenAiContentModeration(BaseEvaluator):
     #     ]
     # }
 
-    def get_content_moderation_result(self, text: str):
+    def get_content_moderation_result(self, text: str): 
         # Define the endpoint URL
         url = "https://api.openai.com/v1/moderations"
         # Prepare headers and data payload for the HTTP request
         headers = {
             "Authorization": f"Bearer {self.open_ai_api_key}",
-            "Content-Type": "application/json",
+            "Content-Type": "application/json"
         }
         data = {"input": text}
         # Make the HTTP POST request
@@ -137,6 +133,4 @@ class OpenAiContentModeration(BaseEvaluator):
         if response.status_code == 200:
             return response.json()
         else:
-            raise Exception(
-                f"Error occurred during OpenAI Content Moderation: {response}"
-            )
+            raise Exception(f"Error occurred during OpenAI Content Moderation: {response}")

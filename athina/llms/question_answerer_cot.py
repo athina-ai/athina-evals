@@ -3,7 +3,6 @@ from athina.llms.abstract_llm_service import AbstractLlmService
 from .question_answerer import QuestionAnswerer, QuestionAnswererResponse
 from athina.llms.openai_service import OpenAiService
 
-
 class QuestionAnswererChainOfThought(QuestionAnswerer):
 
     _llm_service: AbstractLlmService
@@ -30,10 +29,9 @@ class QuestionAnswererChainOfThought(QuestionAnswerer):
         5. Return a JSON object in the following format: "answer": "answer", "explanation": "explanation"
     """
 
-    def __init__(
-        self,
-        model: str = "gpt-4-1106-preview",
-        llm_service: Optional[AbstractLlmService] = None,
+    def __init__(self, 
+        model: str = "gpt-4-1106-preview", 
+        llm_service: Optional[AbstractLlmService] = None
     ):
         """
         Initialize the QuestionAnswerer class.

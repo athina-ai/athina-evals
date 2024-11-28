@@ -170,7 +170,11 @@ def run_batch(
         )
 
         RunHelper.run_eval_on_batch(
-            eval_name=eval_name, model=model, format=format, filename=filename, **kwargs
+            eval_name=eval_name,
+            model=model,
+            format=format,
+            filename=filename,
+            **kwargs
         )
     except Exception as e:
         print(f"{e}")

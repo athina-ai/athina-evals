@@ -26,7 +26,6 @@ class ExtractJsonFromString(Step):
             raise ValueError("No valid JSON data found in the input string.")
         return output
 
-
 class ExtractNumberFromString(Step):
     """
     Step that extracts a number from a string.

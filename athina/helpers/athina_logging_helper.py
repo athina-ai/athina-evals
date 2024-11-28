@@ -13,7 +13,6 @@ from athina.services.athina_api_service import AthinaApiService
 from athina.keys import AthinaApiKey
 from athina.constants.messages import AthinaMessages
 
-
 class AthinaLoggingHelper:
     @staticmethod
     def log_eval_performance_report(*args, **kwargs):
@@ -22,7 +21,7 @@ class AthinaLoggingHelper:
         """
         if AthinaApiKey.is_set():
             return AthinaApiService.log_eval_performance_report(*args, **kwargs)
-
+        
     @staticmethod
     def log_experiment(*args, **kwargs):
         """
@@ -68,15 +67,9 @@ class AthinaLoggingHelper:
 
             for eval_result in eval_results:
                 # Construct eval result object
-                failed_percent = (
-                    float(eval_result.get("failure"))
-                    if "failure" in eval_result
-                    else None
-                )
+                failed_percent = float(eval_result.get("failure")) if "failure" in eval_result else None
                 metrics = eval_result.get("metrics", [])
-                datapoint_field_annotations = eval_result.get(
-                    "datapoint_field_annotations", None
-                )
+                datapoint_field_annotations = eval_result.get("datapoint_field_annotations", None)
                 athina_eval_result = AthinaEvalResult(
                     job_type=AthinaJobType.LLM_EVAL.value,
                     failed_percent=failed_percent,
@@ -84,11 +77,7 @@ class AthinaLoggingHelper:
                     flakiness=0.0,
                     run_results=[
                         AthinaEvalRunResult(
-                            failed=(
-                                eval_result["failure"]
-                                if "failure" in eval_result
-                                else None
-                            ),
+                            failed=eval_result["failure"] if "failure" in eval_result else None,
                             runtime=eval_result["runtime"],
                             reason=eval_result["reason"],
                             datapoint_field_annotations=datapoint_field_annotations,
@@ -105,9 +94,7 @@ class AthinaLoggingHelper:
                     AthinaInterfaceHelper.eval_result_to_create_request(
                         eval_request_id=eval_request_id,
                         eval_type=eval_result["name"],
-                        language_model_id=(
-                            eval_result["model"] if "model" in eval_result else None
-                        ),
+                        language_model_id=eval_result["model"] if "model" in eval_result else None,
                         eval_result=athina_eval_result,
                         org_id=org_id,
                         workspace_slug=workspace_slug,
@@ -133,7 +120,6 @@ class AthinaLoggingHelper:
     @staticmethod
     def log_eval_results_with_config(eval_results_with_config: dict, dataset_id: str):
         try:
-
             def remove_none_values(data: dict) -> dict:
                 return {k: v for k, v in data.items() if v is not None}
 
@@ -145,18 +131,16 @@ class AthinaLoggingHelper:
             for eval_result in sliced_eval_results:
                 cleaned_eval_result = {
                     "metrics": eval_result.get("metrics"),
-                    "reason": eval_result.get("reason"),
+                    "reason": eval_result.get("reason")
                 }
                 cleaned_eval_results.append(remove_none_values(cleaned_eval_result))
 
-            development_eval_config = remove_none_values(
-                eval_results_with_config.get("development_eval_config", {})
-            )
+            development_eval_config = remove_none_values(eval_results_with_config.get("development_eval_config", {}))
 
             cleaned_results = {
                 "dataset_id": dataset_id,
                 "eval_results": cleaned_eval_results,
-                "development_eval_config": development_eval_config,
+                "development_eval_config": development_eval_config
             }
 
             # Replace with your logging mechanism

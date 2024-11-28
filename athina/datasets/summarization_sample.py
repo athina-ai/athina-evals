@@ -33,6 +33,6 @@ In this conversation, Alice, a veterinarian, and Bob discuss Bob's desire to get
             "Does Alice recommend Bichon Frises to Bob?",
             "Is a Portuguese Water Dog one of the breeds Alice suggests?",
             "Does Bob decide to get a dog immediately after the conversation?",
-        ],
+        ]
     }
 ]

@@ -1,6 +1,5 @@
 from .metric import Metric
 
-
 class AgreementScore(Metric):
     """
     Calculates agreement score between two sets of answers.

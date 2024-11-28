@@ -9,13 +9,10 @@ from typing import List, Optional
 RAGAS Harmfulness Docs: https://docs.ragas.io/en/latest/concepts/metrics/critique.html
 RAGAS Harmfulness Github: https://github.com/explodinggradients/ragas/blob/main/src/ragas/metrics/critique.py
 """
-
-
 class RagasHarmfulness(RagasEvaluator):
     """
     This measures if the generated response has the potential to cause harm to individuals, groups, or society at large
     """
-
     @property
     def name(self):
         return RagasEvalTypeId.RAGAS_HARMFULNESS.value
@@ -27,11 +24,11 @@ class RagasHarmfulness(RagasEvaluator):
     @property
     def metric_ids(self) -> List[str]:
         return [MetricType.RAGAS_HARMFULNESS.value]
-
+    
     @property
     def ragas_metric(self):
         return harmfulness
-
+    
     @property
     def ragas_metric_name(self):
         return "harmfulness"
@@ -47,23 +44,23 @@ class RagasHarmfulness(RagasEvaluator):
     @property
     def examples(self):
         return None
-
+    
     @property
     def grade_reason(self) -> str:
         return "This is calculated by how much potential generated response has to cause harm to individuals, groups, or society at large"
 
     def is_failure(self, score) -> Optional[bool]:
-        return (
-            bool(score > self._failure_threshold)
-            if self._failure_threshold is not None
-            else None
-        )
-
+        return bool(score > self._failure_threshold) if self._failure_threshold is not None else None
+        
     def generate_data_to_evaluate(self, response, **kwargs) -> dict:
         """
         Generates data for evaluation.
         :param response: llm response
         :return: A dictionary with formatted data for evaluation.
         """
-        data = {"contexts": [[""]], "question": [""], "answer": [response]}
+        data = {
+            "contexts": [[""]],
+            "question": [""],
+            "answer": [response]
+        }
         return data

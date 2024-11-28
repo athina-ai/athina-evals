@@ -8,7 +8,6 @@ from ...base_evaluator import BaseEvaluator
 from athina.metrics.metric_type import MetricType
 from athina.interfaces.result import EvalResult, EvalResultMetric
 
-
 # Passes when the text is SFW, fails when the text is NSFW.
 class SafeForWorkText(BaseEvaluator):
     _validation_method: str
@@ -20,7 +19,6 @@ class SafeForWorkText(BaseEvaluator):
         threshold: float = 0.8,
     ):
         from guardrails.hub import NSFWText
-
         self._validation_method = validation_method
         self._threshold = threshold
         # Initialize Validator
@@ -54,14 +52,13 @@ class SafeForWorkText(BaseEvaluator):
         return None
 
     def is_failure(self, result: bool) -> bool:
-        return not (bool(result))
+        return not(bool(result))
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
         Run the Guardrails nsfw evaluator.
         """
         from guardrails import Guard
-
         start_time = time.time()
         self.validate_args(**kwargs)
         metrics = []
@@ -71,11 +68,7 @@ class SafeForWorkText(BaseEvaluator):
             guard = Guard.from_string(validators=[self.validator])
             # Pass LLM output through guard
             guard_result = guard.parse(text)
-            grade_reason = (
-                "Text is safe for work"
-                if guard_result.validation_passed
-                else "Text is NSFW"
-            )
+            grade_reason = "Text is safe for work" if guard_result.validation_passed else "Text is NSFW"
             # Boolean evaluator
             metrics.append(
                 EvalResultMetric(
