@@ -11,6 +11,7 @@ from athina.keys import OpenAiApiKey
 from ...base_evaluator import BaseEvaluator
 from athina.metrics.metric_type import MetricType
 
+
 # Passes when the text is restricted to the specified topics, fails when the text doesn't.
 class RestrictToTopic(BaseEvaluator):
     _valid_topics: List[str]
@@ -18,15 +19,16 @@ class RestrictToTopic(BaseEvaluator):
 
     def __init__(
         self,
-        valid_topics: List[str], 
+        valid_topics: List[str],
         invalid_topics: List[str] = [],
-        open_ai_api_key: Optional[str] = None
+        open_ai_api_key: Optional[str] = None,
     ):
         from guardrails.hub import RestrictToTopic
+
         if open_ai_api_key is None:
             if OpenAiApiKey.get_key() is None:
                 raise NoOpenAiApiKeyException()
-            os.environ['OPENAI_API_KEY'] = OpenAiApiKey.get_key()
+            os.environ["OPENAI_API_KEY"] = OpenAiApiKey.get_key()
         else:
             self.open_ai_api_key = open_ai_api_key
         self._valid_topics = valid_topics
@@ -65,10 +67,11 @@ class RestrictToTopic(BaseEvaluator):
         return None
 
     def is_failure(self, result: bool) -> bool:
-        return not(bool(result))
+        return not (bool(result))
 
     def _evaluate(self, **kwargs) -> EvalResult:
         from guardrails import Guard
+
         """
         Run the Guardrails evaluator.
         """
@@ -84,10 +87,16 @@ class RestrictToTopic(BaseEvaluator):
             try:
                 guard_result = guard.parse(text)
                 validation_passed = guard_result.validation_passed
-                grade_reason = "Text is restricted to the specified topics" if validation_passed else "Text is not restricted to the specified topics"
+                grade_reason = (
+                    "Text is restricted to the specified topics"
+                    if validation_passed
+                    else "Text is not restricted to the specified topics"
+                )
             except Exception as e:
                 validation_passed = False
-                grade_reason = str(e).replace('Validation failed for field with errors:', '')
+                grade_reason = str(e).replace(
+                    "Validation failed for field with errors:", ""
+                )
 
             # Boolean evaluator
             metrics.append(

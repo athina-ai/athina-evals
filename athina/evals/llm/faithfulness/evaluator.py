@@ -76,8 +76,10 @@ class Faithfulness(LlmEvaluator):
         """
         joined_context = "\n".join(context)
         # Check if chat_history is provided and format it
-        chat_history = kwargs.get('chat_history', [])
-        formatted_chat_history = "\n".join(chat_history) if chat_history else "No chat history provided."
+        chat_history = kwargs.get("chat_history", [])
+        formatted_chat_history = (
+            "\n".join(chat_history) if chat_history else "No chat history provided."
+        )
 
         return self.USER_MESSAGE_TEMPLATE.format(
             context=joined_context,
