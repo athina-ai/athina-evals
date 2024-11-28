@@ -30,7 +30,7 @@ class ClassifyText(Step):
             raise TypeError("Input data must be a dictionary.")
 
         input_text = input_data.get(self.input_column, None)
-        
+
         if input_text is None:
             return None
 

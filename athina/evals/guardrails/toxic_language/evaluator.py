@@ -8,6 +8,7 @@ from ...base_evaluator import BaseEvaluator
 from athina.metrics.metric_type import MetricType
 from athina.interfaces.result import EvalResult, EvalResultMetric
 
+
 # Passes when the text is freem from toxicity, fails when the text is toxic.
 class ToxicLanguage(BaseEvaluator):
 
@@ -26,7 +27,10 @@ class ToxicLanguage(BaseEvaluator):
         self._threshold = threshold
         # Initialize guard
         self._guard = Guard().use(
-            GuardrailsToxicLanguage, threshold=self._threshold, validation_method=self._validation_method, on_fail="noop"
+            GuardrailsToxicLanguage,
+            threshold=self._threshold,
+            validation_method=self._validation_method,
+            on_fail="noop",
         )
 
     @property
@@ -53,7 +57,7 @@ class ToxicLanguage(BaseEvaluator):
         return None
 
     def is_failure(self, result: bool) -> bool:
-        return not(bool(result))
+        return not (bool(result))
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
@@ -67,7 +71,11 @@ class ToxicLanguage(BaseEvaluator):
             text = kwargs["response"]
             # Setup Guard
             guard_result = self._guard.validate(text)
-            grade_reason = "Text is toxicity-free" if guard_result.validation_passed else "Text is toxic"
+            grade_reason = (
+                "Text is toxicity-free"
+                if guard_result.validation_passed
+                else "Text is toxic"
+            )
             # Boolean evaluator
             metrics.append(
                 EvalResultMetric(

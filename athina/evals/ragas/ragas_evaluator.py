@@ -14,6 +14,7 @@ from langchain_openai.chat_models import ChatOpenAI, AzureChatOpenAI
 from ragas.llms import LangchainLLM
 from ragas import evaluate
 
+
 class RagasEvaluator(BaseEvaluator):
     _model: str
     _provider: Optional[str] = None
@@ -26,25 +27,25 @@ class RagasEvaluator(BaseEvaluator):
         self,
         model: str,
         api_key: Optional[str] = None,
-        provider: Optional[str] = 'openai',  # Default provider set to 'openai'
+        provider: Optional[str] = "openai",  # Default provider set to 'openai'
         config: Optional[CustomModelConfig] = None,
-        failure_threshold: Optional[float] = None
+        failure_threshold: Optional[float] = None,
     ):
         self._model = model
         self._provider = provider
         self._api_key = api_key
         self._config = config
-        
+
         if failure_threshold is not None:
             self._failure_threshold = failure_threshold
 
     @property
     def default_model(self) -> str:
         return Model.GPT35_TURBO.value
-    
+
     def generate_data_to_evaluate(self, **kwargs):
         pass
-    
+
     @abstractmethod
     def ragas_metric(self) -> Any:
         pass
@@ -52,11 +53,11 @@ class RagasEvaluator(BaseEvaluator):
     @property
     def grade_reason(self) -> str:
         raise NotImplementedError
-    
+
     def _get_model(self):
-        if self._provider == 'openai':
+        if self._provider == "openai":
             return ChatOpenAI(model_name=self._model, api_key=self._api_key)
-        elif self._provider == 'azure':
+        elif self._provider == "azure":
             # Extracting azure configuration from completion_config
             azure_endpoint = None
             api_version = None
@@ -65,15 +66,17 @@ class RagasEvaluator(BaseEvaluator):
                     azure_endpoint = item["api_base"]
                 if "api_version" in item:
                     api_version = item["api_version"]
-            
+
             if azure_endpoint is None or api_version is None:
-                raise ValueError("Azure configuration is missing required fields 'api_base' or 'api_version'")
+                raise ValueError(
+                    "Azure configuration is missing required fields 'api_base' or 'api_version'"
+                )
 
             return AzureChatOpenAI(
                 api_version=api_version,
                 azure_endpoint=azure_endpoint,
                 azure_deployment=self._model,
-                api_key=self._api_key
+                api_key=self._api_key,
             )
         else:
             raise ValueError(f"Unsupported provider: {self._provider}")
@@ -92,7 +95,9 @@ class RagasEvaluator(BaseEvaluator):
             scores = evaluate(dataset, metrics=[self.ragas_metric])
             metric_value = scores[self.ragas_metric_name]
             if isinstance(metric_value, (int, float)) and not math.isnan(metric_value):
-                metrics.append(EvalResultMetric(id=self.metric_ids[0], value=metric_value))
+                metrics.append(
+                    EvalResultMetric(id=self.metric_ids[0], value=metric_value)
+                )
             else:
                 logger.warn(f"Invalid metric value: {metric_value}")
 

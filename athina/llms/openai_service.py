@@ -7,7 +7,7 @@ from athina.interfaces.model import Model
 from athina.errors.exceptions import NoOpenAiApiKeyException
 from .abstract_llm_service import AbstractLlmService
 import json
-import time 
+import time
 from litellm import cost_per_token
 
 DEFAULT_TEMPERATURE = 0.0
@@ -43,43 +43,71 @@ class OpenAiService(AbstractLlmService):
     def _process_response(self, response, start_time, model):
         end_time = time.time()
         completion_time = (end_time - start_time) * 1000
-        prompt_tokens_cost_usd_dollar, completion_tokens_cost_usd_dollar = cost_per_token(model=model, prompt_tokens=response.usage.prompt_tokens, completion_tokens=response.usage.completion_tokens)
-        metadata = json.dumps({
-            "usage": {
-                "completion_tokens": response.usage.completion_tokens,
-                "prompt_tokens": response.usage.prompt_tokens,
-                "total_tokens": response.usage.total_tokens,
-            },
-            "cost" : {
-                "prompt_tokens_cost_usd_dollar": prompt_tokens_cost_usd_dollar,
-                "completion_tokens_cost_usd_dollar": completion_tokens_cost_usd_dollar,
-                "total_cost_usd_dollar": prompt_tokens_cost_usd_dollar + completion_tokens_cost_usd_dollar
-            },
-            "response_time": completion_time
-        })
-        if response.choices[0].finish_reason == 'tool_calls':
-            tool_calls = [call.model_dump() for call in response.choices[0].message.tool_calls]
-            tool_calls_data = [{"arguments": call["function"]["arguments"], "name": call["function"]["name"]} for call in tool_calls]
+        prompt_tokens_cost_usd_dollar, completion_tokens_cost_usd_dollar = (
+            cost_per_token(
+                model=model,
+                prompt_tokens=response.usage.prompt_tokens,
+                completion_tokens=response.usage.completion_tokens,
+            )
+        )
+        metadata = json.dumps(
+            {
+                "usage": {
+                    "completion_tokens": response.usage.completion_tokens,
+                    "prompt_tokens": response.usage.prompt_tokens,
+                    "total_tokens": response.usage.total_tokens,
+                },
+                "cost": {
+                    "prompt_tokens_cost_usd_dollar": prompt_tokens_cost_usd_dollar,
+                    "completion_tokens_cost_usd_dollar": completion_tokens_cost_usd_dollar,
+                    "total_cost_usd_dollar": prompt_tokens_cost_usd_dollar
+                    + completion_tokens_cost_usd_dollar,
+                },
+                "response_time": completion_time,
+            }
+        )
+        if response.choices[0].finish_reason == "tool_calls":
+            tool_calls = [
+                call.model_dump() for call in response.choices[0].message.tool_calls
+            ]
+            tool_calls_data = [
+                {
+                    "arguments": call["function"]["arguments"],
+                    "name": call["function"]["name"],
+                }
+                for call in tool_calls
+            ]
             return {"value": json.dumps(tool_calls_data), "metadata": metadata}
         else:
             prompt_response = response.choices[0].message.content
             if not prompt_response:
                 if response.choices[0].message.tool_calls:
-                    tool_calls = [call.model_dump() for call in response.choices[0].message.tool_calls]
-                    tool_calls_data = [{"arguments": call["function"]["arguments"], "name": call["function"]["name"]} for call in tool_calls]
+                    tool_calls = [
+                        call.model_dump()
+                        for call in response.choices[0].message.tool_calls
+                    ]
+                    tool_calls_data = [
+                        {
+                            "arguments": call["function"]["arguments"],
+                            "name": call["function"]["name"],
+                        }
+                        for call in tool_calls
+                    ]
                     return {"value": json.dumps(tool_calls_data), "metadata": metadata}
                 else:
-                    return {"value": json.dumps(response.choices[0].message.__dict__), "metadata": metadata}
+                    return {
+                        "value": json.dumps(response.choices[0].message.__dict__),
+                        "metadata": metadata,
+                    }
             return {"value": prompt_response, "metadata": metadata}
-
 
     @retry(stop_max_attempt_number=3, wait_fixed=2000)
     def chat_completion(self, messages, model, **kwargs) -> str:
         """
         Fetches response from OpenAI's ChatCompletion API.
         """
-        if 'temperature' not in kwargs:
-            kwargs['temperature'] = DEFAULT_TEMPERATURE
+        if "temperature" not in kwargs:
+            kwargs["temperature"] = DEFAULT_TEMPERATURE
         try:
             start_time = time.time()
             response = self.openai.chat.completions.create(
@@ -95,15 +123,15 @@ class OpenAiService(AbstractLlmService):
         """
         Fetches response from OpenAI's ChatCompletion API using JSON mode.
         """
-        if 'temperature' not in kwargs:
-            kwargs['temperature'] = DEFAULT_TEMPERATURE
+        if "temperature" not in kwargs:
+            kwargs["temperature"] = DEFAULT_TEMPERATURE
         try:
             start_time = time.time()
             response = self.openai.chat.completions.create(
                 model=model,
                 messages=messages,
                 response_format={"type": "json_object"},
-                **kwargs
+                **kwargs,
             )
             return self._process_response(response, start_time, model)
         except Exception as e:
@@ -114,8 +142,8 @@ class OpenAiService(AbstractLlmService):
         """
         Fetches response from OpenAI's ChatCompletion API using JSON mode.
         """
-        if 'temperature' not in kwargs:
-            kwargs['temperature'] = DEFAULT_TEMPERATURE
+        if "temperature" not in kwargs:
+            kwargs["temperature"] = DEFAULT_TEMPERATURE
         try:
             if Model.supports_json_mode(model):
                 chat_completion_result = self.chat_completion_json(

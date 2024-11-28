@@ -11,12 +11,9 @@ from athina.interfaces.result import EvalResult, EvalResultMetric
 
 # Passes when the text's reading time is less than or equal to reading_time specified, fails when it takes longer.
 class ReadingTime(BaseEvaluator):
-    def __init__(
-        self,
-        reading_time: float # Time in seconds
-    ):
+    def __init__(self, reading_time: float):  # Time in seconds
         from guardrails.hub import ReadingTime as GuardrailsReadingTime
-        
+
         # Initialize Validator
         self.validator = GuardrailsReadingTime(
             reading_time=reading_time,
@@ -47,7 +44,7 @@ class ReadingTime(BaseEvaluator):
         return None
 
     def is_failure(self, result: bool) -> bool:
-        return not(bool(result))
+        return not (bool(result))
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
@@ -64,7 +61,11 @@ class ReadingTime(BaseEvaluator):
             guard = Guard.from_string(validators=[self.validator])
             # Pass LLM output through guard
             guard_result = guard.parse(text)
-            grade_reason = "Text is readable within provided time." if guard_result.validation_passed else "Text is not readable within provided time."
+            grade_reason = (
+                "Text is readable within provided time."
+                if guard_result.validation_passed
+                else "Text is not readable within provided time."
+            )
             # Boolean evaluator
             metrics.append(
                 EvalResultMetric(

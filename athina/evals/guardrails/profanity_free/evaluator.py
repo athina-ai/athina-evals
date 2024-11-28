@@ -16,7 +16,7 @@ class ProfanityFree(BaseEvaluator):
         self,
     ):
         from guardrails.hub import ProfanityFree
-        
+
         # Initialize Validator
         self.validator = ProfanityFree(
             on_fail="noop",
@@ -46,7 +46,7 @@ class ProfanityFree(BaseEvaluator):
         return None
 
     def is_failure(self, result: bool) -> bool:
-        return not(bool(result))
+        return not (bool(result))
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
@@ -63,7 +63,11 @@ class ProfanityFree(BaseEvaluator):
             guard = Guard.from_string(validators=[self.validator])
             # Pass LLM output through guard
             guard_result = guard.parse(text)
-            grade_reason = "Text is profanity-free" if guard_result.validation_passed else "Text contains profanity"
+            grade_reason = (
+                "Text is profanity-free"
+                if guard_result.validation_passed
+                else "Text contains profanity"
+            )
             # Boolean evaluator
             metrics.append(
                 EvalResultMetric(

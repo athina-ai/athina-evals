@@ -1,4 +1,3 @@
-
 from typing import Optional, List
 from athina.evals.grounded.similarity import Comparator
 from athina.metrics.metric_type import MetricType
@@ -8,6 +7,7 @@ from athina.interfaces.result import EvalResult, EvalResultMetric
 from athina.helpers.logger import logger
 from athina.interfaces.athina import AthinaExperiment
 from ..base_evaluator import BaseEvaluator
+
 
 class GroundedEvaluator(BaseEvaluator):
 
@@ -21,7 +21,7 @@ class GroundedEvaluator(BaseEvaluator):
     @property
     def _model(self):
         return None
-    
+
     @property
     def name(self):
         return self._comparator.__class__.__name__
@@ -44,7 +44,7 @@ class GroundedEvaluator(BaseEvaluator):
         failure_threshold: Optional[float] = None,
     ):
         if comparator is None:
-            raise ValueError(f"comparator is a required argument") 
+            raise ValueError(f"comparator is a required argument")
         else:
             self._comparator = comparator
         if failure_threshold is not None:
@@ -52,7 +52,11 @@ class GroundedEvaluator(BaseEvaluator):
 
     def _process_kwargs(self, required_args, **kwargs):
         required_args_map = {
-            key: "\n".join(kwargs[key]) if key == "context" and isinstance(kwargs[key], list) else kwargs[key] 
+            key: (
+                "\n".join(kwargs[key])
+                if key == "context" and isinstance(kwargs[key], list)
+                else kwargs[key]
+            )
             for key in required_args
         }
         if len(required_args_map) == 2:
@@ -72,10 +76,13 @@ class GroundedEvaluator(BaseEvaluator):
         if self._failure_threshold is not None:
             config["failure_threshold"] = self._failure_threshold
         return config
-    
-    
+
     def is_failure(self, score) -> Optional[bool]:
-        return bool(score < self._failure_threshold) if self._failure_threshold is not None else None
+        return (
+            bool(score < self._failure_threshold)
+            if self._failure_threshold is not None
+            else None
+        )
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
@@ -86,11 +93,15 @@ class GroundedEvaluator(BaseEvaluator):
         # Validate that correct args were passed
         self.validate_args(**kwargs)
         metrics = []
-        try: 
+        try:
             string1, string2 = self._process_kwargs(self.required_args, **kwargs)
             # Calculate the similarity score using the comparator
             similarity_score = self._comparator.compare(string1, string2)
-            metrics.append(EvalResultMetric(id=MetricType.SIMILARITY_SCORE.value, value=similarity_score))
+            metrics.append(
+                EvalResultMetric(
+                    id=MetricType.SIMILARITY_SCORE.value, value=similarity_score
+                )
+            )
             if self._failure_threshold is None:
                 explanation = f"Successfully calculated similarity score of {similarity_score} using {self.display_name}"
             elif bool(similarity_score < self._failure_threshold):
@@ -113,7 +124,6 @@ class GroundedEvaluator(BaseEvaluator):
             runtime=eval_runtime_ms,
             model=None,
             metrics=metrics,
-            failure=failure
+            failure=failure,
         )
         return {k: v for k, v in eval_result.items() if v is not None}
-

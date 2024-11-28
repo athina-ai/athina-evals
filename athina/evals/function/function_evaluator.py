@@ -78,7 +78,7 @@ class FunctionEvaluator(BaseEvaluator):
             return None
         else:
             return self._function_arguments
-        
+
     def _evaluate(self, **kwargs) -> EvalResult:
         """
         Run the Function evaluator.
