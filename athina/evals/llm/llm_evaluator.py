@@ -81,7 +81,6 @@ class LlmEvaluator(BaseEvaluator):
         else:
             self._user_message_template = user_message_template
 
-
     @property
     @abstractmethod
     def default_model(self):
@@ -92,10 +91,8 @@ class LlmEvaluator(BaseEvaluator):
         formatted_args = [str(value) for value in self.required_args]
         return f"Docstring: {self.__doc__}\nRequired Arguments: {formatted_args}"
 
-    
     def _system_message(self) -> str:
         return self._system_message_template
-
 
     def _prompt_messages(self, **kwargs) -> List[dict]:
         return [
@@ -126,14 +123,16 @@ class LlmEvaluator(BaseEvaluator):
             messages=messages,
             temperature=self.TEMPERATURE,
         )
-    
+
         metrics = []
         try:
             result = chat_completion_response_json["result"]
             explanation = chat_completion_response_json["explanation"]
             failure = self.is_failure(result)
             passed_value = 1 - float(failure)
-            metrics.append(EvalResultMetric(id=MetricType.PASSED.value, value=passed_value))
+            metrics.append(
+                EvalResultMetric(id=MetricType.PASSED.value, value=passed_value)
+            )
 
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
@@ -150,7 +149,10 @@ class LlmEvaluator(BaseEvaluator):
             runtime=eval_runtime_ms,
             model=self._model,
             metrics=metrics,
-            metadata=chat_completion_response_json["metadata"] if "metadata" in chat_completion_response_json else {},
+            metadata=(
+                chat_completion_response_json["metadata"]
+                if "metadata" in chat_completion_response_json
+                else {}
+            ),
         )
         return {k: v for k, v in llm_eval_result.items() if v is not None}
-    

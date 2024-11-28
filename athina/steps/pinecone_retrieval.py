@@ -39,20 +39,21 @@ class PineconeRetrieval(Step):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        vector_store_args = {
-            'api_key': self.api_key,
-            'index_name': self.index_name
-        }
+        vector_store_args = {"api_key": self.api_key, "index_name": self.index_name}
 
         if self.environment is not None:
-            vector_store_args['environment'] = self.environment
+            vector_store_args["environment"] = self.environment
 
         if self.namespace is not None:
-            vector_store_args['namespace'] = self.namespace
+            vector_store_args["namespace"] = self.namespace
 
         self._vector_store = PineconeVectorStore(**vector_store_args)
-        self._vector_index = VectorStoreIndex.from_vector_store(vector_store=self._vector_store)
-        self._retriever = VectorIndexRetriever(index=self._vector_index, similarity_top_k=self.top_k)
+        self._vector_index = VectorStoreIndex.from_vector_store(
+            vector_store=self._vector_store
+        )
+        self._retriever = VectorIndexRetriever(
+            index=self._vector_index, similarity_top_k=self.top_k
+        )
 
     class Config:
         arbitrary_types_allowed = True
@@ -67,7 +68,7 @@ class PineconeRetrieval(Step):
             raise TypeError("Input data must be a dictionary.")
 
         input_text = input_data.get(self.input_column, None)
-        
+
         if input_text is None:
             return None
 
@@ -83,4 +84,3 @@ class PineconeRetrieval(Step):
                 "status": "error",
                 "data": str(e),
             }
-

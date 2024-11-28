@@ -3,7 +3,6 @@ from dataclasses import dataclass, field
 from athina.services.athina_api_service import AthinaApiService
 
 
-
 @dataclass
 class DatasetRow:
     query: Optional[str] = None
@@ -103,4 +102,3 @@ class Dataset:
     @staticmethod
     def dataset_link(dataset_id: str):
         return f"https://app.athina.ai/develop/{dataset_id}"
-

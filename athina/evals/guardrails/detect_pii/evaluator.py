@@ -12,13 +12,19 @@ from athina.interfaces.result import EvalResult, EvalResultMetric
 # Passes when the text does not contain PII, fails when the text contains PII.
 class DetectPII(BaseEvaluator):
     # Input can be taken from the user in future
-    _default_pii_entities = ["EMAIL_ADDRESS", "PHONE_NUMBER", "IP_ADDRESS", "LOCATION", "PERSON"]
-    
+    _default_pii_entities = [
+        "EMAIL_ADDRESS",
+        "PHONE_NUMBER",
+        "IP_ADDRESS",
+        "LOCATION",
+        "PERSON",
+    ]
+
     def __init__(
         self,
     ):
         from guardrails.hub import DetectPII
-        
+
         # Initialize Validator
         self.validator = DetectPII(
             pii_entities=self._default_pii_entities,
@@ -49,7 +55,7 @@ class DetectPII(BaseEvaluator):
         return None
 
     def is_failure(self, result: bool) -> bool:
-        return not(bool(result))
+        return not (bool(result))
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
@@ -66,7 +72,11 @@ class DetectPII(BaseEvaluator):
             guard = Guard.from_string(validators=[self.validator])
             # Pass LLM output through guard
             guard_result = guard.parse(text)
-            grade_reason = "Text is free of PII" if guard_result.validation_passed else "Text contains PII"
+            grade_reason = (
+                "Text is free of PII"
+                if guard_result.validation_passed
+                else "Text contains PII"
+            )
             # Boolean evaluator
             metrics.append(
                 EvalResultMetric(
