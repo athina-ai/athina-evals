@@ -20,7 +20,7 @@ class NotGibberishText(BaseEvaluator):
         threshold: float = 0.75,
     ):
         from guardrails.hub import GibberishText as GuardrailsGibberishText
-        
+
         self._validation_method = validation_method
         self._threshold = threshold
         # Initialize Validator
@@ -54,7 +54,7 @@ class NotGibberishText(BaseEvaluator):
         return None
 
     def is_failure(self, result: bool) -> bool:
-        return not(bool(result))
+        return not (bool(result))
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
@@ -71,7 +71,11 @@ class NotGibberishText(BaseEvaluator):
             guard = Guard.from_string(validators=[self.validator])
             # Pass LLM output through guard
             guard_result = guard.parse(text)
-            grade_reason = "Text is sensible" if guard_result.validation_passed else "Text is gibberish"
+            grade_reason = (
+                "Text is sensible"
+                if guard_result.validation_passed
+                else "Text is gibberish"
+            )
             # Boolean evaluator
             metrics.append(
                 EvalResultMetric(

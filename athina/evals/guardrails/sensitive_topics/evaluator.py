@@ -11,21 +11,29 @@ from athina.keys import OpenAiApiKey
 from ...base_evaluator import BaseEvaluator
 from athina.metrics.metric_type import MetricType
 
+
 # Passes when the text doesn't contain any sensitive topics, fails when the text contains.
 class ContainsNoSensitiveTopics(BaseEvaluator):
     _sensitive_topics: List[str]
-    _default_sensitive_topics = ["adult content", "hate speech", "illegal activities", "politics", "violence"]
+    _default_sensitive_topics = [
+        "adult content",
+        "hate speech",
+        "illegal activities",
+        "politics",
+        "violence",
+    ]
 
     def __init__(
         self,
-        sensitive_topics: List[str] = _default_sensitive_topics, 
-        open_ai_api_key: Optional[str] = None
+        sensitive_topics: List[str] = _default_sensitive_topics,
+        open_ai_api_key: Optional[str] = None,
     ):
         from guardrails.hub import SensitiveTopic
+
         if open_ai_api_key is None:
             if OpenAiApiKey.get_key() is None:
                 raise NoOpenAiApiKeyException()
-            os.environ['OPENAI_API_KEY'] = OpenAiApiKey.get_key()
+            os.environ["OPENAI_API_KEY"] = OpenAiApiKey.get_key()
         else:
             self.open_ai_api_key = open_ai_api_key
         # Initialize Validator
@@ -60,10 +68,11 @@ class ContainsNoSensitiveTopics(BaseEvaluator):
         return None
 
     def is_failure(self, result: bool) -> bool:
-        return not(bool(result))
+        return not (bool(result))
 
     def _evaluate(self, **kwargs) -> EvalResult:
         from guardrails import Guard
+
         """
         Run the Guardrails evaluator.
         """
@@ -79,10 +88,16 @@ class ContainsNoSensitiveTopics(BaseEvaluator):
             try:
                 guard_result = guard.parse(text)
                 validation_passed = guard_result.validation_passed
-                grade_reason = "Text doesn't contain sensitive topics" if validation_passed else "Text contains sensitive topics"
+                grade_reason = (
+                    "Text doesn't contain sensitive topics"
+                    if validation_passed
+                    else "Text contains sensitive topics"
+                )
             except Exception as e:
                 validation_passed = False
-                grade_reason = str(e).replace('Validation failed for field with errors:', '')
+                grade_reason = str(e).replace(
+                    "Validation failed for field with errors:", ""
+                )
 
             # Boolean evaluator
             metrics.append(

@@ -29,5 +29,5 @@ __all__ = [
     "PineconeRetrieval",
     "QdrantRetrieval",
     "WeaviateRetrieval",
-    "OpenAiAssistant"
+    "OpenAiAssistant",
 ]

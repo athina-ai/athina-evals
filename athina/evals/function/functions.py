@@ -12,8 +12,9 @@ from athina.keys.openai_api_key import OpenAiApiKey
 from athina.llms.openai_service import OpenAiService
 from athina.steps.code_execution import CodeExecution
 import subprocess
-import tempfile 
+import tempfile
 from jinja2 import Environment
+
 
 def _standardize_url(url):
     """
@@ -559,6 +560,7 @@ def length_greater_than(min_length, text, **kwargs):
             "reason": f"output length is less than {min_length} characters",
         }
 
+
 def length_between(min_length, max_length, text, **kwargs):
     """
     Check if the length of the text is between a specified minimum and maximum length.
@@ -582,6 +584,7 @@ def length_between(min_length, max_length, text, **kwargs):
             "reason": f"output length is not between {min_length} and {max_length} characters",
         }
 
+
 def one_line(text, **kwargs):
     """
     Check if the text is a single line.
@@ -597,10 +600,8 @@ def one_line(text, **kwargs):
     else:
         return {"result": True, "reason": "output is a single line"}
 
-def json_schema(
-    actual_json: Union[dict, str],
-    **kwargs
-) -> Dict[str, Any]:
+
+def json_schema(actual_json: Union[dict, str], **kwargs) -> Dict[str, Any]:
     """
     Check if the actual_json matched the schema definition.
 
@@ -610,19 +611,19 @@ def json_schema(
     try:
         # Load the actual JSON data from the input
         actual_json = _load_json(actual_json)
-        
+
         # Retrieve the schema from the provided keyword arguments
         schema = _get_schema(kwargs)
         if not schema:
             # Return failure if schema is not provided
             return {"result": False, "reason": "Schema not provided"}
-        
+
         # Validate the actual JSON against the schema
         passed, reason = _validate_json_with_schema(actual_json, schema)
         if not passed:
             # Return failure if validation does not pass
             return {"result": False, "reason": reason}
-        
+
         # Return success if validation passes
         return {"result": True, "reason": "JSON schema passed"}
     except Exception as e:
@@ -630,10 +631,9 @@ def json_schema(
         logger.error(f"Error occurred during JSON schema validation: {e}")
         raise e
 
+
 def json_validation(
-    actual_json: Union[dict, str],
-    expected_json: Union[dict, str],
-    **kwargs
+    actual_json: Union[dict, str], expected_json: Union[dict, str], **kwargs
 ) -> Dict[str, Any]:
     """
     Check if the actual JSON and expected JSON match the validation rules.
@@ -649,7 +649,9 @@ def json_validation(
         validations = kwargs.get("validations", [])
         if validations:
             for validation in validations:
-                validation_result = _apply_validation(actual_json, expected_json, validation)
+                validation_result = _apply_validation(
+                    actual_json, expected_json, validation
+                )
                 validation_passed = validation_result[0]
                 validation_reason = validation_result[1]
                 if not validation_passed:
@@ -660,24 +662,26 @@ def json_validation(
         logger.error(f"Error occurred during Json validation eval: {e}")
         raise e
 
+
 def _bandit_check(code: str) -> None:
     """
     Run Bandit security check on the provided code.
     """
     with tempfile.NamedTemporaryFile(delete=False, suffix=".py") as temp_file:
-        temp_file.write(code.encode('utf-8'))
+        temp_file.write(code.encode("utf-8"))
         temp_file_path = temp_file.name
     try:
         result = subprocess.run(
             ["bandit", "-r", temp_file_path, "-f", "json", "-c", "bandit.yml"],
             capture_output=True,
-            text=True
+            text=True,
         )
         if result.returncode != 0:
             return json.dumps(result.stdout)
     finally:
         os.remove(temp_file_path)
     return None
+
 
 def custom_code_eval(code, **kwargs):
     """
@@ -702,7 +706,10 @@ def custom_code_eval(code, **kwargs):
         else:
             return {"result": False, "reason": "Custom eval code failed"}
     else:
-        return {"result": False, "reason": result.get("data", "Error in custom eval code eval")}
+        return {
+            "result": False,
+            "reason": result.get("data", "Error in custom eval code eval"),
+        }
 
 
 def _load_json(json_data: Union[dict, str]) -> dict:
@@ -710,14 +717,17 @@ def _load_json(json_data: Union[dict, str]) -> dict:
         return json.loads(json_data)
     return json_data
 
+
 def _get_schema(kwargs: Dict[str, Any]) -> dict:
     schema = kwargs.get("schema")
     if schema and isinstance(schema, str):
         return json.loads(schema.replace("\n", "").replace("\t", ""))
     return schema
 
+
 def _validate_json_with_schema(json_data: dict, schema: dict) -> Tuple[bool, str]:
     return validate_json(json_data, schema)
+
 
 def _apply_validation(actual_json: dict, expected_json: dict, validation: dict) -> bool:
     validating_function = validation.get("validating_function")
@@ -728,17 +738,28 @@ def _apply_validation(actual_json: dict, expected_json: dict, validation: dict) 
     if validating_function == "Equals":
         return _validate_equals(actual_value, expected_value, validation, json_path)
     elif validating_function == "Cosine Similarity":
-        return _validate_cosine_similarity(actual_value, expected_value, validation, json_path)
+        return _validate_cosine_similarity(
+            actual_value, expected_value, validation, json_path
+        )
     elif validating_function == "LLM Similarity":
-        return _validate_llm_similarity(actual_value, expected_value, validation, json_path)
+        return _validate_llm_similarity(
+            actual_value, expected_value, validation, json_path
+        )
     else:
         error_message = f"Validation function {validating_function} not supported"
         logger.error(error_message)
         return False, error_message
 
-def _validate_equals(actual_value: Any, expected_value: Any, validation: dict, json_path: str) -> bool:
+
+def _validate_equals(
+    actual_value: Any, expected_value: Any, validation: dict, json_path: str
+) -> bool:
     case_sensitive = validation.get("case_sensitive", False)
-    if not case_sensitive and isinstance(actual_value, str) and isinstance(expected_value, str):
+    if (
+        not case_sensitive
+        and isinstance(actual_value, str)
+        and isinstance(expected_value, str)
+    ):
         actual_value = str(actual_value).lower()
         expected_value = str(expected_value).lower()
     if actual_value != expected_value:
@@ -747,17 +768,29 @@ def _validate_equals(actual_value: Any, expected_value: Any, validation: dict, j
         return False, error_message
     return True, None
 
-def _validate_cosine_similarity(actual_value: str, expected_value: str, validation: dict, json_path: str) -> bool:
+
+def _validate_cosine_similarity(
+    actual_value: str, expected_value: str, validation: dict, json_path: str
+) -> bool:
     threshold = validation.get("pass_threshold", 0.8)
-    cosine_similarity = CosineSimilarity().compare(str(actual_value), str(expected_value))
+    cosine_similarity = CosineSimilarity().compare(
+        str(actual_value), str(expected_value)
+    )
     if cosine_similarity < threshold:
         error_message = f"Cosine similarity score of {round(cosine_similarity, 2)} for {json_path} is less than the threshold ({threshold})."
         logger.error(error_message)
         return False, error_message
     return True, None
 
-def _validate_llm_similarity(actual_value: str, expected_value: str, validation: dict, json_path: str) -> bool:
-    open_ai_api_key = validation.get("open_ai_api_key") or OpenAiApiKey.get_key() or os.environ.get("OPENAI_API_KEY")
+
+def _validate_llm_similarity(
+    actual_value: str, expected_value: str, validation: dict, json_path: str
+) -> bool:
+    open_ai_api_key = (
+        validation.get("open_ai_api_key")
+        or OpenAiApiKey.get_key()
+        or os.environ.get("OPENAI_API_KEY")
+    )
     if not open_ai_api_key:
         raise NoOpenAiApiKeyException()
 
@@ -780,20 +813,27 @@ def _validate_llm_similarity(actual_value: str, expected_value: str, validation:
             return False, error_message
         return True, None
     except Exception as e:
-        error_message = f"Error occurred during LLM similarity validation for {json_path}"
+        error_message = (
+            f"Error occurred during LLM similarity validation for {json_path}"
+        )
         logger.error(error_message)
         return False, error_message
+
 
 def _get_messages(validation: dict, actual_value: Any, expected_value: Any) -> list:
     if validation.get("system_message") and validation.get("user_message"):
         env = Environment(
-            variable_start_string='{{',
-            variable_end_string='}}',
-            undefined=PreserveUndefined
+            variable_start_string="{{",
+            variable_end_string="}}",
+            undefined=PreserveUndefined,
         )
         render_context = {"actual": actual_value, "expected": expected_value}
-        system_message = env.from_string(validation.get("system_message")).render(render_context)
-        user_message = env.from_string(validation.get("user_message")).render(render_context)
+        system_message = env.from_string(validation.get("system_message")).render(
+            render_context
+        )
+        user_message = env.from_string(validation.get("user_message")).render(
+            render_context
+        )
         return [
             {"role": "system", "content": system_message},
             {"role": "user", "content": user_message},
