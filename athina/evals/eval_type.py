@@ -1,10 +1,8 @@
 from enum import Enum
 
-
 class ConversationEvalTypeId(Enum):
     CONVERSATION_RESOLUTION = "ConversationResolution"
     CONVERSATION_COHERENCE = "ConversationCoherence"
-
 
 class LlmEvalTypeId(Enum):
     CONTEXT_CONTAINS_ENOUGH_INFORMATION = "Ccei"
@@ -14,7 +12,6 @@ class LlmEvalTypeId(Enum):
     CUSTOM_PROMPT = "CustomPrompt"
     SUMMARIZATION_HAL = "SummarizationHal"
     GROUNDEDNESS = "Groundedness"
-
 
 class RagasEvalTypeId(Enum):
     RAGAS_CONTEXT_RELEVANCY = "RagasContextRelevancy"
@@ -28,7 +25,6 @@ class RagasEvalTypeId(Enum):
     RAGAS_MALICIOUSNESS = "RagasMaliciousness"
     RAGAS_COHERENCE = "RagasCoherence"
     RAGAS_CONCISENESS = "RagasConciseness"
-
 
 class FunctionEvalTypeId(Enum):
     REGEX = "Regex"
@@ -59,7 +55,7 @@ class FunctionEvalTypeId(Enum):
     CONTAINS_NO_SENSITIVE_TOPICS = "ContainsNoSensitiveTopics"
     OPENAI_CONTENT_MODERATION = "OpenAiContentModeration"
     PII_DETECTION = "PiiDetection"
-    PROMPT_INJECTION = "PromptInjection"
+    PROMPT_INJECTION= "PromptInjection"
     PROFANITY_FREE = "ProfanityFree"
     READING_TIME = "ReadingTime"
     DETECT_PII = "DetectPII"
@@ -70,27 +66,21 @@ class FunctionEvalTypeId(Enum):
     NOT_UNUSUAL_PROMPT = "NotUnusualPrompt"
     POLITENESS_CHECK = "PolitenessCheck"
 
-
 class GroundedEvalTypeId(Enum):
     ANSWER_SIMILARITY = "AnswerSimilarity"
     CONTEXT_SIMILARITY = "ContextSimilarity"
 
-
 def is_llm_eval(evaluator_type: str) -> bool:
     return any(evaluator_type == member.value for member in LlmEvalTypeId)
-
 
 def is_ragas_eval(evaluator_type: str) -> bool:
     return any(evaluator_type == member.value for member in RagasEvalTypeId)
 
-
 def is_function_eval(evaluator_type: str) -> bool:
     return any(evaluator_type == member.value for member in FunctionEvalTypeId)
 
-
 def is_grounded_eval(evaluator_type: str) -> bool:
     return any(evaluator_type == member.value for member in GroundedEvalTypeId)
-
 
 def is_conversation_eval(evaluator_type: str) -> bool:
     return any(evaluator_type == member.value for member in ConversationEvalTypeId)

@@ -41,7 +41,6 @@ class EvalResult(TypedDict):
     datapoint_field_annotations: Optional[List[DatapointFieldAnnotation]]
     metadata: Optional[dict]
 
-
 @dataclass
 class BatchRunResult:
     """

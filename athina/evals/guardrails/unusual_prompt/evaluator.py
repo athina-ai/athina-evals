@@ -11,20 +11,21 @@ from athina.interfaces.result import EvalResult, EvalResultMetric
 from athina.errors.exceptions import NoOpenAiApiKeyException
 from athina.keys import OpenAiApiKey
 
-
 # Passes when the text is not an unusual prompt, fails when the text is a unusual prompt.
 class NotUnusualPrompt(BaseEvaluator):
     _llm_callable: str
 
     def __init__(
-        self, llm_callable: str = "gpt3.5-turbo", open_ai_api_key: Optional[str] = None
+        self,
+        llm_callable: str = "gpt3.5-turbo",
+        open_ai_api_key: Optional[str] = None
     ):
         from guardrails.hub import UnusualPrompt as GuardrailsUnusualPrompt
-
+        
         open_ai_api_key = open_ai_api_key or OpenAiApiKey.get_key()
         if open_ai_api_key is None:
             raise NoOpenAiApiKeyException()
-        os.environ["OPENAI_API_KEY"] = open_ai_api_key
+        os.environ['OPENAI_API_KEY'] = open_ai_api_key
 
         self._llm_callable = llm_callable
         # Initialize Validator
@@ -57,7 +58,7 @@ class NotUnusualPrompt(BaseEvaluator):
         return None
 
     def is_failure(self, result: bool) -> bool:
-        return not (bool(result))
+        return not(bool(result))
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
@@ -73,11 +74,7 @@ class NotUnusualPrompt(BaseEvaluator):
             # Setup Guard
             guard = Guard.from_string(validators=[self.validator])
             guard_result = guard.parse(text)
-            grade_reason = (
-                "Text is not an unusual prompt"
-                if guard_result.validation_passed
-                else "Text is a unusual prompt"
-            )
+            grade_reason = "Text is not an unusual prompt" if guard_result.validation_passed else "Text is a unusual prompt"
             # Boolean evaluator
             metrics.append(
                 EvalResultMetric(

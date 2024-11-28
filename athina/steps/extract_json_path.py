@@ -3,7 +3,6 @@ from athina.steps import Step
 import json
 from jsonpath_ng import parse
 
-
 class ExtractJsonPath(Step):
     """
     Step that extracts json path from text using the JsonPath provided to the step.
@@ -26,7 +25,7 @@ class ExtractJsonPath(Step):
             raise TypeError("Input data must be a dictionary.")
 
         input_text = input_data.get(self.input_column, None)
-
+        
         if input_text is None:
             return None
 
@@ -34,11 +33,11 @@ class ExtractJsonPath(Step):
             if isinstance(input_text, dict) or isinstance(input_text, list):
                 input_json = input_text
             elif isinstance(input_text, str):
-                input_json = json.loads(input_text)
+                input_json =  json.loads(input_text)
             else:
                 return None
             result = parse(self.json_path).find(input_json)
-
+            
             if not result or len(result) == 0:
                 result = None
             elif len(result) == 1:

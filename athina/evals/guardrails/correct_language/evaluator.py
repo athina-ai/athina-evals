@@ -8,7 +8,6 @@ from athina.helpers.logger import logger
 from ...base_evaluator import BaseEvaluator
 from athina.metrics.metric_type import MetricType
 
-
 # Passes when the text matched the specified language, fails when the text doesn't match the specified language.
 class CorrectLanguage(BaseEvaluator):
     _expected_language_iso: str
@@ -20,7 +19,6 @@ class CorrectLanguage(BaseEvaluator):
         threshold: float = 0.75,
     ):
         from guardrails.hub import CorrectLanguage as GuardrailsCorrectLanguage
-
         self._expected_language_iso = expected_language_iso
         self._threshold = threshold
 
@@ -55,11 +53,10 @@ class CorrectLanguage(BaseEvaluator):
         return None
 
     def is_failure(self, result: bool) -> bool:
-        return not (bool(result))
+        return not(bool(result))
 
     def _evaluate(self, **kwargs) -> EvalResult:
         from guardrails import Guard
-
         """
         Run the Guardrails evaluator.
         """
@@ -75,16 +72,10 @@ class CorrectLanguage(BaseEvaluator):
             try:
                 guard_result = guard.parse(text)
                 validation_passed = guard_result.validation_passed
-                grade_reason = (
-                    "Text doesn't match the specified language"
-                    if validation_passed
-                    else "Text matched the specified language"
-                )
+                grade_reason = "Text doesn't match the specified language" if validation_passed else "Text matched the specified language"
             except Exception as e:
                 validation_passed = False
-                grade_reason = str(e).replace(
-                    "Validation failed for field with errors:", ""
-                )
+                grade_reason = str(e).replace('Validation failed for field with errors:', '')
 
             # Boolean evaluator
             metrics.append(

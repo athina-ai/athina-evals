@@ -32,9 +32,7 @@ class LitellmService(AbstractLlmService):
         Fetches response from Litellm's Completion API.
         """
         try:
-            response = litellm.completion(
-                api_key=self._api_key, model=model, messages=messages, **kwargs
-            )
+            response = litellm.completion(api_key=self._api_key, model=model, messages=messages, **kwargs)
             return response.choices[0].message.content
         except Exception as e:
             print(f"Error in ChatCompletion: {e}")

@@ -11,20 +11,21 @@ from athina.interfaces.result import EvalResult, EvalResultMetric
 from athina.errors.exceptions import NoOpenAiApiKeyException
 from athina.keys import OpenAiApiKey
 
-
 # Passes when the text is polite, fails when the text is not polite.
 class PolitenessCheck(BaseEvaluator):
     _llm_callable: str
 
     def __init__(
-        self, llm_callable: str = "gpt3.5-turbo", open_ai_api_key: Optional[str] = None
+        self,
+        llm_callable: str = "gpt3.5-turbo",
+        open_ai_api_key: Optional[str] = None
     ):
         from guardrails.hub import PolitenessCheck as GuardrailsPolitenessCheck
 
         open_ai_api_key = open_ai_api_key or OpenAiApiKey.get_key()
         if open_ai_api_key is None:
             raise NoOpenAiApiKeyException()
-        os.environ["OPENAI_API_KEY"] = open_ai_api_key
+        os.environ['OPENAI_API_KEY'] = open_ai_api_key
 
         self._llm_callable = llm_callable
         # Initialize Validator
@@ -57,7 +58,7 @@ class PolitenessCheck(BaseEvaluator):
         return None
 
     def is_failure(self, result: bool) -> bool:
-        return not (bool(result))
+        return not(bool(result))
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
@@ -73,11 +74,7 @@ class PolitenessCheck(BaseEvaluator):
             # Setup Guard
             guard = Guard.from_string(validators=[self.validator])
             guard_result = guard.parse(text)
-            grade_reason = (
-                "Text is polite"
-                if guard_result.validation_passed
-                else "Text is not polite"
-            )
+            grade_reason = "Text is polite" if guard_result.validation_passed else "Text is not polite"
             # Boolean evaluator
             metrics.append(
                 EvalResultMetric(

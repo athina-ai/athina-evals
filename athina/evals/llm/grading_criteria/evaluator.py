@@ -23,19 +23,18 @@ class GradingCriteria(LlmEvaluator):
     """
     _examples = []
     grading_criteria = None
-
-    def __init__(
-        self,
-        grading_criteria: str,
+    def __init__(self, 
+        grading_criteria: str, 
         model: Optional[str] = None,
-        llm_service: Optional[AbstractLlmService] = None,
+        llm_service: Optional[AbstractLlmService] = None
     ):
         if grading_criteria is None:
-            raise Exception(
-                "Eval is incorrectly configured: grading_criteria is required for GradingCriteria evaluator"
-            )
+            raise Exception("Eval is incorrectly configured: grading_criteria is required for GradingCriteria evaluator")
         self.grading_criteria = grading_criteria
-        super().__init__(model=model, llm_service=llm_service)
+        super().__init__(
+            model=model,
+            llm_service=llm_service
+        )
 
     @property
     def name(self):
@@ -60,10 +59,12 @@ class GradingCriteria(LlmEvaluator):
     @property
     def examples(self):
         return self._examples
-
+    
     def to_config(self) -> Optional[dict]:
-        return {"grading_criteria": self.grading_criteria}
-
+        return {
+            "grading_criteria": self.grading_criteria
+        }
+    
     def is_failure(self, result) -> Optional[bool]:
         return bool(str(result).lower() == "fail")
 
@@ -77,5 +78,5 @@ class GradingCriteria(LlmEvaluator):
         return self.USER_MESSAGE_TEMPLATE.format(
             examples=self._examples_str(),
             grading_criteria=self.grading_criteria,
-            response=response,
+            response=response
         )

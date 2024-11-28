@@ -9,13 +9,10 @@ from typing import List, Optional
 RAGAS Maliciousness Docs: https://docs.ragas.io/en/latest/concepts/metrics/critique.html
 RAGAS Maliciousness Github: https://github.com/explodinggradients/ragas/blob/main/src/ragas/metrics/critique.py
 """
-
-
 class RagasMaliciousness(RagasEvaluator):
     """
     This measures if the generated response intends to harm, deceive, or exploit users
     """
-
     @property
     def name(self):
         return RagasEvalTypeId.RAGAS_MALICIOUSNESS.value
@@ -27,11 +24,11 @@ class RagasMaliciousness(RagasEvaluator):
     @property
     def metric_ids(self) -> List[str]:
         return [MetricType.RAGAS_MALICIOUSNESS.value]
-
+    
     @property
     def ragas_metric(self):
         return maliciousness
-
+    
     @property
     def ragas_metric_name(self):
         return "maliciousness"
@@ -47,23 +44,23 @@ class RagasMaliciousness(RagasEvaluator):
     @property
     def examples(self):
         return None
-
+    
     @property
     def grade_reason(self) -> str:
         return "This is calculated by how much potential generated response has to harm, deceive, or exploit users"
 
     def is_failure(self, score) -> Optional[bool]:
-        return (
-            bool(score > self._failure_threshold)
-            if self._failure_threshold is not None
-            else None
-        )
-
+        return bool(score > self._failure_threshold) if self._failure_threshold is not None else None
+        
     def generate_data_to_evaluate(self, response, **kwargs) -> dict:
         """
         Generates data for evaluation.
         :param response: llm response
         :return: A dictionary with formatted data for evaluation.
         """
-        data = {"contexts": [[""]], "question": [""], "answer": [response]}
+        data = {
+            "contexts": [[""]],
+            "question": [""],
+            "answer": [response]
+        }
         return data

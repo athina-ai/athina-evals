@@ -2,9 +2,7 @@ data = [
     # Incorrect - Unfaithful
     {
         "query": "What are some successful companies that went through YC?",
-        "context": [
-            "Y Combinator has invested in companies in various fields like FinTech, Healthcare, AI, etc."
-        ],
+        "context": ["Y Combinator has invested in companies in various fields like FinTech, Healthcare, AI, etc."],
         "response": "Airbnb, Dropbox, Stripe, Reddit, Coinbase, Instacart.",
         "expected_response": "Airbnb and Stripe are 2 of the successful companies that went through YC.",
     },
@@ -30,9 +28,7 @@ data = [
     },
     {
         "query": "Who founded YC and when was it founded?",
-        "context": [
-            "Y Combinator was founded in March 2005 by Paul Graham, Jessica Livingston, Trevor Blackwell, and Robert Tappan Morris."
-        ],
+        "context": ["Y Combinator was founded in March 2005 by Paul Graham, Jessica Livingston, Trevor Blackwell, and Robert Tappan Morris."],
         "response": "Y Combinator was founded in 2005",
         "expected_response": "Y Combinator was founded in March 2005 by Paul Graham, Jessica Livingston, Trevor Blackwell, and Robert Tappan Morris.",
     },

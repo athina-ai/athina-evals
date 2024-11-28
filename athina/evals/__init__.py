@@ -145,5 +145,5 @@ __all__ = [
     "PolitenessCheck",
     "JsonSchema",
     "JsonValidation",
-    "CustomCodeEval",
+    "CustomCodeEval"
 ]

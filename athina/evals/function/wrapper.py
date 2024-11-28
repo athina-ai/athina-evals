@@ -327,11 +327,8 @@ class ApiCall(FunctionEvaluator):
             display_name=display_name,
         )
 
-
 class LengthBetween(FunctionEvaluator):
-    def __init__(
-        self, min_length: int, max_length: int, display_name: Optional[str] = None
-    ):
+    def __init__(self, min_length: int, max_length: int, display_name: Optional[str] = None):
         """
         Initialize the LengthBetween function evaluator.
 
@@ -348,7 +345,6 @@ class LengthBetween(FunctionEvaluator):
             display_name=display_name,
         )
 
-
 class OneLine(FunctionEvaluator):
     def __init__(self, display_name: Optional[str] = None):
         """
@@ -359,7 +355,6 @@ class OneLine(FunctionEvaluator):
             function_arguments={},
             display_name=display_name,
         )
-
 
 class CustomCodeEval(FunctionEvaluator):
     def __init__(self, code: str, display_name: Optional[str] = None):
@@ -377,7 +372,6 @@ class CustomCodeEval(FunctionEvaluator):
             display_name=display_name,
         )
 
-
 class JsonSchema(FunctionEvaluator):
     def __init__(self, schema: str, display_name: Optional[str] = None):
         """
@@ -385,18 +379,21 @@ class JsonSchema(FunctionEvaluator):
         """
         super().__init__(
             function_name=FunctionEvalTypeId.JSON_SCHEMA.value,
-            function_arguments={"schema": schema},
+            function_arguments={
+                "schema": schema
+            },
             display_name=display_name,
         )
 
-
 class JsonValidation(FunctionEvaluator):
-    def __init__(self, validations=None, display_name: Optional[str] = None):
+    def __init__(self, validations = None, display_name: Optional[str] = None):
         """
         Initialize the JsonValidation function evaluator.
         """
         super().__init__(
             function_name=FunctionEvalTypeId.JSON_VALIDATION.value,
-            function_arguments={"validations": validations},
+            function_arguments={
+                "validations": validations
+            },
             display_name=display_name,
         )
