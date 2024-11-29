@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      # url: https://pypi.org/p/YOURPROJECT
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
