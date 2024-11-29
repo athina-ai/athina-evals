@@ -22,4 +22,4 @@ jobs:
           poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
       - name: Build and publish
         run: |
-          poetry build --publish
+          poetry publish --build
