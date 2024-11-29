@@ -10,8 +10,10 @@ import urllib.parse
 
 
 def prepare_input_data(data):
-    return {key: json.dumps(value) if isinstance(value, (list, dict)) else value
-        for key, value in data.items()}
+    return {
+        key: json.dumps(value) if isinstance(value, (list, dict)) else value
+        for key, value in data.items()
+    }
 
 
 class ApiCall(Step):
@@ -48,9 +50,9 @@ class ApiCall(Step):
 
         # Create a custom Jinja2 environment with double curly brace delimiters and PreserveUndefined
         self.env = Environment(
-            variable_start_string='{{', 
-            variable_end_string='}}',
-            undefined=PreserveUndefined
+            variable_start_string="{{",
+            variable_end_string="}}",
+            undefined=PreserveUndefined,
         )
         prepared_body = None
         # Add a filter to the Jinja2 environment to convert the input data to JSON
@@ -58,17 +60,21 @@ class ApiCall(Step):
             body_template = self.env.from_string(self.body)
             prepared_input_data = prepare_input_data(input_data)
             prepared_body = body_template.render(**prepared_input_data)
-        
+
         prepared_headers = self.headers.copy() if self.headers is not None else None
         prepared_params = self.params.copy() if self.params is not None else None
 
         if prepared_headers is not None:
             for key, value in prepared_headers.items():
-                prepared_headers[key] = self.env.from_string(value).render(**prepared_input_data)
+                prepared_headers[key] = self.env.from_string(value).render(
+                    **prepared_input_data
+                )
 
         if prepared_params is not None:
             for key, value in prepared_params.items():
-                prepared_params[key] = self.env.from_string(value).render(**prepared_input_data)
+                prepared_params[key] = self.env.from_string(value).render(
+                    **prepared_input_data
+                )
 
         retries = 2  # number of retries
         timeout = 30  # seconds
@@ -79,7 +85,11 @@ class ApiCall(Step):
                     url=self.url,
                     headers=prepared_headers,
                     params=prepared_params,
-                    json=json.loads(prepared_body, strict=False) if prepared_body else None,
+                    json=(
+                        json.loads(prepared_body, strict=False)
+                        if prepared_body
+                        else None
+                    ),
                     timeout=timeout,
                 )
                 if response.status_code >= 400:

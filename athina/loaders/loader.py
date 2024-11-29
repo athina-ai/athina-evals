@@ -52,27 +52,39 @@ class Loader(BaseLoader):
         """
         for raw_instance in self._raw_dataset:
 
-            if self.col_query in raw_instance and not isinstance(raw_instance.get(self.col_query), str):
+            if self.col_query in raw_instance and not isinstance(
+                raw_instance.get(self.col_query), str
+            ):
                 raise TypeError(f"'{self.col_query}' is not of type string.")
             if self.col_context in raw_instance:
                 if not isinstance(raw_instance.get(self.col_context), list):
                     raise TypeError(f"'{self.col_context}' is not of type list.")
-                if not all(isinstance(element, str) for element in raw_instance.get(self.col_context)):
-                    raise TypeError(f"Not all elements in '{self.col_context}' are of type string.")
-            if self.col_response in raw_instance and not isinstance(raw_instance.get(self.col_response), str):
+                if not all(
+                    isinstance(element, str)
+                    for element in raw_instance.get(self.col_context)
+                ):
+                    raise TypeError(
+                        f"Not all elements in '{self.col_context}' are of type string."
+                    )
+            if self.col_response in raw_instance and not isinstance(
+                raw_instance.get(self.col_response), str
+            ):
                 raise TypeError(f"'{self.col_response}' is not of type string.")
-            if self.col_expected_response in raw_instance and not isinstance(raw_instance.get(self.col_expected_response), str):
-                raise TypeError(f"'{self.col_expected_response}' is not of type string.")
+            if self.col_expected_response in raw_instance and not isinstance(
+                raw_instance.get(self.col_expected_response), str
+            ):
+                raise TypeError(
+                    f"'{self.col_expected_response}' is not of type string."
+                )
 
             # Create a processed instance
             processed_instance = {
                 "query": raw_instance.get(self.col_query, None),
                 "context": raw_instance.get(self.col_context, None),
                 "response": raw_instance.get(self.col_response, None),
-                "expected_response": raw_instance.get(self.col_expected_response, None)
+                "expected_response": raw_instance.get(self.col_expected_response, None),
             }
             self._processed_dataset.append(processed_instance)
-        
 
     def load_athina_inferences(
         self,
@@ -85,21 +97,27 @@ class Loader(BaseLoader):
         """
         self._raw_dataset = AthinaApiService.fetch_inferences(
             filters=filters, limit=limit
-        ) 
+        )
         for raw_dataset in self._raw_dataset:
             raw_dataset_dict = asdict(raw_dataset)
-            
-            context = [str(raw_dataset_dict['context'])] if raw_dataset_dict['context'] is not None else None
+
+            context = (
+                [str(raw_dataset_dict["context"])]
+                if raw_dataset_dict["context"] is not None
+                else None
+            )
             processed_instance = {
-                "query": raw_dataset_dict['user_query'],
+                "query": raw_dataset_dict["user_query"],
                 "context": context,
-                "response": raw_dataset_dict['prompt_response'],
-                "expected_response": raw_dataset_dict['expected_response']
+                "response": raw_dataset_dict["prompt_response"],
+                "expected_response": raw_dataset_dict["expected_response"],
             }
             self._processed_dataset.append(processed_instance)
         return self._processed_dataset
-    
-    def _fetch_context_and_response_for_llama_index(self, query: str, query_engine: BaseQueryEngine):
+
+    def _fetch_context_and_response_for_llama_index(
+        self, query: str, query_engine: BaseQueryEngine
+    ):
         """
         Fetches the context and response from the llama index query engine.
         """
@@ -111,24 +129,32 @@ class Loader(BaseLoader):
             contexts.append(text)
 
         return contexts, response
-    
-    def _generate_processed_instance_for_llama_index(self, raw_instance: dict, query_engine: BaseQueryEngine) -> DataPoint:
+
+    def _generate_processed_instance_for_llama_index(
+        self, raw_instance: dict, query_engine: BaseQueryEngine
+    ) -> DataPoint:
         """
         Generates a processed instance for the llama index query engine.
         """
         if self.col_query not in raw_instance:
             raise ValueError(f"'{self.col_query}' not found in provided data.")
-        if self.col_query in raw_instance and not isinstance(raw_instance.get(self.col_query), str):
+        if self.col_query in raw_instance and not isinstance(
+            raw_instance.get(self.col_query), str
+        ):
             raise TypeError(f"'{self.col_query}' is not of type string.")
-        if self.col_expected_response in raw_instance and not isinstance(raw_instance.get(self.col_expected_response), str):
+        if self.col_expected_response in raw_instance and not isinstance(
+            raw_instance.get(self.col_expected_response), str
+        ):
             raise TypeError(f"'{self.col_expected_response}' is not of type string.")
 
-        contexts, response = self._fetch_context_and_response_for_llama_index(raw_instance.get(self.col_query), query_engine)
+        contexts, response = self._fetch_context_and_response_for_llama_index(
+            raw_instance.get(self.col_query), query_engine
+        )
         processed_instance = {
             "query": raw_instance.get(self.col_query),
             "context": contexts,
             "response": response,
-            "expected_response": raw_instance.get(self.col_expected_response, None)
+            "expected_response": raw_instance.get(self.col_expected_response, None),
         }
         return processed_instance
 
@@ -139,6 +165,8 @@ class Loader(BaseLoader):
         if query_engine is None:
             raise ValueError("Query engine is not provided.")
         for raw_instance in data:
-            processed_instance = self._generate_processed_instance_for_llama_index(raw_instance, query_engine)
+            processed_instance = self._generate_processed_instance_for_llama_index(
+                raw_instance, query_engine
+            )
             self._processed_dataset.append(processed_instance)
         return self._processed_dataset

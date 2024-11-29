@@ -6,6 +6,7 @@ class CustomModelConfig(BaseModel):
     completion_config: List[Dict[str, Any]]
     env_config: List[Dict[str, Any]]
 
+
 """
 For azure, this config looks like this:
 {

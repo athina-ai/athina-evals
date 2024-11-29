@@ -16,7 +16,7 @@ class NoSecretsPresent(BaseEvaluator):
         self,
     ):
         from guardrails.hub import SecretsPresent as GuardrailsSecretsPresent
-        
+
         # Initialize Validator
         self.validator = GuardrailsSecretsPresent(
             on_fail="noop",
@@ -46,7 +46,7 @@ class NoSecretsPresent(BaseEvaluator):
         return None
 
     def is_failure(self, result: bool) -> bool:
-        return not(bool(result))
+        return not (bool(result))
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
@@ -63,7 +63,11 @@ class NoSecretsPresent(BaseEvaluator):
             guard = Guard.from_string(validators=[self.validator])
             # Pass LLM output through guard
             guard_result = guard.parse(text)
-            grade_reason = "Text contains no secrets" if guard_result.validation_passed else "Text has secrets"
+            grade_reason = (
+                "Text contains no secrets"
+                if guard_result.validation_passed
+                else "Text has secrets"
+            )
             # Boolean evaluator
             metrics.append(
                 EvalResultMetric(

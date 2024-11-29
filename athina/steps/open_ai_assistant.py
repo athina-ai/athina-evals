@@ -14,6 +14,7 @@ class OpenAiAssistant(Step):
         openai_api_key: OpenAI's API Key.
         input_column: The row's column to classify.
     """
+
     assistant_id: str
     openai_api_key: str
     input_column: str
@@ -23,7 +24,11 @@ class OpenAiAssistant(Step):
         arbitrary_types_allowed = True
 
     def __init__(self, assistant_id: str, openai_api_key: str, input_column: str):
-        super().__init__(assistant_id=assistant_id, openai_api_key=openai_api_key, input_column=input_column)
+        super().__init__(
+            assistant_id=assistant_id,
+            openai_api_key=openai_api_key,
+            input_column=input_column,
+        )
         self.client = OpenAI(api_key=openai_api_key)
 
     def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
@@ -36,7 +41,7 @@ class OpenAiAssistant(Step):
             raise TypeError("Input data must be a dictionary.")
 
         input_text = input_data.get(self.input_column, None)
-        
+
         if input_text is None:
             return None
         try:
@@ -45,31 +50,27 @@ class OpenAiAssistant(Step):
 
             # Add input_text to the thread
             self.client.beta.threads.messages.create(
-                thread_id=thread.id,
-                role='user',
-                content=input_text
+                thread_id=thread.id, role="user", content=input_text
             )
 
             # Run the assistant
             run = self.client.beta.threads.runs.create(
-                thread_id=thread.id,
-                assistant_id=self.assistant_id
+                thread_id=thread.id, assistant_id=self.assistant_id
             )
 
             # Wait for the run to complete
             while run.status not in ["completed", "failed"]:
-                run = self.client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
+                run = self.client.beta.threads.runs.retrieve(
+                    thread_id=thread.id, run_id=run.id
+                )
 
             # Handle failed case
             if run.status == "failed":
-                return {
-                    "status": "error",
-                    "data": "The assistant run failed."
-                }
-            
+                return {"status": "error", "data": "The assistant run failed."}
+
             # Retrieve the assistant's response
             messages = self.client.beta.threads.messages.list(thread_id=thread.id)
-            
+
             # Check and return the assistant's response based on format
             for message in messages.data:
                 if message.role == "assistant":

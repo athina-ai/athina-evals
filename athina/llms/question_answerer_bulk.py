@@ -3,6 +3,7 @@ from athina.llms.openai_service import OpenAiService
 from athina.llms.abstract_llm_service import AbstractLlmService
 from .question_answerer import QuestionAnswerer
 
+
 class QuestionAnswererBulk(QuestionAnswerer):
 
     _llm_service: AbstractLlmService
@@ -31,9 +32,9 @@ class QuestionAnswererBulk(QuestionAnswerer):
     """
 
     def __init__(
-        self, 
+        self,
         model: str = "gpt-4-1106-preview",
-        llm_service: Optional[AbstractLlmService] = None
+        llm_service: Optional[AbstractLlmService] = None,
     ):
         """
         Initialize the QuestionAnswerer class.
@@ -49,7 +50,7 @@ class QuestionAnswererBulk(QuestionAnswerer):
         Respond to each question from the provided 'questions' given the context.
         """
 
-        questions_str = '\n'.join(questions)
+        questions_str = "\n".join(questions)
         user_message = self.USER_MESSAGE_TEMPLATE.format(questions_str, context)
         messages = [
             {"role": "system", "content": self.SYSTEM_MESSAGE},
@@ -71,10 +72,7 @@ class QuestionAnswererBulk(QuestionAnswerer):
             question = questions[i]
             try:
                 answer = json_response[question]
-                output[question] = {
-                    "answer": answer,
-                    "explanation": None
-                }
+                output[question] = {"answer": answer, "explanation": None}
                 simple_output[question] = answer
             except:
                 output[question] = {
