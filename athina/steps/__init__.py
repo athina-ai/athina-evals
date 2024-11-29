@@ -13,6 +13,8 @@ from athina.steps.transform import ExtractJsonFromString, ExtractNumberFromStrin
 from athina.steps.open_ai_assistant import OpenAiAssistant
 from athina.steps.transcribe_speech_to_text import TranscribeSpeechToText
 from athina.steps.search import Search
+from athina.steps.code_execution import CodeExecution
+from athina.steps.code_execution_v2 import CodeExecutionV2
 
 __all__ = [
     "Step",
@@ -34,4 +36,6 @@ __all__ = [
     "OpenAiAssistant",
     "TranscribeSpeechToText",
     "Search",
+    "CodeExecution",
+    "CodeExecutionV2",
 ]
