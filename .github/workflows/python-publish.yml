@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      # url: https://pypi.org/p/YOURPROJECT
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -23,4 +22,4 @@ jobs:
           poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
       - name: Build and publish
         run: |
-          poetry build --publish
+          poetry publish --build
