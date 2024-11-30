@@ -20,6 +20,7 @@ jobs:
       - name: Configure Poetry PyPI token
         run: |
           poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+          poetry config http-basic.pypi.timeout 30
       - name: Build and publish
         run: |
           poetry publish --build
