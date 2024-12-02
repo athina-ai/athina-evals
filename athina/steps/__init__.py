@@ -12,6 +12,7 @@ from athina.steps.weaviate_retrieval import WeaviateRetrieval
 from athina.steps.transform import ExtractJsonFromString, ExtractNumberFromString
 from athina.steps.open_ai_assistant import OpenAiAssistant
 from athina.steps.transcribe_speech_to_text import TranscribeSpeechToText
+from athina.steps.search import Search
 
 __all__ = [
     "Step",
@@ -32,4 +33,5 @@ __all__ = [
     "WeaviateRetrieval",
     "OpenAiAssistant",
     "TranscribeSpeechToText",
+    "Search",
 ]
