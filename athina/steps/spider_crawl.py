@@ -92,24 +92,13 @@ class SpiderCrawl(Step):
                     # Loop through the json response and get the content
                     content = []
                     for item in json_response:
-                        content.append(item.get('content'))
-
-                    # Loop through the json response and get the error
-                    error = []
-                    for item in json_response:
-                        error.append(item.get('error'))
-                    
-
-                    errorMessages = []
-                    for item in error:
-                        if item is not None:
-                            errorMessages.append(item)
-
-                    if len(errorMessages) > 0:
-                        return {
-                            "status": "error",
-                            "data": errorMessages,
+                        value = {
+                            "content": item.get('content'),
+                            "url": item.get('url'),
+                            "error": item.get('error'),
                         }
+                        content.append(value)
+
                     
                     return {
                         "status": "success",
