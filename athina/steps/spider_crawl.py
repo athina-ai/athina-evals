@@ -29,7 +29,7 @@ class SpiderCrawl(Step):
     type: Optional[str] = "neural"
     limit: Optional[int] = 1
     metadata: Optional[bool] = False
-    return_format: Optional[str] = "raw"
+    return_format: Optional[str] = "markdown"
     spider_key: str
     env: Environment = None
 
