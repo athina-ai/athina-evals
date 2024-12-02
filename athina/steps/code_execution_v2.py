@@ -6,6 +6,7 @@ from contextlib import redirect_stdout, redirect_stderr
 from dotenv import load_dotenv
 from e2b_code_interpreter import Sandbox
 import time
+import json
 
 # Load environment variables
 load_dotenv()
@@ -60,20 +61,14 @@ class CodeExecutionV2(Step):
                 if sandbox.metadata.get("session_id") == self.session_id:
                     # Connect to the existing sandbox
                     self._sandbox = Sandbox.connect(sandbox.sandbox_id)
-                    print(
-                        f"Successfully connected to existing sandbox {sandbox.sandbox_id}"
-                    )
                     break
 
             if self._sandbox is None:
-                print(
-                    f"No matching sandbox found, creating new one with session_id: {self.session_id}"
-                )
-                timeout = min(
-                    self.sandbox_timeout or self.DEFAULT_TIMEOUT, self.MAX_TIMEOUT
-                )
                 self._sandbox = Sandbox(
-                    timeout=timeout, metadata={"session_id": self.session_id}
+                    timeout=min(
+                        self.sandbox_timeout or self.DEFAULT_TIMEOUT, self.MAX_TIMEOUT
+                    ),
+                    metadata={"session_id": self.session_id},
                 )
                 if self.code.startswith("!"):
                     # Run the code as a command
@@ -140,37 +135,117 @@ class CodeExecutionV2(Step):
                 else:
                     python_code.append(line)
 
-            # Execute commands first
-            print(f"Executing {len(commands)} commands")
-            for command in commands:
-                if command.strip():  # Skip empty commands
-                    print(f"Executing command: {command}")
-                    self._sandbox.commands.run(command)
-
-            # If there's Python code to execute, run it
             if python_code:
-                print(f"Executing {len(python_code)} lines of Python code")
-                # Prepare the code with input variables
-                setup_code = "\n".join(
-                    f"{k} = {repr(v)}" for k, v in input_data.items()
-                )
-                full_code = setup_code + "\n\n" + "\n".join(python_code)
+                # Prepare input variables initialization code
+                input_vars_code = []
+                for var_name, var_value in input_data.items():
+                    if isinstance(var_value, dict) and "exported_vars" in var_value:
+                        # Include exported vars directly
+                        for exp_var_name, exp_var_value in var_value[
+                            "exported_vars"
+                        ].items():
+                            try:
+                                serialized_value = repr(exp_var_value)
+                                input_vars_code.append(
+                                    f"{exp_var_name} = {serialized_value}"
+                                )
+                            except Exception as e:
+                                print(
+                                    f"Error serializing exported var {exp_var_name}: {str(e)}"
+                                )
+                    else:
+                        try:
+                            serialized_value = repr(var_value)
+                            input_vars_code.append(f"{var_name} = {serialized_value}")
+                        except Exception as e:
+                            print(f"Error serializing input var {var_name}: {str(e)}")
 
-                # Execute code in sandbox
-                execution = self._sandbox.run_code(full_code)
-                execution_time_ms = round((time.time() - start_time) * 1000)
+                # First, initialize input variables
+                if input_vars_code:
+                    setup_code = "\n".join(input_vars_code)
+                    setup_execution = self._sandbox.run_code(setup_code)
+                    if setup_execution.error:
+                        print(
+                            f"Error setting up input variables: {setup_execution.error}"
+                        )
+                    else:
+                        print("Input variables initialized successfully")
+
+                # Then, run the actual code
+                main_code = "\n".join(python_code)
+                execution = self._sandbox.run_code(main_code)
 
                 if execution.error:
+                    print(f"\nExecution error: {execution.error}")
+                    execution_time_ms = round((time.time() - start_time) * 1000)
                     return {
                         "status": "error",
                         "data": f"Failed to execute the code.\nDetails:\n{execution.error}",
                         "metadata": {"response_time": execution_time_ms},
                     }
 
+                # Finally, run the variable capture code
+                capture_vars_code = """
+import json
+
+_exported_vars = {}
+_locals = locals()
+_globals = globals()
+_builtin_names = dir(__builtins__)
+
+for var_name, var_value in _globals.items():
+    if (not var_name.startswith('_') and 
+        var_name not in _builtin_names and 
+        var_name not in ['json']):
+        try:
+            json.dumps(var_value)  # Test if value is JSON serializable
+            _exported_vars[var_name] = var_value
+        except:
+            print(f"Could not serialize {var_name}")
+            continue
+
+print('__VARS__START__')
+print(json.dumps(_exported_vars))
+print('__VARS__END__')
+"""
+
+                # Execute variable capture
+                var_execution = self._sandbox.run_code(capture_vars_code)
+                execution_time_ms = round((time.time() - start_time) * 1000)
+
+                if var_execution.error:
+                    print(f"Error during variable capture: {var_execution.error}")
+                    return {
+                        "status": "success",
+                        "data": "\n".join(execution.logs.stdout),
+                        "metadata": {
+                            "response_time": execution_time_ms,
+                            "exported_vars": {},
+                        },
+                    }
+
+                # Extract variables from output
+                stdout = "\n".join(var_execution.logs.stdout)
+                try:
+                    vars_start = stdout.find("__VARS__START__\n") + len(
+                        "__VARS__START__\n"
+                    )
+                    vars_end = stdout.find("\n__VARS__END__")
+                    if vars_start > -1 and vars_end > -1:
+                        exported_vars = json.loads(stdout[vars_start:vars_end])
+                    else:
+                        exported_vars = {}
+                except Exception as e:
+                    print(f"Error extracting variables: {str(e)}")
+                    exported_vars = {}
+
                 return {
                     "status": "success",
                     "data": "\n".join(execution.logs.stdout),
-                    "metadata": {"response_time": execution_time_ms},
+                    "metadata": {
+                        "response_time": execution_time_ms,
+                        "exported_vars": exported_vars,
+                    },
                 }
 
             # If only commands were executed, return success
@@ -178,10 +253,14 @@ class CodeExecutionV2(Step):
             return {
                 "status": "success",
                 "data": "Commands executed successfully",
-                "metadata": {"response_time": execution_time_ms},
+                "metadata": {
+                    "response_time": execution_time_ms,
+                    "exported_vars": {},
+                },
             }
 
         except Exception as e:
+            print(f"\nUnexpected error: {str(e)}")
             execution_time_ms = round((time.time() - start_time) * 1000)
             return {
                 "status": "error",
@@ -203,6 +282,7 @@ class CodeExecutionV2(Step):
             TypeError: If input_data is not a dictionary.
             ValueError: If session_id is empty in e2b mode.
         """
+
         if not self.code.strip():
             raise ValueError("No code provided for execution")
 
