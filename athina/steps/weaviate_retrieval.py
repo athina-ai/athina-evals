@@ -60,7 +60,7 @@ class WeaviateRetrieval(Step):
         input_text = input_data.get(self.input_column, None)
 
         if input_text is None:
-            return None
+            return {"status": "error", "data": "Input column not found."}
 
         try:
             if self.search_type == "semantic_search":
