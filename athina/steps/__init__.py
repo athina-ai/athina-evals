@@ -14,6 +14,7 @@ from athina.steps.transform import ExtractJsonFromString, ExtractNumberFromStrin
 from athina.steps.open_ai_assistant import OpenAiAssistant
 from athina.steps.transcribe_speech_to_text import TranscribeSpeechToText
 from athina.steps.search import Search
+from athina.steps.spider_crawl import SpiderCrawl
 
 __all__ = [
     "Step",
@@ -36,4 +37,5 @@ __all__ = [
     "OpenAiAssistant",
     "TranscribeSpeechToText",
     "Search",
+    "SpiderCrawl",
 ]
