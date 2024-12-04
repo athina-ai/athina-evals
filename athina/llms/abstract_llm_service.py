@@ -15,7 +15,7 @@ class AbstractLlmService(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def chat_completion(self, messages, model, **kwargs) -> str:
+    def chat_completion(self, messages, model, **kwargs):
         """
         Fetches a chat completion response. This method should be implemented by subclasses
         to interact with the specific LLM provider's chat completion API.

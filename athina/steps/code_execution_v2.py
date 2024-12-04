@@ -1,4 +1,4 @@
-from typing import Union, Dict, Any, Optional, Literal, ClassVar
+from typing import Union, Dict, Any, Optional, Literal, ClassVar, TypedDict
 from athina.steps import Step
 import io
 import sys
@@ -6,11 +6,68 @@ from contextlib import redirect_stdout, redirect_stderr
 from dotenv import load_dotenv
 from e2b_code_interpreter import Sandbox
 import time
+import json
 
 # Load environment variables
 load_dotenv()
 
+# Constants
+EXECUTION_LOCAL = "local"
+EXECUTION_E2B = "e2b"
 ExecutionEnvironment = Literal["local", "e2b"]
+
+VARS_START_MARKER = "__VARS_START__"
+VARS_END_MARKER = "__VARS_END__"
+COMMAND_PREFIX = "!"
+
+
+class StepResult(TypedDict):
+    status: Literal["success", "error"]
+    data: str
+    metadata: Dict[str, Any]
+
+
+# Extract variable serialization logic
+def _serialize_variable(name: str, value: Any) -> Optional[str]:
+    """
+    Attempt to serialize a variable to a string representation.
+    Returns None if serialization fails.
+    """
+    try:
+        serialized_value = repr(value)
+        return f"{name} = {serialized_value}"
+    except Exception as e:
+        print(f"Error serializing variable {name}: {str(e)}")
+        return None
+
+
+# Extract variable capture code into a constant
+VARIABLE_CAPTURE_CODE = f"""
+import json
+
+_exported_vars = {{}}
+_locals = locals()
+_globals = globals()
+_builtin_names = dir(__builtins__)
+
+# Create a list of items to iterate over to prevent dictionary modification during iteration
+_global_items = list(_globals.items())
+
+for var_name, var_value in _global_items:
+    if (not var_name.startswith('_') and 
+        var_name not in _builtin_names and 
+        var_name not in ['json']):
+        try:
+            json.dumps(var_value)  # Test if value is JSON serializable
+            _exported_vars[var_name] = var_value
+        except:
+            print(f"Could not serialize {{var_name}}")
+            continue
+
+print('{VARS_START_MARKER}')
+print(json.dumps(_exported_vars))
+print('{VARS_END_MARKER}')
+"""
 
 
 class CodeExecutionV2(Step):
@@ -31,14 +88,14 @@ class CodeExecutionV2(Step):
     session_id: str
     name: Optional[str] = None
     _sandbox: Optional[Sandbox] = None
-    execution_environment: ExecutionEnvironment = "e2b"
+    execution_environment: ExecutionEnvironment = EXECUTION_E2B
     DEFAULT_TIMEOUT: ClassVar[int] = 60  # 1 minute default timeout for sandbox
     MAX_TIMEOUT: ClassVar[int] = 300  # 5 minute limit for e2b sandbox execution
     sandbox_timeout: Optional[int] = None
 
     def __init__(
         self,
-        execution_environment: ExecutionEnvironment = "e2b",
+        execution_environment: ExecutionEnvironment = EXECUTION_E2B,
         sandbox_timeout: Optional[int] = None,
         **data,
     ):
@@ -60,20 +117,14 @@ class CodeExecutionV2(Step):
                 if sandbox.metadata.get("session_id") == self.session_id:
                     # Connect to the existing sandbox
                     self._sandbox = Sandbox.connect(sandbox.sandbox_id)
-                    print(
-                        f"Successfully connected to existing sandbox {sandbox.sandbox_id}"
-                    )
                     break
 
             if self._sandbox is None:
-                print(
-                    f"No matching sandbox found, creating new one with session_id: {self.session_id}"
-                )
-                timeout = min(
-                    self.sandbox_timeout or self.DEFAULT_TIMEOUT, self.MAX_TIMEOUT
-                )
                 self._sandbox = Sandbox(
-                    timeout=timeout, metadata={"session_id": self.session_id}
+                    timeout=min(
+                        self.sandbox_timeout or self.DEFAULT_TIMEOUT, self.MAX_TIMEOUT
+                    ),
+                    metadata={"session_id": self.session_id},
                 )
                 if self.code.startswith("!"):
                     # Run the code as a command
@@ -86,110 +137,180 @@ class CodeExecutionV2(Step):
             print(f"Error initializing sandbox: {str(e)}")
             raise RuntimeError(f"Failed to initialize sandbox: {str(e)}") from e
 
-    def _execute_local(self, input_data: dict, start_time: float) -> Dict[str, Any]:
+    def _create_step_result(
+        self,
+        status: Literal["success", "error"],
+        data: str,
+        start_time: float,
+        exported_vars: Optional[Dict] = None,
+    ) -> StepResult:
+        """
+        Create a standardized result object for step execution.
+
+        Args:
+            status: Execution status ("success" or "error")
+            data: Output data or error message
+            start_time: Time when execution started
+            exported_vars: Optional dictionary of exported variables
+        """
+        execution_time_ms = round((time.time() - start_time) * 1000)
+        metadata: Dict[str, Any] = {"response_time": execution_time_ms}
+
+        if exported_vars is not None:
+            metadata["exported_vars"] = exported_vars
+
+        return {"status": status, "data": data, "metadata": metadata}
+
+    def _execute_local(self, input_data: dict, start_time: float) -> StepResult:
         """Execute code locally using exec"""
-        # Create a new dictionary for globals, starting with a clean __builtins__
         globals_dict = {"__builtins__": __builtins__}
         globals_dict.update(input_data)
 
-        # Create string buffers to capture stdout and stderr
         stdout_buffer = io.StringIO()
         stderr_buffer = io.StringIO()
 
         try:
-            # Capture both stdout and stderr during execution
             with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
                 exec(self.code, globals_dict)
 
-            execution_time_ms = round((time.time() - start_time) * 1000)
-
-            return {
-                "status": "success",
-                "data": stdout_buffer.getvalue(),
-                "metadata": {"response_time": execution_time_ms},
-            }
+            return self._create_step_result(
+                status="success", data=stdout_buffer.getvalue(), start_time=start_time
+            )
         except Exception as e:
-            execution_time_ms = round((time.time() - start_time) * 1000)
-            return {
-                "status": "error",
-                "data": f"Failed to execute the code.\nDetails:\n{str(e)}",
-                "metadata": {"response_time": execution_time_ms},
-            }
+            return self._create_step_result(
+                status="error",
+                data=f"Failed to execute the code.\nDetails:\n{str(e)}",
+                start_time=start_time,
+            )
 
-    def _execute_e2b(self, input_data: dict, start_time: float) -> Dict[str, Any]:
-        """Execute code in E2B sandbox"""
+    def _prepare_input_variables(self, input_data: dict) -> list[str]:
+        """
+        Prepare input variables for sandbox execution.
+        Returns a list of variable initialization statements.
+        """
+        input_vars_code = []
+
+        for var_name, var_value in input_data.items():
+            if isinstance(var_value, dict) and "exported_vars" in var_value:
+                # Handle exported vars from previous steps
+                for exp_var_name, exp_var_value in var_value["exported_vars"].items():
+                    if code := _serialize_variable(exp_var_name, exp_var_value):
+                        input_vars_code.append(code)
+            else:
+                if code := _serialize_variable(var_name, var_value):
+                    input_vars_code.append(code)
+
+        return input_vars_code
+
+    def _extract_exported_vars(self, stdout: str) -> dict:
+        """
+        Extract exported variables from sandbox output.
+        Returns empty dict if extraction fails.
+        """
         try:
-            # Ensure we have the correct sandbox
-            self._create_or_initialize_sandbox()
+            vars_start = stdout.find(f"{VARS_START_MARKER}\n") + len(
+                f"{VARS_START_MARKER}\n"
+            )
+            vars_end = stdout.find(f"\n{VARS_END_MARKER}")
 
+            if vars_start > -1 and vars_end > -1:
+                return json.loads(stdout[vars_start:vars_end])
+        except Exception as e:
+            print(f"Error extracting variables: {str(e)}")
+
+        return {}
+
+    def _execute_e2b(self, input_data: dict, start_time: float) -> StepResult:
+        """
+        Execute code in E2B sandbox.
+
+        The execution follows these steps:
+        1. Initialize/connect to sandbox
+        2. Split input into commands and Python code
+        3. Initialize input variables in sandbox
+        4. Execute main code
+        5. Capture and extract output variables
+        """
+        try:
+            self._create_or_initialize_sandbox()
             if self._sandbox is None:
-                return {
-                    "status": "error",
-                    "data": "Sandbox is not initialized",
-                    "metadata": {"response_time": 0},
-                }
+                print("Sandbox is not initialized")
+                return self._create_step_result(
+                    status="error",
+                    data="Sandbox is not initialized",
+                    start_time=start_time,
+                )
 
             # Split code into commands and Python code
             lines = self.code.split("\n")
-            commands = []
-            python_code = []
+            commands = [
+                line.strip()[1:]
+                for line in lines
+                if line.strip().startswith(COMMAND_PREFIX)
+            ]
+            python_code = [
+                line for line in lines if not line.strip().startswith(COMMAND_PREFIX)
+            ]
 
-            for line in lines:
-                if line.strip().startswith("!"):
-                    commands.append(line.strip()[1:])  # Remove the '!'
-                else:
-                    python_code.append(line)
-
-            # Execute commands first
-            print(f"Executing {len(commands)} commands")
-            for command in commands:
-                if command.strip():  # Skip empty commands
-                    print(f"Executing command: {command}")
-                    self._sandbox.commands.run(command)
-
-            # If there's Python code to execute, run it
-            if python_code:
-                print(f"Executing {len(python_code)} lines of Python code")
-                # Prepare the code with input variables
-                setup_code = "\n".join(
-                    f"{k} = {repr(v)}" for k, v in input_data.items()
+            if not python_code:
+                # Only commands were provided
+                print("Only commands were provided")
+                return self._create_step_result(
+                    status="success",
+                    data="Commands executed successfully",
+                    start_time=start_time,
+                    exported_vars={},
                 )
-                full_code = setup_code + "\n\n" + "\n".join(python_code)
 
-                # Execute code in sandbox
-                execution = self._sandbox.run_code(full_code)
-                execution_time_ms = round((time.time() - start_time) * 1000)
+            # Initialize input variables
+            input_vars_code = self._prepare_input_variables(input_data)
+            if input_vars_code:
+                setup_code = "\n".join(input_vars_code)
+                setup_execution = self._sandbox.run_code(setup_code)
+                if setup_execution.error:
+                    print(f"Error setting up input variables: {setup_execution.error}")
 
-                if execution.error:
-                    return {
-                        "status": "error",
-                        "data": f"Failed to execute the code.\nDetails:\n{execution.error}",
-                        "metadata": {"response_time": execution_time_ms},
-                    }
+            # Execute main code
+            main_code = "\n".join(python_code)
+            execution = self._sandbox.run_code(main_code)
+            if execution.error:
+                return self._create_step_result(
+                    status="error",
+                    data=f"Failed to execute the code.\nDetails:\n{execution.error}",
+                    start_time=start_time,
+                )
 
-                return {
-                    "status": "success",
-                    "data": "\n".join(execution.logs.stdout),
-                    "metadata": {"response_time": execution_time_ms},
-                }
+            # Capture variables
+            var_execution = self._sandbox.run_code(VARIABLE_CAPTURE_CODE)
+            if var_execution.error:
+                print(f"Error capturing variables: {var_execution.error}")
+                return self._create_step_result(
+                    status="success",
+                    data="\n".join(execution.logs.stdout),
+                    start_time=start_time,
+                    exported_vars={},
+                )
 
-            # If only commands were executed, return success
-            execution_time_ms = round((time.time() - start_time) * 1000)
-            return {
-                "status": "success",
-                "data": "Commands executed successfully",
-                "metadata": {"response_time": execution_time_ms},
-            }
+            # Extract and return results
+            exported_vars = self._extract_exported_vars(
+                "\n".join(var_execution.logs.stdout)
+            )
+            return self._create_step_result(
+                status="success",
+                data="\n".join(execution.logs.stdout),
+                start_time=start_time,
+                exported_vars=exported_vars,
+            )
 
         except Exception as e:
-            execution_time_ms = round((time.time() - start_time) * 1000)
-            return {
-                "status": "error",
-                "data": f"Failed to execute the code.\nDetails:\n{str(e)}",
-                "metadata": {"response_time": execution_time_ms},
-            }
+            print(f"\nUnexpected error: {str(e)}")
+            return self._create_step_result(
+                status="error",
+                data=f"Failed to execute the code.\nDetails:\n{str(e)}",
+                start_time=start_time,
+            )
 
-    def execute(self, input_data: Any) -> Dict[str, Any]:
+    def execute(self, input_data: Any) -> StepResult:
         """
         Execute the code with the input data.
 
@@ -203,6 +324,7 @@ class CodeExecutionV2(Step):
             TypeError: If input_data is not a dictionary.
             ValueError: If session_id is empty in e2b mode.
         """
+
         if not self.code.strip():
             raise ValueError("No code provided for execution")
 
