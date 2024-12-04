@@ -17,7 +17,7 @@ class TextContent(BaseModel):
     text: str
 
 class ImageContent(BaseModel):
-    type: str = "image"
+    type: str = "image_url"
     image_url: Union[str, Dict[str, str]]
 
     def to_api_format(self):
@@ -130,7 +130,6 @@ class PromptTemplate(BaseModel):
         for message in final_messages:
             if message.content is None:
                 resolved_messages.append(message)
-            elif isinstance(message.content, str):
             elif isinstance(message.content, str):
                 content_template = self.env.from_string(message.content)
                 content = content_template.render(**kwargs)
