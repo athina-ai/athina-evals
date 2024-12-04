@@ -3,6 +3,7 @@ from athina.llms.abstract_llm_service import AbstractLlmService
 from athina.llms.openai_service import OpenAiService
 from athina.interfaces.model import Model
 
+
 class QuestionGenerator:
     _model: str
     _llm_service: AbstractLlmService
@@ -28,17 +29,17 @@ class QuestionGenerator:
     """
 
     def __init__(
-        self, 
+        self,
         model: str,
         n_questions: int,
-        llm_service: Optional[AbstractLlmService] = None
+        llm_service: Optional[AbstractLlmService] = None,
     ):
         """
         Initialize the QuestionGenerator.
         """
         self._model = model
         self.n_questions = n_questions
-        
+
         if llm_service is None:
             self._llm_service = OpenAiService()
         else:
@@ -56,8 +57,8 @@ class QuestionGenerator:
         """
         user_message = self.USER_MESSAGE_TEMPLATE.format(text, self.n_questions)
         messages = [
-            {'role': 'system', 'content': self.SYSTEM_MESSAGE}, 
-            {'role': 'user', 'content': user_message}
+            {"role": "system", "content": self.SYSTEM_MESSAGE},
+            {"role": "user", "content": user_message},
         ]
 
         # Extract JSON object from LLM response

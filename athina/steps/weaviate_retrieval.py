@@ -60,18 +60,18 @@ class WeaviateRetrieval(Step):
         input_text = input_data.get(self.input_column, None)
 
         if input_text is None:
-            return None
+            return {"status": "error", "data": "Input column not found."}
 
         try:
-            if self.search_type == 'semantic_search':
+            if self.search_type == "semantic_search":
                 response = self._collection.query.near_text(
                     query=input_text, limit=self.limit
                 )
-            elif self.search_type == 'keyword_search':
+            elif self.search_type == "keyword_search":
                 response = self._collection.query.bm25(
                     query=input_text, limit=self.limit
                 )
-            elif self.search_type == 'hybrid_search':
+            elif self.search_type == "hybrid_search":
                 response = self._collection.query.hybrid(
                     query=input_text, limit=self.limit
                 )
@@ -91,7 +91,7 @@ class WeaviateRetrieval(Step):
                 "status": "error",
                 "data": str(e),
             }
-    
+
     def close(self):
         """Closes the connection to the Weaviate client."""
         if self._client:

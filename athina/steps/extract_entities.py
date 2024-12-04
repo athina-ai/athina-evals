@@ -30,13 +30,13 @@ class ExtractEntities(Step):
             raise TypeError("Input data must be a dictionary.")
 
         input_text = input_data.get(self.input_column, None)
-        
+
         if input_text is None:
             return None
-        
+
         marvin.settings.openai.api_key = self.llm_api_key
         marvin.settings.openai.chat.completions.model = self.language_model_id
-        
+
         try:
             result = marvin.extract(
                 input_text,

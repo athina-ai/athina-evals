@@ -39,6 +39,7 @@ class EvalResult(TypedDict):
     model: Optional[str]
     metrics: List[EvalResultMetric]
     datapoint_field_annotations: Optional[List[DatapointFieldAnnotation]]
+    metadata: Optional[dict]
 
 
 @dataclass

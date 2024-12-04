@@ -36,6 +36,7 @@ Content = Union[str, List[Union[TextContent, ImageContent]]]
 class PromptMessage(BaseModel):
     role: str
     content: Optional[Content] = None
+    content: Optional[Content] = None
     tool_call: Optional[str] = None
 
     def to_api_format(self) -> dict:
@@ -65,9 +66,11 @@ class ModelOptions(BaseModel):
     frequency_penalty: Optional[float] = None
     presence_penalty: Optional[float] = None
 
+
 class ToolConfig(BaseModel):
     tool_choice: Optional[Union[str, Dict[str, Any]]] = None
     tools: Optional[List[Any]] = None
+
 
 class PromptTemplate(BaseModel):
     messages: List[PromptMessage]
@@ -75,7 +78,7 @@ class PromptTemplate(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
-        
+
     @staticmethod
     def simple(message: str) -> "PromptTemplate":
         """Create a PromptTemplate from a string representation."""
@@ -87,28 +90,28 @@ class PromptTemplate(BaseModel):
 
         # Create a custom Jinja2 environment with double curly brace delimiters and PreserveUndefined
         self.env = Environment(
-            variable_start_string='{{', 
-            variable_end_string='}}',
-            undefined=PreserveUndefined
+            variable_start_string="{{",
+            variable_end_string="}}",
+            undefined=PreserveUndefined,
         )
 
         final_messages = []
         for message in self.messages:
-            if message.role == 'import':
+            if message.role == "import":
                 # Find the value wrapped in {{}}
-                import_key = message.content.strip('{}')
-                
+                import_key = message.content.strip("{}")
+
                 # Find the value in the row
                 if import_key in kwargs:
                     value = kwargs[import_key]
-                    
+
                     # Check if it is a list/array
                     if isinstance(value, list):
                         # Iterate over the list and create a new PromptMessage for each item
                         for item in value:
                             if isinstance(item, dict):
                                 # If item has tool_call, then parse tool_call and create a new PromptMessage
-                                if 'tool_call' in item:
+                                if "tool_call" in item:
                                     try:
                                         tool_call_message = PromptMessage(
                                             role=item['role'],
@@ -127,6 +130,7 @@ class PromptTemplate(BaseModel):
         for message in final_messages:
             if message.content is None:
                 resolved_messages.append(message)
+            elif isinstance(message.content, str):
             elif isinstance(message.content, str):
                 content_template = self.env.from_string(message.content)
                 content = content_template.render(**kwargs)
@@ -206,7 +210,7 @@ class PromptExecution(Step):
                 **({'response_format':self.response_format})
             )
             llmresponse = llm_service_response["value"]
-            output_type = kwargs.get('output_type', None)
+            output_type = kwargs.get("output_type", None)
             error = None
             if output_type:
                 if output_type == "string":
@@ -239,19 +243,13 @@ class PromptExecution(Step):
                 response = llmresponse
 
             if error:
-                return {
-                    "status": "error",
-                    "data": error
-                }
-            else: 
+                return {"status": "error", "data": error}
+            else:
                 return {
                     "status": "success",
                     "data": response,
-                    "metadata": llm_service_response.get("metadata", {})
+                    "metadata": llm_service_response.get("metadata", {}),
                 }
         except Exception as e:
             traceback.print_exc()
-            return {
-                "status": "error",
-                "data": str(e)
-            }
+            return {"status": "error", "data": str(e)}

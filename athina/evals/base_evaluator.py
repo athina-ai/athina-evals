@@ -3,7 +3,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Optional, Dict
 from athina.helpers.logger import logger
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
-from athina.helpers.dataset_helper import generate_unique_dataset_name, generate_eval_display_name
+from athina.helpers.dataset_helper import (
+    generate_unique_dataset_name,
+    generate_eval_display_name,
+)
 from athina.interfaces.data import DataPoint
 from athina.interfaces.result import BatchRunResult, EvalResult, GuardResult
 from athina.services.athina_api_service import AthinaApiService
@@ -12,7 +15,7 @@ import traceback
 
 
 class BaseEvaluator(ABC):
-    
+
     # Abstract properties
     @property
     @abstractmethod
@@ -53,14 +56,13 @@ class BaseEvaluator(ABC):
     def _evaluate(self, **kwargs) -> EvalResult:
         """The method that performs the evaluation."""
         pass
-    
+
     def to_config(self) -> Optional[Dict]:
         return None
 
     # Common methods
     def _examples_str(self) -> str:
         return "" if self.examples is None else "\n".join(map(str, self.examples))
-
 
     def validate_args(self, **kwargs) -> None:
         """
@@ -93,18 +95,21 @@ class BaseEvaluator(ABC):
         """
         Logs usage to Athina for analytics and creates an evaluation request.
         """
-        eval_request_id = None
+        eval_request = None
         try:
-            eval_request_id = AthinaLoggingHelper.create_eval_request(
+            eval_request = AthinaLoggingHelper.create_eval_request(
                 eval_name=self.name, request_data={"data": data}, request_type="batch"
             )
         except Exception as e:
             pass
-        return eval_request_id
-
+        return eval_request
 
     def _log_evaluation_results(
-        self, eval_request_id: Optional[str], eval_results: List[EvalResult]
+        self,
+        eval_request_id: Optional[str],
+        eval_results: List[EvalResult],
+        org_id: Optional[str] = None,
+        workspace_slug: Optional[str] = None,
     ):
         """
         Logs the evaluation results to Athina if the eval_request_id is available.
@@ -114,6 +119,8 @@ class BaseEvaluator(ABC):
                 AthinaLoggingHelper.log_eval_results(
                     eval_request_id=eval_request_id,
                     eval_results=eval_results,
+                    org_id=org_id,
+                    workspace_slug=workspace_slug,
                 )
             except Exception as e:
                 pass
@@ -123,14 +130,17 @@ class BaseEvaluator(ABC):
         Run the LLM evaluator, and log results to Athina.
         """
         AthinaApiService.log_usage(eval_name=self.name, run_type="batch")
-        eval_request_id = self._log_evaluation_request(kwargs)
+        eval_request = self._log_evaluation_request(kwargs)
         eval_result = self._evaluate(**kwargs)
         self._log_evaluation_results(
-            eval_request_id=eval_request_id, eval_results=[eval_result]
+            eval_request_id=eval_request["eval_request"]["id"],
+            eval_results=[eval_result],
+            org_id=eval_request["eval_request"]["org_id"],
+            workspace_slug=eval_request["eval_request"]["workspace_slug"],
         )
 
         return BatchRunResult(
-            eval_request_id=eval_request_id,
+            eval_request_id=eval_request["eval_request"]["id"],
             eval_results=[eval_result],
         )
 
@@ -186,17 +196,16 @@ class BaseEvaluator(ABC):
         """
         Logs the dataset to Athina
         """
-        try: 
-            dataset = Dataset.create(
-                name=generate_unique_dataset_name(),
-                rows=data
-            )
+        try:
+            dataset = Dataset.create(name=generate_unique_dataset_name(), rows=data)
             return dataset
         except Exception as e:
             print(f"Error logging dataset to Athina: {e}")
             return None
-    
-    def _log_eval_results_to_athina(self, eval_results: List[EvalResult], dataset_id: str):
+
+    def _log_eval_results_to_athina(
+        self, eval_results: List[EvalResult], dataset_id: str
+    ):
         """
         Logs the batch results to Athina
         """
@@ -208,17 +217,19 @@ class BaseEvaluator(ABC):
                     "eval_results": eval_results,
                     "development_eval_config": {
                         "eval_type_id": self.name,
-                        "eval_display_name": generate_eval_display_name(self.display_name),
+                        "eval_display_name": generate_eval_display_name(
+                            self.display_name
+                        ),
                         "eval_config": eval_config,
-                        "llm_engine": llm_engine
-                    }
+                        "llm_engine": llm_engine,
+                    },
                 },
-                dataset_id=dataset_id
+                dataset_id=dataset_id,
             )
         except Exception as e:
             print(f"Error logging eval results to Athina: {e}")
             pass
-    
+
     def run_batch(
         self, data: List[DataPoint], max_parallel_evals: int = 5
     ) -> BatchRunResult:
@@ -239,7 +250,6 @@ class BaseEvaluator(ABC):
         if dataset:
             self._log_eval_results_to_athina(eval_results, dataset.id)
             print(f"You can view your dataset at: {Dataset.dataset_link(dataset.id)}")
-        
 
         return BatchRunResult(
             eval_results=eval_results,

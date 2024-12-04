@@ -2,10 +2,12 @@ import re
 import math
 from abc import ABC, abstractmethod
 
+
 class Comparator(ABC):
     @abstractmethod
     def compare(self, string1, string2):
         pass
+
 
 class CosineSimilarity(Comparator):
     def compare(self, string1, string2):
@@ -14,7 +16,7 @@ class CosineSimilarity(Comparator):
         # Vectorize the strings
         vector1 = self._vectorize(string1, combined_set)
         vector2 = self._vectorize(string2, combined_set)
-        dot_product = sum(p*q for p, q in zip(vector1, vector2))
+        dot_product = sum(p * q for p, q in zip(vector1, vector2))
         magnitude_vec1 = math.sqrt(sum([val**2 for val in vector1]))
         magnitude_vec2 = math.sqrt(sum([val**2 for val in vector2]))
         if magnitude_vec1 * magnitude_vec2 == 0:
@@ -25,14 +27,14 @@ class CosineSimilarity(Comparator):
     def _tokenize(self, string):
         """
         Tokenize the input string into a list of words.
-        
+
         Args:
             string (str): The string to tokenize.
-        
+
         Returns:
             list: A list of lowercased words from the string.
         """
-        return re.findall(r'\b\w+\b', string.lower())
+        return re.findall(r"\b\w+\b", string.lower())
 
     def _create_combined_set(self, string1, string2):
         return set(self._tokenize(string1)).union(set(self._tokenize(string2)))
@@ -41,11 +43,12 @@ class CosineSimilarity(Comparator):
         tokenized = self._tokenize(string)
         vector = [tokenized.count(word) for word in combined_set]
         return vector
-    
+
+
 class NormalisedLevenshteinSimilarity(Comparator):
     def compare(self, string1, string2):
         return 1 - self._normalised_levenshtein_distance(string1, string2)
-    
+
     def _normalised_levenshtein_distance(self, str1, str2):
         m, n = len(str1), len(str2)
         # Create a matrix to store the distances
@@ -61,12 +64,12 @@ class NormalisedLevenshteinSimilarity(Comparator):
                 if str1[i - 1] == str2[j - 1]:
                     dp[i][j] = dp[i - 1][j - 1]
                 else:
-                    dp[i][j] = 1 + min(dp[i - 1][j], dp[i]
-                                    [j - 1], dp[i - 1][j - 1])
-        if (len(str1) >= len(str2)): 
-            return dp[m][n] / len(str1);
+                    dp[i][j] = 1 + min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
+        if len(str1) >= len(str2):
+            return dp[m][n] / len(str1)
         else:
-            return dp[m][n] / len(str2);
+            return dp[m][n] / len(str2)
+
 
 class JaroWincklerSimilarity(Comparator):
     def compare(self, string1, string2):
@@ -102,6 +105,7 @@ class JaroWincklerSimilarity(Comparator):
         t //= 2
         return (match / len1 + match / len2 + (match - t) / match) / 3.0
 
+
 class JaccardSimilarity(Comparator):
     def compare(self, string1, string2):
         return self._jaccard_similarity(string1, string2)
@@ -109,7 +113,10 @@ class JaccardSimilarity(Comparator):
     def _jaccard_similarity(self, str1, str2):
         str1_tokens = set(str1.split())
         str2_tokens = set(str2.split())
-        return len(str1_tokens.intersection(str2_tokens)) / len(str1_tokens.union(str2_tokens))
+        return len(str1_tokens.intersection(str2_tokens)) / len(
+            str1_tokens.union(str2_tokens)
+        )
+
 
 class SorensenDiceSimilarity(Comparator):
     def compare(self, string1, string2):
@@ -118,4 +125,8 @@ class SorensenDiceSimilarity(Comparator):
     def _sorensen_dice_similarity(self, str1, str2):
         str1_tokens = set(str1.split())
         str2_tokens = set(str2.split())
-        return 2 * len(str1_tokens.intersection(str2_tokens)) / (len(str1_tokens) + len(str2_tokens))
+        return (
+            2
+            * len(str1_tokens.intersection(str2_tokens))
+            / (len(str1_tokens) + len(str2_tokens))
+        )

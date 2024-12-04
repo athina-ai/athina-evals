@@ -7,6 +7,7 @@ from athina.helpers.config import ConfigHelper
 from athina.helpers.loader_helper import LoaderHelper
 from athina.keys import OpenAiApiKey, AthinaApiKey
 
+
 class RunHelper:
     @staticmethod
     def all_evals():
@@ -78,7 +79,7 @@ class RunHelper:
     @staticmethod
     def _set_keys():
         openai_api_key = ConfigHelper.load_openai_api_key()
-        if (openai_api_key is None):
+        if openai_api_key is None:
             raise NoOpenAiApiKeyException
         OpenAiApiKey.set_key(openai_api_key)
 
@@ -112,7 +113,7 @@ class RunHelper:
         # Load dataset
         loader = LoaderHelper.get_loader(eval_name)()
         dataset = loader.load(format, **kwargs)
-        
+
         return RunHelper.run_eval_on_dataset(eval_name, model, dataset)
 
     @staticmethod
@@ -135,7 +136,7 @@ class RunHelper:
         print("\nResults:")
         for eval_result in result.eval_results:
             pass_fail_text = "❌ FAILED" if eval_result["failure"] else "✅ PASSED"
-            
+
             # Printing data with structured formatting
             print(f"\n{'————' * 8}")
             print(f"\nData: {eval_result['data']}\n")
@@ -144,4 +145,3 @@ class RunHelper:
             print(f"Metrics: {eval_result['metrics']}")
 
         return result
-
