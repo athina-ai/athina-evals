@@ -12,27 +12,30 @@ from athina.helpers.jinja_helper import PreserveUndefined
 from athina.steps.transform import ExtractJsonFromString, ExtractNumberFromString
 import traceback
 
-
 class TextContent(BaseModel):
     type: str
     text: str
 
-
 class ImageContent(BaseModel):
-    type: str = "image"
+    type: str = "image_url"
     image_url: Union[str, Dict[str, str]]
 
     def to_api_format(self):
         if isinstance(self.image_url, dict):
-            return {"type": "image_url", "image_url": self.image_url}
-        return {"type": "image_url", "image_url": {"url": self.image_url}}
-
+            return {
+                "type": "image_url",
+                "image_url": self.image_url
+            }
+        return {
+            "type": "image_url",
+            "image_url": {"url": self.image_url}
+        }
 
 Content = Union[str, List[Union[TextContent, ImageContent]]]
 
-
 class PromptMessage(BaseModel):
     role: str
+    content: Optional[Content] = None
     content: Optional[Content] = None
     tool_call: Optional[str] = None
 
@@ -40,19 +43,21 @@ class PromptMessage(BaseModel):
         """Convert the message to the format expected by the OpenAI API"""
         if self.content is None:
             return {"role": self.role}
-
+        
         if isinstance(self.content, str):
             return {"role": self.role, "content": self.content}
-
+        
         if isinstance(self.content, list):
             formatted_content = []
             for item in self.content:
                 if isinstance(item, TextContent):
-                    formatted_content.append({"type": "text", "text": item.text})
+                    formatted_content.append({
+                        "type": "text",
+                        "text": item.text
+                    })
                 elif isinstance(item, ImageContent):
                     formatted_content.append(item.to_api_format())
             return {"role": self.role, "content": formatted_content}
-
 
 class ModelOptions(BaseModel):
     max_tokens: Optional[int] = None
@@ -109,10 +114,8 @@ class PromptTemplate(BaseModel):
                                 if "tool_call" in item:
                                     try:
                                         tool_call_message = PromptMessage(
-                                            role=item["role"],
-                                            tool_call=self.env.from_string(
-                                                item["tool_call"]
-                                            ).render(**kwargs),
+                                            role=item['role'],
+                                            tool_call=self.env.from_string(item['tool_call']).render(**kwargs)
                                         )
                                         final_messages.append(tool_call_message)
                                     except Exception as e:
@@ -138,14 +141,10 @@ class PromptTemplate(BaseModel):
                     if isinstance(item, TextContent):
                         content_template = self.env.from_string(item.text)
                         resolved_text = content_template.render(**kwargs)
-                        resolved_content.append(
-                            TextContent(text=resolved_text, type="text")
-                        )
+                        resolved_content.append(TextContent(text=resolved_text, type='text'))
                     elif isinstance(item, ImageContent):
                         resolved_content.append(item)
-                resolved_message = PromptMessage(
-                    role=message.role, content=resolved_content
-                )
+                resolved_message = PromptMessage(role=message.role, content=resolved_content)
                 resolved_messages.append(resolved_message)
 
         return resolved_messages
@@ -201,13 +200,13 @@ class PromptExecution(Step):
             messages = self.template.resolve(**input_data)
             # Convert messages to API format
             api_formatted_messages = [msg.to_api_format() for msg in messages]
-
+            
             llm_service_response = self.llm_service.chat_completion(
                 api_formatted_messages,  # Use the formatted messages here
-                model=self.model,
+                model=self.model, 
                 **self.model_options.model_dump(),
                 **(self.tool_config.model_dump() if self.tool_config else {}),
-                **({"response_format": self.response_format}),
+                **({'response_format':self.response_format})
             )
             llmresponse = llm_service_response["value"]
             output_type = kwargs.get("output_type", None)
