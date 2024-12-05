@@ -210,8 +210,8 @@ class PromptExecution(Step):
                 **(self.tool_config.model_dump() if self.tool_config else {}),
                 **({"response_format": self.response_format}),
                 **(
-                    kwargs.get("search_domain_filter", None)
-                    if "search_domain_filter" in kwargs
+                    kwargs.get("search_domain_filter", {})
+                    if isinstance(kwargs.get("search_domain_filter"), dict)
                     else {}
                 ),
             )
