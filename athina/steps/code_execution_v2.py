@@ -6,6 +6,7 @@ from contextlib import redirect_stdout, redirect_stderr
 from dotenv import load_dotenv
 import time
 import json
+from e2b_code_interpreter import Sandbox
 
 # Load environment variables
 load_dotenv()
@@ -70,8 +71,6 @@ print('{VARS_END_MARKER}')
 
 
 class CodeExecutionV2(Step):
-    from e2b_code_interpreter import Sandbox
-
     """
     Step that executes code using either local environment or E2B sandbox.
 
