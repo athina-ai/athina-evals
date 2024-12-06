@@ -15,7 +15,8 @@ from athina.steps.open_ai_assistant import OpenAiAssistant
 from athina.steps.transcribe_speech_to_text import TranscribeSpeechToText
 from athina.steps.search import Search
 from athina.steps.code_execution import CodeExecution
-from athina.steps.code_execution_v2 import CodeExecutionV2
+
+# from athina.steps.code_execution_v2 import CodeExecutionV2
 from athina.steps.spider_crawl import SpiderCrawl
 
 __all__ = [
