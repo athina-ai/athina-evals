@@ -39,6 +39,7 @@ textdistance = "^4.6.3"
 tiktoken = "^0.8.0"
 textstat = "^0.7.4"
 chromadb-client = "^0.5.20"
+llama-parse = "^0.5.16"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.27.0"
