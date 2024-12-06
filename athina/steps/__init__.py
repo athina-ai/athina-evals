@@ -17,6 +17,7 @@ from athina.steps.search import Search
 from athina.steps.code_execution import CodeExecution
 from athina.steps.code_execution_v2 import CodeExecutionV2
 from athina.steps.spider_crawl import SpiderCrawl
+from athina.steps.parse_document import ParseDocument
 
 __all__ = [
     "Step",
@@ -42,4 +43,5 @@ __all__ = [
     "CodeExecution",
     "CodeExecutionV2",
     "SpiderCrawl",
+    "ParseDocument",
 ]
