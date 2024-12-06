@@ -9,8 +9,10 @@ from athina.helpers.jinja_helper import PreserveUndefined
 
 
 def prepare_input_data(data):
-    return {key: json.dumps(value) if isinstance(value, (list, dict)) else value
-        for key, value in data.items()}
+    return {
+        key: json.dumps(value) if isinstance(value, (list, dict)) else value
+        for key, value in data.items()
+    }
 
 
 class Search(Step):
@@ -42,10 +44,11 @@ class Search(Step):
 
     class Config:
         arbitrary_types_allowed = True
-       
 
     def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
         """Make an Search API call and return the response."""
+
+        start_time = time.time()
 
         if input_data is None:
             input_data = {}
@@ -55,12 +58,12 @@ class Search(Step):
 
         # Create a custom Jinja2 environment with double curly brace delimiters and PreserveUndefined
         self.env = Environment(
-            variable_start_string='{{', 
-            variable_end_string='}}',
-            undefined=PreserveUndefined
+            variable_start_string="{{",
+            variable_end_string="}}",
+            undefined=PreserveUndefined,
         )
 
-        body={
+        body = {
             "query": self.query,
             "type": self.type,
             "category": self.category,
@@ -68,26 +71,35 @@ class Search(Step):
             "excludedDomains": self.excludedDomains,
             "includedDomains": self.includedDomains,
             "excludeText": self.excludeText,
-            "includeText": self.includeText
+            "includeText": self.includeText,
+            "contents": {
+                "highlights": {
+                    "query": self.query,
+                },
+                "summary": {"query": self.query},
+            },
         }
         prepared_body = None
         # Add a filter to the Jinja2 environment to convert the input data to JSON
         body_template = self.env.from_string(json.dumps(body))
         prepared_input_data = prepare_input_data(input_data)
         prepared_body = body_template.render(**prepared_input_data)
-        
 
         retries = 2  # number of retries
         timeout = 30  # seconds
         for attempt in range(retries):
             try:
                 response = requests.post(
-                    url= "https://api.exa.ai/search",
+                    url="https://api.exa.ai/search",
                     headers={
                         "Content-Type": "application/json",
-                        "x-api-key": self.x_api_key
+                        "x-api-key": self.x_api_key,
                     },
-                    json=json.loads(prepared_body, strict=False) if prepared_body else None,
+                    json=(
+                        json.loads(prepared_body, strict=False)
+                        if prepared_body
+                        else None
+                    ),
                     timeout=timeout,
                 )
                 if response.status_code >= 400:
@@ -102,12 +114,18 @@ class Search(Step):
                     return {
                         "status": "success",
                         "data": json_response,
+                        "metadata": {
+                            "response_time": (time.time() - start_time) * 1000,
+                        },
                     }
                 except json.JSONDecodeError:
                     # If the response is not JSON, return the text
                     return {
                         "status": "success",
                         "data": response.text,
+                        "metadata": {
+                            "response_time": (time.time() - start_time) * 1000,
+                        },
                     }
             except requests.Timeout:
                 if attempt < retries - 1:
@@ -117,10 +135,16 @@ class Search(Step):
                 return {
                     "status": "error",
                     "data": "Failed to make the API call.\nRequest timed out after multiple attempts.",
+                    "metadata": {
+                        "response_time": (time.time() - start_time) * 1000,
+                    },
                 }
             except Exception as e:
                 # If an exception occurs, return the error message
                 return {
                     "status": "error",
                     "data": f"Failed to make the API call.\nError: {e.__class__.__name__}\nDetails:\n{str(e)}",
+                    "metadata": {
+                        "response_time": (time.time() - start_time) * 1000,
+                    },
                 }
