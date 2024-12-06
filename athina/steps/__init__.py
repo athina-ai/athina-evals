@@ -40,6 +40,6 @@ __all__ = [
     "TranscribeSpeechToText",
     "Search",
     "CodeExecution",
-    "CodeExecutionV2",
+    # "CodeExecutionV2",We need to fix the dependencies first to enable this.
     "SpiderCrawl",
 ]
