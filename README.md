@@ -34,3 +34,15 @@ Once you run evals using Athina, they will be visible in [Athina IDE](https://at
 ---
 
 ### Preset Evals
+
+
+
+---
+
+### Athina Steps
+
+To use CodeExecutionV2, you need to install e2b.
+
+```bash
+pip install e2b-code-interpreter
+```
