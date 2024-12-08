@@ -6,7 +6,13 @@ from contextlib import redirect_stdout, redirect_stderr
 from dotenv import load_dotenv
 import time
 import json
-from e2b_code_interpreter import Sandbox
+
+try:
+    from e2b_code_interpreter import Sandbox
+
+    HAS_E2B = True
+except ImportError:
+    HAS_E2B = False
 
 # Load environment variables
 load_dotenv()
@@ -88,14 +94,14 @@ class CodeExecutionV2(Step):
     session_id: str
     name: Optional[str] = None
     _sandbox: Optional[Sandbox] = None
-    execution_environment: ExecutionEnvironment = EXECUTION_E2B
+    execution_environment: ExecutionEnvironment = EXECUTION_LOCAL
     DEFAULT_TIMEOUT: ClassVar[int] = 60  # 1 minute default timeout for sandbox
     MAX_TIMEOUT: ClassVar[int] = 300  # 5 minute limit for e2b sandbox execution
     sandbox_timeout: Optional[int] = None
 
     def __init__(
         self,
-        execution_environment: ExecutionEnvironment = EXECUTION_E2B,
+        execution_environment: ExecutionEnvironment = EXECUTION_LOCAL,
         sandbox_timeout: Optional[int] = None,
         **data,
     ):
@@ -338,7 +344,10 @@ class CodeExecutionV2(Step):
         # Start timing
         start_time = time.time()
 
-        if self.execution_environment == "local":
-            return self._execute_local(input_data, start_time)
-        else:
+        if self.execution_environment == "e2b":
+            if not HAS_E2B:
+                print("Warning: e2b not installed, falling back to local execution")
+                return self._execute_local(input_data, start_time)
             return self._execute_e2b(input_data=input_data, start_time=start_time)
+        else:
+            return self._execute_local(input_data, start_time)
