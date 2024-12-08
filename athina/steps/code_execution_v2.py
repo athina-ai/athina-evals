@@ -40,7 +40,13 @@ def _serialize_variable(name: str, value: Any) -> Optional[str]:
     Returns None if serialization fails.
     """
     try:
+        # For multi-line strings, use triple quotes and preserve indentation
         serialized_value = repr(value)
+        if "\n" in serialized_value:
+            # Remove any existing quotes and wrap in triple quotes
+            clean_value = serialized_value.strip("'\"")
+            serialized_value = f'"""{clean_value}"""'
+        # Ensure the assignment is at root level (no indentation)
         return f"{name} = {serialized_value}"
     except Exception as e:
         print(f"Error serializing variable {name}: {str(e)}")
