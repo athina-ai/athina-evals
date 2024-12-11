@@ -40,12 +40,18 @@ def _serialize_variable(name: str, value: Any) -> Optional[str]:
     Returns None if serialization fails.
     """
     try:
-        # For multi-line strings, use triple quotes and preserve indentation
-        serialized_value = repr(value)
-        if "\n" in serialized_value:
-            # Remove any existing quotes and wrap in triple quotes
-            clean_value = serialized_value.strip("'\"")
-            serialized_value = f'"""{clean_value}"""'
+        # Try to parse as JSON first
+        try:
+            serialized_value = json.loads(value)
+        except json.JSONDecodeError as e:
+            # If JSON parsing fails, use the string representation
+            # For multi-line strings, use triple quotes and preserve indentation
+            serialized_value = repr(value)
+            if "\n" in serialized_value:
+                # Remove any existing quotes and wrap in triple quotes
+                clean_value = serialized_value.strip("'\"")
+                serialized_value = f'"""{clean_value}"""'
+
         # Ensure the assignment is at root level (no indentation)
         return f"{name} = {serialized_value}"
     except Exception as e:
