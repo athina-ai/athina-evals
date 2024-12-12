@@ -69,12 +69,19 @@ class QdrantRetrieval(Step):
 
         try:
             response = self._retriever.retrieve(input_text)
+            if not response:
+                print("No chunks retrieved")
+                return {
+                    "status": "success",
+                    "data": [],
+                }
             result = [node.get_content() for node in response]
             return {
                 "status": "success",
                 "data": result,
             }
         except Exception as e:
+            print(f"Error during retrieval: {str(e)}")
             return {
                 "status": "error",
                 "data": str(e),

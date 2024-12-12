@@ -58,6 +58,7 @@ class Step(BaseModel):
     input_key: Optional[str] = None
     output_key: Optional[str] = None
     input_data: Optional[Any] = None
+    name: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert step to dictionary."""
