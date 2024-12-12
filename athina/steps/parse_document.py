@@ -13,7 +13,6 @@ class ParseDocument(Step):
         file_url: The URL of the file to be parsed.
         output_format: The type of result to return. Options: 'text' or 'markdown'. Default is 'text'.
         llama_parse_key: The API key to use for the LlamaParse API.
-        language: Optional language of the document. Default is None (auto-detect).
         verbose: Whether to print verbose output. Default is False.
     """
 
@@ -39,6 +38,12 @@ class ParseDocument(Step):
             documents = llama_parse.load_data(
                 file_path=self.file_url
             )
+            
+            if not documents:
+                return {
+                    "status": "error",
+                    "data": "No documents were parsed."
+                }
 
             parsed_content = documents[0].text
 
