@@ -36,7 +36,6 @@ Content = Union[str, List[Union[TextContent, ImageContent]]]
 class PromptMessage(BaseModel):
     role: str
     content: Optional[Content] = None
-    content: Optional[Content] = None
     tool_call: Optional[str] = None
 
     def to_api_format(self) -> dict:
