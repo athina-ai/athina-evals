@@ -11,6 +11,7 @@ from jinja2 import Environment
 from athina.helpers.jinja_helper import PreserveUndefined
 from athina.steps.transform import ExtractJsonFromString, ExtractNumberFromString
 import traceback
+import json
 
 class TextContent(BaseModel):
     type: str
@@ -113,8 +114,10 @@ class PromptTemplate(BaseModel):
                                 if "tool_call" in item:
                                     try:
                                         tool_call_message = PromptMessage(
-                                            role=item['role'],
-                                            tool_call=self.env.from_string(item['tool_call']).render(**kwargs)
+                                            role=item["role"],
+                                            tool_call=self.env.from_string(
+                                                item.get("tool_call")
+                                            ).render(**kwargs),
                                         )
                                         final_messages.append(tool_call_message)
                                     except Exception as e:
@@ -160,7 +163,7 @@ class PromptExecution(Step):
     """
 
     llm_service: AbstractLlmService = None
-    template: PromptTemplate
+    template: Union[PromptTemplate, dict[str, List[Dict[str, Any]]]]
     model: str
     model_options: ModelOptions
     tool_config: Optional[ToolConfig] = None
@@ -178,13 +181,18 @@ class PromptExecution(Step):
         arbitrary_types_allowed = True
 
     @staticmethod
-    def simple(message: str, model: str = Model.GPT4_O.value) -> "PromptExecution":
+    def simple(
+        message: str,
+        model: str = Model.GPT4_O.value,
+        name: Optional[str] = None,
+    ) -> "PromptExecution":
         OpenAiApiKey.set_key(os.getenv("OPENAI_API_KEY"))
         openai_service = OpenAiService()
         return PromptExecution(
             llm_service=openai_service,
             template=PromptTemplate.simple(message),
             model=model,
+            model_options=ModelOptions(),
         )
 
     def execute(self, input_data: dict, **kwargs) -> str:
@@ -201,11 +209,16 @@ class PromptExecution(Step):
             api_formatted_messages = [msg.to_api_format() for msg in messages]
             
             llm_service_response = self.llm_service.chat_completion(
-                api_formatted_messages,  # Use the formatted messages here
-                model=self.model, 
+                api_formatted_messages,
+                model=self.model,
                 **self.model_options.model_dump(),
                 **(self.tool_config.model_dump() if self.tool_config else {}),
-                **({'response_format':self.response_format})
+                **({"response_format": self.response_format}),
+                **(
+                    kwargs.get("search_domain_filter", {})
+                    if isinstance(kwargs.get("search_domain_filter"), dict)
+                    else {}
+                ),
             )
             llmresponse = llm_service_response["value"]
             output_type = kwargs.get("output_type", None)
@@ -246,7 +259,7 @@ class PromptExecution(Step):
                 return {
                     "status": "success",
                     "data": response,
-                    "metadata": llm_service_response.get("metadata", {}),
+                    "metadata": json.loads(llm_service_response.get("metadata", {})),
                 }
         except Exception as e:
             traceback.print_exc()

@@ -1,46 +1,79 @@
-from typing import Callable, Any, Dict, Optional
-
+from typing import Any, Dict, List, Optional
 from athina.steps.base import Step
+from jinja2 import Environment, UndefinedError
+from pydantic import ConfigDict
 
 
-class Assert(Step):
+class ConditionalStep(Step):
     """
-    Step that asserts a condition and raises an error if it fails.
+    Step that evaluates conditions and executes appropriate branch steps.
 
     Attributes:
-        condition (Callable[[Any, Dict[str, Any]], bool]): Function to evaluate the assertion.
-        error_message (str): Error message to raise if the assertion fails.
+        branches (List[Dict]): List of branch configurations with conditions and steps
+        env (Environment): Jinja environment for condition evaluation
     """
 
-    condition: Callable[[Any], bool]
-    error_message: str
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def execute(self, input_data: Any) -> Any:
-        """Assert a condition and raise error if it fails."""
-        if not self.condition(input_data):
-            raise AssertionError(f"Assertion failed - {self.error_message}")
-        return input_data
+    branches: List[Dict]
+    env: Environment = Environment(variable_start_string="{{", variable_end_string="}}")
 
+    def _evaluate_condition(self, condition: str, context: Dict) -> bool:
+        """Evaluate a Jinja condition with given context."""
+        try:
+            template = self.env.from_string(condition)
+            rendered_condition = template.render(**context)
+            return eval(rendered_condition)  # Consider using a safer eval alternative
+        except (UndefinedError, Exception) as e:
+            print(f"Error evaluating condition: {str(e)}")
+            return False
 
-class If(Step):
-    """
-    Step that conditionally runs either the 'then' or 'else' step based on a condition.
+    def _execute_branch_steps(self, steps: List[Step], inputs: Dict) -> Dict:
+        """Execute a sequence of steps with given inputs."""
+        cumulative_context = inputs.copy()
+        final_output = None
+        executed_steps = []
 
-    Attributes:
-        condition (Callable[[Any], bool]): Function to evaluate the condition.
-        then_step (Step): Step to run if the condition is true.
-        else_step (Optional[Step]): Step to run if the condition is false.
-    """
+        for step in steps:
+            step_result = step.execute(cumulative_context)
+            executed_steps.append(step_result)
+            cumulative_context = {
+                **cumulative_context,
+                f"{step.name}": step_result.get("data", {}),
+            }
+            final_output = step_result.get("data")
 
-    condition: Callable[[Any], bool]
-    then_step: Step
-    else_step: Optional[Step] = None
+        return {
+            "status": "success",
+            "data": final_output,
+            "metadata": {"executed_steps": executed_steps},
+        }
 
-    def execute(self, input_data: Any) -> Any:
-        """Run the 'then' step if the condition is true, else run the 'else' step."""
-        result = (
-            self.then_step.execute(input_data)
-            if self.condition(input_data)
-            else self.else_step.execute(input_data) if self.else_step else None
-        )
-        return result
+    def execute(self, inputs: Dict) -> Dict:
+        """Execute the conditional step by evaluating branches and running appropriate steps."""
+        try:
+            # Find the first matching branch
+            for branch in self.branches:
+                branch_type = branch.get("branch_type")
+                condition = branch.get("condition")
+
+                if branch_type == "else" or (
+                    condition and self._evaluate_condition(condition, inputs)
+                ):
+                    result = self._execute_branch_steps(branch.get("steps", []), inputs)
+                    if result.get("status") == "success":
+                        result["metadata"]["executed_branch"] = branch_type
+                    return result
+
+            return {
+                "status": "error",
+                "data": "No matching branch found",
+                "metadata": {},
+            }
+
+        except Exception as e:
+            return {
+                "status": "error",
+                "data": f"Conditional step execution failed: {str(e)}",
+                "metadata": {},
+            }
