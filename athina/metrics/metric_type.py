@@ -29,6 +29,7 @@ class MetricType(Enum):
     PASSED = "passed"
     SIMILARITY_SCORE = "similarity_score"
     SCORE = "score"
+    LABEL = "label"
 
     # Conversation Metrics
     CONVERSATION_RESOLUTION = "conversation_resolution"

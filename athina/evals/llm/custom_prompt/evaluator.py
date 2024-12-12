@@ -136,6 +136,15 @@ class CustomPrompt(LlmEvaluator):
                     "- score: The score based on the provided grading criteria.\n"
                     "- explanation: An explanation of the score.\n"
                 )
+            elif self._output_type == "string":
+                return (
+                    "### INSTRUCTIONS ###\n"
+                    "You are an expert at evaluating responses by an AI.\n"
+                    "Based on the instructions provided, you will evaluate the response and provide a label.\n"
+                    "You MUST return a JSON object with the following fields:\n"
+                    "- label: The label based on the provided criteria.\n"
+                    "- explanation: An explanation of the label.\n"
+                )
 
     def _evaluate(self, **kwargs) -> EvalResult:
         """
@@ -171,12 +180,17 @@ class CustomPrompt(LlmEvaluator):
                 explanation = chat_completion_response_json["explanation"]
                 metrics.append(EvalResultMetric(id=MetricType.SCORE.value, value=score))
                 failure = None  # Numeric evaluations don't have a pass/fail result
+            elif self._output_type == "string":
+                label = chat_completion_response_json["label"]
+                explanation = chat_completion_response_json["explanation"]
+                metrics.append(EvalResultMetric(id=MetricType.LABEL.value, value=label))
+                failure = None
 
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
             if isinstance(e, (ValueError, KeyError)):
                 raise ValueError(
-                    "LLM evals must return a result/score and explanation. The LLM response did not return the correct structure for parsing evaluation results."
+                    "LLM evals must return a result/score/label and explanation. The LLM response did not return the correct structure for parsing evaluation results."
                 )
             else:
                 raise e
