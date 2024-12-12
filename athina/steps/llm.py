@@ -259,7 +259,11 @@ class PromptExecution(Step):
                 return {
                     "status": "success",
                     "data": response,
-                    "metadata": json.loads(llm_service_response.get("metadata", {})),
+                    "metadata": (
+                        json.loads(llm_service_response.get("metadata", "{}"))
+                        if llm_service_response.get("metadata")
+                        else {}
+                    ),
                 }
         except Exception as e:
             traceback.print_exc()
