@@ -26,7 +26,6 @@ class SpiderCrawl(Step):
     """
 
     url: str
-    type: Optional[str] = "neural"
     limit: Optional[int] = 1
     metadata: Optional[bool] = False
     return_format: Optional[str] = "markdown"
