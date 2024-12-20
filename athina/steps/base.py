@@ -99,6 +99,10 @@ class Step(BaseModel):
         """Execute the core logic of the step. This should be implemented by subclasses."""
         raise NotImplementedError("Subclasses must implement this method")
 
+    async def execute_async(self, input_data: Any) -> Any:
+        """Execute the core logic of the step asynchronously. This should be implemented by subclasses."""
+        pass
+
 
 class Debug(Step):
     """
