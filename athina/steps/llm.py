@@ -280,6 +280,7 @@ class PromptExecution(Step):
         try:
             messages = self.template.resolve(**input_data)
             # Convert messages to API format
+            # TODO: Why is api_formatted_messages not used?
             api_formatted_messages = [msg.to_api_format() for msg in messages]
 
             llm_service_response = await self.llm_service.chat_completion_async(
