@@ -269,7 +269,7 @@ class PromptExecution(Step):
             traceback.print_exc()
             return {"status": "error", "data": str(e)}
 
-    async def execute_async(self, input_data: dict, **kwargs) -> str:
+    async def execute_async(self, input_data: dict, **kwargs) -> dict:
         """Execute a prompt with the LLM service asynchronously."""
         if input_data is None:
             input_data = {}
