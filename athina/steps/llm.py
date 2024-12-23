@@ -145,7 +145,16 @@ class PromptTemplate(BaseModel):
                         resolved_text = content_template.render(**kwargs)
                         resolved_content.append(TextContent(text=resolved_text, type='text'))
                     elif isinstance(item, ImageContent):
-                        resolved_content.append(item)
+                        if isinstance(item.image_url, str):
+                            url_template = self.env.from_string(item.image_url)
+                            resolved_url = url_template.render(**kwargs)
+                            resolved_content.append(ImageContent(image_url=resolved_url))
+                        elif isinstance(item.image_url, dict):
+                            resolved_url_dict = {}
+                            for key, value in item.image_url.items():
+                                url_template = self.env.from_string(value)
+                                resolved_url_dict[key] = url_template.render(**kwargs)
+                            resolved_content.append(ImageContent(image_url=resolved_url_dict))
                 resolved_message = PromptMessage(role=message.role, content=resolved_content)
                 resolved_messages.append(resolved_message)
 
