@@ -13,24 +13,26 @@ from athina.steps.transform import ExtractJsonFromString, ExtractNumberFromStrin
 import traceback
 import json
 
-
 class TextContent(BaseModel):
     type: str
     text: str
 
-
 class ImageContent(BaseModel):
-    type: str = "image"
+    type: str = "image_url"
     image_url: Union[str, Dict[str, str]]
 
     def to_api_format(self):
         if isinstance(self.image_url, dict):
-            return {"type": "image_url", "image_url": self.image_url}
-        return {"type": "image_url", "image_url": {"url": self.image_url}}
-
+            return {
+                "type": "image_url",
+                "image_url": self.image_url
+            }
+        return {
+            "type": "image_url",
+            "image_url": {"url": self.image_url}
+        }
 
 Content = Union[str, List[Union[TextContent, ImageContent]]]
-
 
 class PromptMessage(BaseModel):
     role: str
@@ -41,19 +43,21 @@ class PromptMessage(BaseModel):
         """Convert the message to the format expected by the OpenAI API"""
         if self.content is None:
             return {"role": self.role}
-
+        
         if isinstance(self.content, str):
             return {"role": self.role, "content": self.content}
-
+        
         if isinstance(self.content, list):
             formatted_content = []
             for item in self.content:
                 if isinstance(item, TextContent):
-                    formatted_content.append({"type": "text", "text": item.text})
+                    formatted_content.append({
+                        "type": "text",
+                        "text": item.text
+                    })
                 elif isinstance(item, ImageContent):
                     formatted_content.append(item.to_api_format())
             return {"role": self.role, "content": formatted_content}
-
 
 class ModelOptions(BaseModel):
     max_tokens: Optional[int] = None
@@ -139,14 +143,19 @@ class PromptTemplate(BaseModel):
                     if isinstance(item, TextContent):
                         content_template = self.env.from_string(item.text)
                         resolved_text = content_template.render(**kwargs)
-                        resolved_content.append(
-                            TextContent(text=resolved_text, type="text")
-                        )
+                        resolved_content.append(TextContent(text=resolved_text, type='text'))
                     elif isinstance(item, ImageContent):
-                        resolved_content.append(item)
-                resolved_message = PromptMessage(
-                    role=message.role, content=resolved_content
-                )
+                        if isinstance(item.image_url, str):
+                            url_template = self.env.from_string(item.image_url)
+                            resolved_url = url_template.render(**kwargs)
+                            resolved_content.append(ImageContent(image_url=resolved_url))
+                        elif isinstance(item.image_url, dict):
+                            resolved_url_dict = {}
+                            for key, value in item.image_url.items():
+                                url_template = self.env.from_string(value)
+                                resolved_url_dict[key] = url_template.render(**kwargs)
+                            resolved_content.append(ImageContent(image_url=resolved_url_dict))
+                resolved_message = PromptMessage(role=message.role, content=resolved_content)
                 resolved_messages.append(resolved_message)
 
         return resolved_messages
@@ -207,9 +216,9 @@ class PromptExecution(Step):
             messages = self.template.resolve(**input_data)
             # Convert messages to API format
             api_formatted_messages = [msg.to_api_format() for msg in messages]
-
+            
             llm_service_response = self.llm_service.chat_completion(
-                messages,
+                api_formatted_messages,
                 model=self.model,
                 **self.model_options.model_dump(),
                 **(self.tool_config.model_dump() if self.tool_config else {}),
