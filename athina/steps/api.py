@@ -147,7 +147,7 @@ class ApiCall(Step):
                         return process_response(response.status, response_text)
 
             except asyncio.TimeoutError:
-                if attempt < retries - 1:
+                if attempt < self.retries - 1:
                     await asyncio.sleep(2)
                     continue
                 # If the request times out after multiple attempts, return an error message
