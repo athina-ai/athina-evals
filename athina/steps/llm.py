@@ -259,7 +259,86 @@ class PromptExecution(Step):
                 return {
                     "status": "success",
                     "data": response,
-                    "metadata": json.loads(llm_service_response.get("metadata", {})),
+                    "metadata": (
+                        json.loads(llm_service_response.get("metadata", "{}"))
+                        if llm_service_response.get("metadata")
+                        else {}
+                    ),
+                }
+        except Exception as e:
+            traceback.print_exc()
+            return {"status": "error", "data": str(e)}
+
+    async def execute_async(self, input_data: dict, **kwargs) -> dict:
+        """Execute a prompt with the LLM service asynchronously."""
+        if input_data is None:
+            input_data = {}
+
+        if not isinstance(input_data, dict) and self.input_key:
+            raise ValueError("PromptExecution Error: Input data must be a dictionary")
+
+        try:
+            messages = self.template.resolve(**input_data)
+            # Convert messages to API format
+            # TODO: Why is api_formatted_messages not used?
+            api_formatted_messages = [msg.to_api_format() for msg in messages]
+
+            llm_service_response = await self.llm_service.chat_completion_async(
+                messages,
+                model=self.model,
+                **self.model_options.model_dump(),
+                **(self.tool_config.model_dump() if self.tool_config else {}),
+                **({"response_format": self.response_format}),
+                **(
+                    kwargs.get("search_domain_filter", {})
+                    if isinstance(kwargs.get("search_domain_filter"), dict)
+                    else {}
+                ),
+            )
+            llmresponse = llm_service_response["value"]
+            output_type = kwargs.get("output_type", None)
+            error = None
+            if output_type:
+                if output_type == "string":
+                    if not isinstance(llmresponse, str):
+                        error = "LLM response is not a string"
+                    response = llmresponse
+
+                elif output_type == "number":
+                    extracted_response = ExtractNumberFromString().execute(llmresponse)
+                    if not isinstance(extracted_response, (int, float)):
+                        error = "LLM response is not a number"
+                    response = extracted_response
+
+                elif output_type == "array":
+                    extracted_response = ExtractJsonFromString().execute(llmresponse)
+                    if not isinstance(extracted_response, list):
+                        error = "LLM response is not an array"
+                    response = extracted_response
+
+                elif output_type == "object":
+                    extracted_response = ExtractJsonFromString().execute(llmresponse)
+                    if not isinstance(extracted_response, dict):
+                        error = "LLM response is not an object"
+                    response = extracted_response
+
+            elif not isinstance(llmresponse, str):
+                error = "LLM service response is not a string"
+
+            else:
+                response = llmresponse
+
+            if error:
+                return {"status": "error", "data": error}
+            else:
+                return {
+                    "status": "success",
+                    "data": response,
+                    "metadata": (
+                        json.loads(llm_service_response.get("metadata", "{}"))
+                        if llm_service_response.get("metadata")
+                        else {}
+                    ),
                 }
         except Exception as e:
             traceback.print_exc()

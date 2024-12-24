@@ -35,8 +35,8 @@ class Search(Step):
     type: Optional[str] = "neural"
     category: Optional[str] = None
     numResults: Optional[int] = 10
-    excludedDomains: Optional[List[str]] = None
-    includedDomains: Optional[List[str]] = None
+    excludeDomains: Optional[List[str]] = None
+    includeDomains: Optional[List[str]] = None
     excludeText: Optional[List[str]] = None
     includeText: Optional[List[str]] = None
     x_api_key: str
@@ -68,8 +68,8 @@ class Search(Step):
             "type": self.type,
             "category": self.category,
             "numResults": self.numResults,
-            "excludedDomains": self.excludedDomains,
-            "includedDomains": self.includedDomains,
+            "excludeDomains": self.excludeDomains,
+            "includeDomains": self.includeDomains,
             "excludeText": self.excludeText,
             "includeText": self.includeText,
             "contents": {
