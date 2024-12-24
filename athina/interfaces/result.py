@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import TypedDict, List, Optional
 from athina.interfaces.data import DataPoint
 from pydantic import BaseModel
-
+from typing import Union
 
 class EvalResultMetric(TypedDict):
     """
@@ -11,7 +11,7 @@ class EvalResultMetric(TypedDict):
     """
 
     id: str
-    value: float
+    value: Union[float, str]
 
 
 class DatapointFieldAnnotation(TypedDict):
