@@ -39,6 +39,7 @@ chromadb-client = "^0.5.20"
 llama-index = "^0.11.0"
 llama-index-vector-stores-pinecone = "^0.2.0"
 llama-index-vector-stores-qdrant = "^0.3.0"
+llama-parse = "^0.5.16"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.27.0"
