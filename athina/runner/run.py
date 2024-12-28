@@ -1,4 +1,4 @@
-from typing import List, TypedDict, Optional
+from typing import List, TypedDict, Optional, Union
 from athina.datasets.dataset import Dataset
 from athina.helpers.athina_logging_helper import AthinaLoggingHelper
 from athina.evals.llm.llm_evaluator import LlmEvaluator
@@ -190,16 +190,18 @@ class EvalRunner:
         max_parallel_evals: int = 5,
         dataset_id: Optional[str] = None,
         number_of_rows: Optional[int] = None,
-    ) -> List[LlmBatchEvalResult]:
+        return_format: str = "dataframe",
+    ) -> Union[List[LlmBatchEvalResult], pd.DataFrame]:
         """
         Run a suite of LLM evaluations against a dataset.
 
         Args:
             evals: A list of LlmEvaluator objects.
             data: A list of data points.
+            return_format: The format of the returned object. Can be "dataframe" or "list".
 
         Returns:
-            A list of LlmBatchEvalResult objects.
+            A list of LlmBatchEvalResult objects or a Pandas DataFrame.
         """
         eval_suite_name = "llm_eval_suite" + "_" + ",".join(eval.name for eval in evals)
         AthinaApiService.log_usage(eval_name=eval_suite_name, run_type="suite")
@@ -231,4 +233,9 @@ class EvalRunner:
         if dataset:
             print(f"You can view your dataset at: {Dataset.dataset_link(dataset_id)}")
 
-        return EvalRunner.to_df(batch_results)
+        if return_format == "dataframe":
+            return EvalRunner.to_df(batch_results)
+        elif return_format == "list":
+            return batch_results
+        else:
+            raise ValueError("Invalid return_format")
