@@ -26,7 +26,6 @@ from athina.evals import (
     Groundedness,
     GradingCriteria,
     CustomPrompt,
-    RagasContextRelevancy,
     RagasAnswerRelevancy,
     RagasAnswerCorrectness,
     RagasAnswerSemanticSimilarity,
@@ -134,7 +133,6 @@ llm_operations = {
 }
 
 ragas_operations = {
-    "RagasContextRelevancy": RagasContextRelevancy,
     "RagasAnswerRelevancy": RagasAnswerRelevancy,
     "RagasAnswerCorrectness": RagasAnswerCorrectness,
     "RagasAnswerSemanticSimilarity": RagasAnswerSemanticSimilarity,

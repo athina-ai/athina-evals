@@ -75,6 +75,6 @@ class RagasContextPrecision(RagasEvaluator):
         data = {
             "contexts": [context],
             "question": [query],
-            "ground_truths": [[expected_response]],
+            "ground_truth": [expected_response],
         }
         return data

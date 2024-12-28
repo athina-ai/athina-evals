@@ -2,8 +2,8 @@ from athina.interfaces.model import Model
 from ..ragas_evaluator import RagasEvaluator
 from athina.evals.eval_type import RagasEvalTypeId
 from athina.metrics.metric_type import MetricType
-from ragas.metrics.critique import coherence
 from typing import List, Optional
+from ragas.metrics import AspectCritic
 
 """
 RAGAS Coherence Docs: https://docs.ragas.io/en/latest/concepts/metrics/critique.html
@@ -30,6 +30,10 @@ class RagasCoherence(RagasEvaluator):
 
     @property
     def ragas_metric(self):
+        coherence = AspectCritic(
+            name="coherence",
+            definition="Is the submission logically organized and coherent in its ideas and arguments?",
+        )
         return coherence
 
     @property

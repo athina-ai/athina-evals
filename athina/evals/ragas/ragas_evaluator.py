@@ -10,8 +10,8 @@ from athina.interfaces.result import EvalResult, EvalResultMetric
 from athina.helpers.logger import logger
 from ..base_evaluator import BaseEvaluator
 from datasets import Dataset
-from langchain_openai.chat_models import ChatOpenAI, AzureChatOpenAI
-from ragas.llms import LangchainLLM
+from langchain_openai import ChatOpenAI, AzureChatOpenAI
+from ragas.llms import LangchainLLMWrapper
 from ragas import evaluate
 
 
@@ -89,11 +89,12 @@ class RagasEvaluator(BaseEvaluator):
         self.validate_args(**kwargs)
         metrics = []
         try:
-            self.ragas_metric.llm = LangchainLLM(llm=self._get_model())
+            self.ragas_metric.llm = LangchainLLMWrapper(langchain_llm=self._get_model())
             data = self.generate_data_to_evaluate(**kwargs)
             dataset = Dataset.from_dict(data)
-            scores = evaluate(dataset, metrics=[self.ragas_metric])
-            metric_value = scores[self.ragas_metric_name]
+            ragas_eval_results = evaluate(dataset, metrics=[self.ragas_metric])
+            eval_score = ragas_eval_results.scores[0]
+            metric_value = eval_score[self.ragas_metric_name]
             if isinstance(metric_value, (int, float)) and not math.isnan(metric_value):
                 metrics.append(
                     EvalResultMetric(id=self.metric_ids[0], value=metric_value)
