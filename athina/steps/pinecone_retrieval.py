@@ -5,9 +5,9 @@ from typing import Optional, Union, Dict, Any
 from pydantic import Field, PrivateAttr
 from athina.steps import Step
 from jinja2 import Environment
-from llama_index.vector_stores import PineconeVectorStore
-from llama_index import VectorStoreIndex
-from llama_index.retrievers import VectorIndexRetriever
+from llama_index.vector_stores.pinecone import PineconeVectorStore
+from llama_index.core import VectorStoreIndex
+from llama_index.core.retrievers import VectorIndexRetriever
 
 
 class PineconeRetrieval(Step):
@@ -60,7 +60,6 @@ class PineconeRetrieval(Step):
 
     def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
         """makes a call to pinecone index to fetch relevent chunks"""
-
         if input_data is None:
             input_data = {}
 
@@ -80,6 +79,10 @@ class PineconeRetrieval(Step):
                 "data": result,
             }
         except Exception as e:
+            import traceback
+
+            traceback.print_exc()
+            print(f"Error during retrieval: {str(e)}")
             return {
                 "status": "error",
                 "data": str(e),

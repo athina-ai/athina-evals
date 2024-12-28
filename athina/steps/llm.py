@@ -185,6 +185,7 @@ class PromptExecution(Step):
         message: str,
         model: str = Model.GPT4_O.value,
         name: Optional[str] = None,
+        model_options: ModelOptions = ModelOptions(),
     ) -> "PromptExecution":
         OpenAiApiKey.set_key(os.getenv("OPENAI_API_KEY"))
         openai_service = OpenAiService()
@@ -192,7 +193,7 @@ class PromptExecution(Step):
             llm_service=openai_service,
             template=PromptTemplate.simple(message),
             model=model,
-            model_options=ModelOptions(),
+            model_options=model_options,
         )
 
     def execute(self, input_data: dict, **kwargs) -> str:

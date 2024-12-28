@@ -2,8 +2,8 @@ from athina.interfaces.model import Model
 from ..ragas_evaluator import RagasEvaluator
 from athina.evals.eval_type import RagasEvalTypeId
 from athina.metrics.metric_type import MetricType
-from ragas.metrics.critique import conciseness
 from typing import List, Optional
+from ragas.metrics import AspectCritic
 
 """
 RAGAS Conciseness Docs: https://docs.ragas.io/en/latest/concepts/metrics/critique.html
@@ -30,6 +30,10 @@ class RagasConciseness(RagasEvaluator):
 
     @property
     def ragas_metric(self):
+        conciseness = AspectCritic(
+            name="conciseness",
+            definition="Is the submission brief and to the point, without unnecessary elaboration?",
+        )
         return conciseness
 
     @property

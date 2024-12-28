@@ -67,5 +67,5 @@ class RagasAnswerSemanticSimilarity(RagasEvaluator):
         :param expected_response: expected output
         :return: A dictionary with formatted data for evaluation
         """
-        data = {"answer": [response], "ground_truths": [[expected_response]]}
+        data = {"answer": [response], "ground_truth": [expected_response]}
         return data

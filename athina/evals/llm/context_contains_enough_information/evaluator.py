@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import List, Optional
 from ..llm_evaluator import LlmEvaluator
 from .examples import CONTEXT_CONTAINS_ENOUGH_INFORMATION_EXAMPLES
 from athina.evals.eval_type import LlmEvalTypeId
@@ -61,7 +61,7 @@ class ContextContainsEnoughInformation(LlmEvaluator):
     def is_failure(self, result) -> Optional[bool]:
         return bool(str(result).lower() == "fail")
 
-    def _user_message(self, query: str, context: str, **kwargs) -> str:
+    def _user_message(self, query: str, context: List[str], **kwargs) -> str:
         """
         Generates data for evaluation.
 
