@@ -122,7 +122,6 @@ class CodeExecutionV2(Step):
             raise ValueError("session_id is required for e2b execution")
 
         try:
-
             running_sandboxes = Sandbox.list()
 
             for sandbox in running_sandboxes:
@@ -138,11 +137,6 @@ class CodeExecutionV2(Step):
                     ),
                     metadata={"session_id": self.session_id},
                 )
-                if self.code.startswith("!"):
-                    # Run the code as a command
-                    commands = map(lambda x: x[1:], self.code.split("\n"))
-                    for command in commands:
-                        self._sandbox.commands.run(command)
                 print(f"Created new sandbox with ID: {self._sandbox.sandbox_id}")
 
         except Exception as e:
@@ -238,10 +232,9 @@ class CodeExecutionV2(Step):
 
         The execution follows these steps:
         1. Initialize/connect to sandbox
-        2. Split input into commands and Python code
-        3. Initialize input variables in sandbox
-        4. Execute main code
-        5. Capture and extract output variables
+        2. Initialize input variables in sandbox
+        3. Execute code (either as commands or Python)
+        4. Capture and extract output variables for Python code
         """
         try:
             self._create_or_initialize_sandbox()
@@ -253,66 +246,72 @@ class CodeExecutionV2(Step):
                     start_time=start_time,
                 )
 
-            # Split code into commands and Python code
-            lines = self.code.split("\n")
-            commands = [
-                line.strip()[1:]
-                for line in lines
-                if line.strip().startswith(COMMAND_PREFIX)
-            ]
-            python_code = [
-                line for line in lines if not line.strip().startswith(COMMAND_PREFIX)
-            ]
+            # Initialize input variables if we're running Python code
+            if not self.code.strip().startswith(COMMAND_PREFIX):
+                input_vars_code = self._prepare_input_variables(input_data)
+                if input_vars_code:
+                    setup_code = "\n".join(input_vars_code)
+                    setup_execution = self._sandbox.run_code(setup_code)
+                    if setup_execution.error:
+                        print(
+                            f"Error setting up input variables: {setup_execution.error}"
+                        )
 
-            if not python_code:
-                # Only commands were provided
-                print("Only commands were provided")
+            # Execute code based on type (commands or Python)
+            if self.code.strip().startswith(COMMAND_PREFIX):
+                # Handle command execution
+                commands = [
+                    line.strip()[1:] for line in self.code.split("\n") if line.strip()
+                ]
+                output = []
+                for command in commands:
+                    command_result = self._sandbox.commands.run(command)
+                    if command_result.error or command_result.exit_code != 0:
+                        return self._create_step_result(
+                            status="error",
+                            data=f"Failed to execute command: {command}\nexit_code: {command_result.exit_code}\nDetails:\n{command_result.error}",
+                            start_time=start_time,
+                        )
+                    print(f"Command output: {command_result}")
+                    if command_result.stdout:
+                        output.extend(command_result.stdout)
                 return self._create_step_result(
                     status="success",
-                    data="Commands executed successfully",
+                    data="".join(output),
                     start_time=start_time,
                     exported_vars={},
                 )
+            else:
+                # Handle Python code execution
+                execution = self._sandbox.run_code(self.code)
+                if execution.error:
+                    return self._create_step_result(
+                        status="error",
+                        data=f"Failed to execute the code.\nDetails:\n{execution.error}",
+                        start_time=start_time,
+                    )
 
-            # Initialize input variables
-            input_vars_code = self._prepare_input_variables(input_data)
-            if input_vars_code:
-                setup_code = "\n".join(input_vars_code)
-                setup_execution = self._sandbox.run_code(setup_code)
-                if setup_execution.error:
-                    print(f"Error setting up input variables: {setup_execution.error}")
+                # Capture variables for Python execution
+                var_execution = self._sandbox.run_code(VARIABLE_CAPTURE_CODE)
+                if var_execution.error:
+                    print(f"Error capturing variables: {var_execution.error}")
+                    return self._create_step_result(
+                        status="success",
+                        data="\n".join(execution.logs.stdout),
+                        start_time=start_time,
+                        exported_vars={},
+                    )
 
-            # Execute main code
-            main_code = "\n".join(python_code)
-            execution = self._sandbox.run_code(main_code)
-            if execution.error:
-                return self._create_step_result(
-                    status="error",
-                    data=f"Failed to execute the code.\nDetails:\n{execution.error}",
-                    start_time=start_time,
+                # Extract and return results
+                exported_vars = self._extract_exported_vars(
+                    "\n".join(var_execution.logs.stdout)
                 )
-
-            # Capture variables
-            var_execution = self._sandbox.run_code(VARIABLE_CAPTURE_CODE)
-            if var_execution.error:
-                print(f"Error capturing variables: {var_execution.error}")
                 return self._create_step_result(
                     status="success",
                     data="\n".join(execution.logs.stdout),
                     start_time=start_time,
-                    exported_vars={},
+                    exported_vars=exported_vars,
                 )
-
-            # Extract and return results
-            exported_vars = self._extract_exported_vars(
-                "\n".join(var_execution.logs.stdout)
-            )
-            return self._create_step_result(
-                status="success",
-                data="\n".join(execution.logs.stdout),
-                start_time=start_time,
-                exported_vars=exported_vars,
-            )
 
         except Exception as e:
             print(f"\nUnexpected error: {str(e)}")
