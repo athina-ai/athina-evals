@@ -62,7 +62,10 @@ class ConditionalStep(Step):
                 ):
                     result = self._execute_branch_steps(branch.get("steps", []), inputs)
                     if result.get("status") == "success":
-                        result["metadata"]["executed_branch"] = branch_type
+                        result["metadata"]["executed_branch"] = {
+                            "condition": condition,
+                            "branch_type": branch_type,
+                        }
                     return result
 
             return {
