@@ -1,10 +1,6 @@
-from typing import Any, Dict, List, Optional
+from typing import Dict, List
 from athina.steps.base import Step
-from jinja2 import Environment, UndefinedError
 from pydantic import ConfigDict
-import ast
-import operator
-from typing import Union, Callable
 from athina.steps.code_execution_v2 import CodeExecutionV2, EXECUTION_E2B
 
 
@@ -25,6 +21,7 @@ class ConditionalStep(Step):
                 code=evaluation_code,
                 session_id=context.get("session_id", "default"),
                 execution_environment=EXECUTION_E2B,
+                sandbox_timeout=15,  # 15 sec timeout
             )
 
             result = executor.execute(context)
