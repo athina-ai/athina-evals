@@ -1,30 +1,38 @@
-from typing import Any, Dict, List, Optional
+from typing import Dict, List
 from athina.steps.base import Step
-from jinja2 import Environment, UndefinedError
 from pydantic import ConfigDict
+from athina.steps.code_execution_v2 import CodeExecutionV2, EXECUTION_E2B
 
 
 class ConditionalStep(Step):
-    """
-    Step that evaluates conditions and executes appropriate branch steps.
-
-    Attributes:
-        branches (List[Dict]): List of branch configurations with conditions and steps
-        env (Environment): Jinja environment for condition evaluation
-    """
+    """Step that evaluates conditions and executes appropriate branch steps."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     branches: List[Dict]
-    env: Environment = Environment(variable_start_string="{{", variable_end_string="}}")
 
     def _evaluate_condition(self, condition: str, context: Dict) -> bool:
-        """Evaluate a Jinja condition with given context."""
+        """Evaluate a Python condition with given context using sandbox execution."""
         try:
-            template = self.env.from_string(condition)
-            rendered_condition = template.render(**context)
-            return eval(rendered_condition)  # Consider using a safer eval alternative
-        except (UndefinedError, Exception) as e:
+            # Create evaluation code that returns a boolean
+            evaluation_code = f"result = bool({condition})\nprint(result)"
+
+            executor = CodeExecutionV2(
+                code=evaluation_code,
+                session_id=context.get("session_id", "default"),
+                execution_environment=EXECUTION_E2B,
+                sandbox_timeout=15,  # 15 sec timeout
+            )
+
+            result = executor.execute(context)
+
+            if result["status"] == "error":
+                print(f"Error evaluating condition: {result['data']}")
+                return False
+
+            return result["data"].strip().lower() == "true"
+
+        except Exception as e:
             print(f"Error evaluating condition: {str(e)}")
             return False
 
@@ -62,7 +70,10 @@ class ConditionalStep(Step):
                 ):
                     result = self._execute_branch_steps(branch.get("steps", []), inputs)
                     if result.get("status") == "success":
-                        result["metadata"]["executed_branch"] = branch_type
+                        result["metadata"]["executed_branch"] = {
+                            "condition": condition,
+                            "branch_type": branch_type,
+                        }
                     return result
 
             return {
