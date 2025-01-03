@@ -5,6 +5,7 @@ import os
 import json
 import re
 import tempfile
+import time
 
 
 class CodeExecution(Step):
@@ -18,7 +19,53 @@ class CodeExecution(Step):
     code: str
     name: Optional[str] = None
 
-    def bandit_check(self, code: str) -> None:
+    def format_bandit_result(self, stdout: str) -> str:
+        """
+        Format the Bandit output into a more readable string.
+        """
+        try:
+            data = json.loads(stdout)
+            output = []
+            # Add header
+            output.append("Security Check Results")
+            output.append("=" * 20)
+            # Add results
+            if data["results"]:
+                for result in data["results"]:
+                    output.append(f"\nIssue Found:")
+                    output.append(f"  Severity: {result['issue_severity']}")
+                    output.append(f"  Confidence: {result['issue_confidence']}")
+                    output.append(f"  Description: {result['issue_text']}")
+                    output.append("\n  Problematic Code:")
+                    output.append("  " + "-" * 16)
+                    for line in result["code"].splitlines():
+                        output.append(f"    {line}")
+
+                    if "issue_cwe" in result:
+                        output.append(f"\n  CWE: {result['issue_cwe']['id']}")
+                        output.append(f"  CWE Link: {result['issue_cwe']['link']}")
+
+                    output.append(f"  More Info: {result['more_info']}")
+            else:
+                output.append("\nNo security issues found.")
+            # Add metrics summary
+            output.append("\nMetrics Summary")
+            output.append("-" * 15)
+            metrics = data["metrics"]["_totals"]
+            output.append(f"Total lines of code: {metrics['loc']}")
+            output.append(f"High severity issues: {metrics['SEVERITY.HIGH']}")
+            output.append(f"Medium severity issues: {metrics['SEVERITY.MEDIUM']}")
+            output.append(f"Low severity issues: {metrics['SEVERITY.LOW']}")
+            return "\n".join(output)
+
+        except json.JSONDecodeError:
+            return f"Error parsing Bandit output: {stdout}"
+        except KeyError as e:
+            return f"Error processing Bandit output: Missing key {e}"
+        except Exception as e:
+            return f"Error processing Bandit output: {e}"
+
+    def bandit_check(self, code: str) -> Optional[str]:
         """
         Run Bandit security check on the provided code.
         """
@@ -27,29 +74,40 @@ class CodeExecution(Step):
             temp_file_path = temp_file.name
         try:
             result = subprocess.run(
-                ["bandit", "-r", temp_file_path, "-f", "json", "-c", "bandit.yml"],
+                ["bandit", "-r", temp_file_path, "-f", "json"],
                 capture_output=True,
                 text=True,
             )
             if result.returncode != 0:
-                return json.dumps(result.stdout)
+                return self.format_bandit_result(result.stdout)
+        except Exception as e:
+            return str(e)
         finally:
             os.remove(temp_file_path)
         return None
 
     def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
         """Execute the code with the input data."""
+        start_time = time.perf_counter()
 
         if input_data is None:
             input_data = {}
 
         if not isinstance(input_data, dict):
-            raise TypeError("Input data must be a dictionary.")
+            return self._create_step_result(
+                status="error",
+                data="Input data must be a dictionary.",
+                start_time=start_time,
+            )
 
         try:
             issues = self.bandit_check(self.code)
-            if not issues:
-                return {"error": "Security check failed. " + issues}
+            if issues:
+                return self._create_step_result(
+                    status="error",
+                    data="Security check failed. Issues:\n" + issues,
+                    start_time=start_time,
+                )
             from RestrictedPython import compile_restricted
             from RestrictedPython import safe_globals
             from RestrictedPython.Guards import safe_builtins
@@ -60,7 +118,6 @@ class CodeExecution(Step):
             import editdistance
             import textdistance
             from datetime import datetime
-            import time
             import textstat
 
             custom_builtins = safe_builtins.copy()
@@ -151,12 +208,14 @@ class CodeExecution(Step):
                 return str(obj)
 
             wrapped_result = wrap_non_serializable(result)
-            return {
-                "status": "success",
-                "data": wrapped_result,
-            }
+            return self._create_step_result(
+                status="success",
+                data=wrapped_result,
+                start_time=start_time,
+            )
         except Exception as e:
-            return {
-                "status": "error",
-                "data": f"Failed to execute the code.\nDetails:\n{str(e)}",
-            }
+            return self._create_step_result(
+                status="error",
+                data=f"Failed to execute the code.\nDetails:\n{str(e)}",
+                start_time=start_time,
+            )

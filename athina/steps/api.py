@@ -105,13 +105,17 @@ class ApiCall(Step):
 
     async def execute_async(self, input_data: Any) -> Union[Dict[str, Any], None]:
         """Make an async API call and return the response."""
+        start_time = time.perf_counter()
 
         if input_data is None:
             input_data = {}
 
         if not isinstance(input_data, dict):
-            raise TypeError("Input data must be a dictionary.")
-
+            return self._create_step_result(
+                status="error",
+                data="Input data must be a dictionary.",
+                start_time=start_time,
+            )
         # Prepare the environment and input data
         self.env = create_jinja_env()
         prepared_input_data = prepare_input_data(input_data)

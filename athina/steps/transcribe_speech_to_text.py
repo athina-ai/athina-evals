@@ -1,6 +1,7 @@
 from typing import Any, Dict, Optional
 import requests
 from athina.steps import Step
+import time
 
 
 class TranscribeSpeechToText(Step):
@@ -39,6 +40,8 @@ class TranscribeSpeechToText(Step):
 
     def execute(self, input_data: Any) -> Dict[str, Any]:
         """Transcribe audio file and return the text."""
+
+        start_time = time.perf_counter()
         try:
             # Prepare the request to Deepgram API
             headers = {
@@ -107,19 +110,23 @@ class TranscribeSpeechToText(Step):
                 "language": result.get("metadata", {}).get("language"),
             }
 
-            return {
-                "status": "success",
-                "data": transcribed_text,
-                "metadata": metadata,  # Only include serializable metadata
-            }
+            return self._create_step_result(
+                status="success",
+                data=transcribed_text,
+                metadata=metadata,
+                start_time=start_time,
+            )
 
         except requests.RequestException as e:
-            return {
-                "status": "error",
-                "data": f"Failed to download audio file: {str(e)}",
-            }
+            return self._create_step_result(
+                status="error",
+                data=f"Failed to download audio file: {str(e)}",
+                start_time=start_time,
+            )
+
         except Exception as e:
-            return {
-                "status": "error",
-                "data": f"Transcription failed: {str(e)}",
-            }
+            return self._create_step_result(
+                status="error",
+                data=f"Transcription failed: {str(e)}",
+                start_time=start_time,
+            )

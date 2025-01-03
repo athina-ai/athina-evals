@@ -8,6 +8,7 @@ from enum import Enum
 from jinja2 import Environment
 from athina.helpers.jinja_helper import PreserveUndefined
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
+import time
 
 
 class AuthType(str, Enum):
@@ -85,12 +86,22 @@ class ChromaRetrieval(Step):
     """Makes a call to chromadb collection to fetch relevant chunks"""
 
     def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
+        start_time = time.perf_counter()
+
         if input_data is None or not isinstance(input_data, dict):
-            return {"status": "error", "data": "Input data must be a dictionary."}
+            return self._create_step_result(
+                status="error",
+                data="Input data must be a dictionary.",
+                start_time=start_time,
+            )
 
         query = input_data.get(self.input_column)
         if query is None:
-            return {"status": "error", "data": "Input column not found."}
+            return self._create_step_result(
+                status="error",
+                data="Input column not found.",
+                start_time=start_time,
+            )
 
         try:
             if isinstance(query, list) and isinstance(query[0], float):
@@ -106,9 +117,17 @@ class ChromaRetrieval(Step):
                     include=["documents", "metadatas", "distances"],
                 )
 
-            return {"status": "success", "data": response["documents"][0]}
+            return self._create_step_result(
+                status="success",
+                data=response["documents"][0],
+                start_time=start_time,
+            )
         except Exception as e:
-            return {"status": "error", "data": str(e)}
+            return self._create_step_result(
+                status="error",
+                data=str(e),
+                start_time=start_time,
+            )
 
     def close(self):
         if self._client:

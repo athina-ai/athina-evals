@@ -1,13 +1,14 @@
 import os
 import json
 import logging
-from typing import Dict, Any, List, Iterable, Optional, Callable
+from typing import Dict, Any, List, Iterable, Optional, Callable, TypedDict, Literal
 from pydantic import BaseModel
 from athina.helpers.json import JsonHelper, JsonExtractor
 from athina.llms.abstract_llm_service import AbstractLlmService
 from athina.llms.openai_service import OpenAiService
 from athina.keys import OpenAiApiKey
 import functools
+import time
 
 
 # Configure logging
@@ -20,6 +21,12 @@ class StepError(Exception):
     """Custom exception for errors in steps."""
 
     pass
+
+
+class StepResult(TypedDict):
+    status: Literal["success", "error"]
+    data: str
+    metadata: Dict[str, Any]
 
 
 def step(func: Callable) -> Callable:
@@ -80,6 +87,33 @@ class Step(BaseModel):
         else:
             input_data = context
         return input_data
+
+    def _create_step_result(
+        self,
+        status: Literal["success", "error"],
+        data: str,
+        start_time: float,
+        metadata: Dict[str, Any] = {},
+        exported_vars: Optional[Dict] = None,
+    ) -> StepResult:
+        """
+        Create a standardized result object for step execution.
+
+        Args:
+            status: Step execution status ("success" or "error")
+            data: Output data or error message
+            start_time: Time when step started execution (from perf_counter)
+            metadata: Optional dictionary of metadata
+            exported_vars: Optional dictionary of exported variables
+        """
+        if "response_time" not in metadata:
+            execution_time_ms = round((time.perf_counter() - start_time) * 1000)
+            metadata = {"response_time": execution_time_ms}
+
+        if exported_vars is not None:
+            metadata["exported_vars"] = exported_vars
+
+        return {"status": status, "data": data, "metadata": metadata}
 
     @step
     def run(
