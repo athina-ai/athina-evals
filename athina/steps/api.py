@@ -3,10 +3,9 @@ import json
 import time
 from typing import Union, Dict, Any, Optional
 import aiohttp
-from jinja2 import Environment
-from athina.helpers.jinja_helper import PreserveUndefined
 from athina.steps.base import Step
 import asyncio
+from jinja2 import Environment
 
 
 def prepare_input_data(data: Dict[str, Any]) -> Dict[str, Any]:
@@ -15,15 +14,6 @@ def prepare_input_data(data: Dict[str, Any]) -> Dict[str, Any]:
         key: json.dumps(value) if isinstance(value, (list, dict)) else value
         for key, value in data.items()
     }
-
-
-def create_jinja_env() -> Environment:
-    """Create a Jinja2 environment with custom settings."""
-    return Environment(
-        variable_start_string="{{",
-        variable_end_string="}}",
-        undefined=PreserveUndefined,
-    )
 
 
 def prepare_template_data(
@@ -51,33 +41,6 @@ def prepare_body(
     return env.from_string(body_template).render(**input_data)
 
 
-def process_response(
-    status_code: int,
-    response_text: str,
-) -> Dict[str, Any]:
-    """Process the API response and return formatted result."""
-    if status_code >= 400:
-        # If the status code is an error, return the error message
-        return {
-            "status": "error",
-            "data": f"Failed to make the API call.\nStatus code: {status_code}\nError:\n{response_text}",
-        }
-
-    try:
-        json_response = json.loads(response_text)
-        # If the response is JSON, return the JSON data
-        return {
-            "status": "success",
-            "data": json_response,
-        }
-    except json.JSONDecodeError:
-        # If the response is not JSON, return the text
-        return {
-            "status": "success",
-            "data": response_text,
-        }
-
-
 class ApiCall(Step):
     """
     Step that makes an external API call.
@@ -103,6 +66,37 @@ class ApiCall(Step):
     class Config:
         arbitrary_types_allowed = True
 
+    def process_response(
+        self,
+        status_code: int,
+        response_text: str,
+        start_time: float,
+    ) -> Dict[str, Any]:
+        """Process the API response and return formatted result."""
+        if status_code >= 400:
+            # If the status code is an error, return the error message
+            return self._create_step_result(
+                status="error",
+                data=f"Failed to make the API call.\nStatus code: {status_code}\nError:\n{response_text}",
+                start_time=start_time,
+            )
+
+        try:
+            json_response = json.loads(response_text)
+            # If the response is JSON, return the JSON data
+            return self._create_step_result(
+                status="success",
+                data=json_response,
+                start_time=start_time,
+            )
+        except json.JSONDecodeError:
+            # If the response is not JSON, return the text
+            return self._create_step_result(
+                status="success",
+                data=response_text,
+                start_time=start_time,
+            )
+
     async def execute_async(self, input_data: Any) -> Union[Dict[str, Any], None]:
         """Make an async API call and return the response."""
         start_time = time.perf_counter()
@@ -117,7 +111,7 @@ class ApiCall(Step):
                 start_time=start_time,
             )
         # Prepare the environment and input data
-        self.env = create_jinja_env()
+        self.env = self._create_jinja_env()
         prepared_input_data = prepare_input_data(input_data)
 
         # Prepare request components
@@ -148,23 +142,27 @@ class ApiCall(Step):
                         json=json_body,
                     ) as response:
                         response_text = await response.text()
-                        return process_response(response.status, response_text)
+                        return self.process_response(
+                            response.status, response_text, start_time
+                        )
 
             except asyncio.TimeoutError:
                 if attempt < self.retries - 1:
                     await asyncio.sleep(2)
                     continue
                 # If the request times out after multiple attempts, return an error message
-                return {
-                    "status": "error",
-                    "data": "Failed to make the API call.\nRequest timed out after multiple attempts.",
-                }
+                return self._create_step_result(
+                    status="error",
+                    data="Failed to make the API call.\nRequest timed out after multiple attempts.",
+                    start_time=start_time,
+                )
             except Exception as e:
                 # If an exception occurs, return the error message
-                return {
-                    "status": "error",
-                    "data": f"Failed to make the API call.\nError: {e.__class__.__name__}\nDetails:\n{str(e)}",
-                }
+                return self._create_step_result(
+                    status="error",
+                    data=f"Failed to make the API call.\nError: {e.__class__.__name__}\nDetails:\n{str(e)}",
+                    start_time=start_time,
+                )
 
     def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
         """Synchronous execute api call that runs the async method in an event loop."""

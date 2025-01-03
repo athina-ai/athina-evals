@@ -3,6 +3,8 @@ import json
 import logging
 from typing import Dict, Any, List, Iterable, Optional, Callable, TypedDict, Literal
 from pydantic import BaseModel
+from jinja2 import Environment
+from athina.helpers.jinja_helper import PreserveUndefined
 from athina.helpers.json import JsonHelper, JsonExtractor
 from athina.llms.abstract_llm_service import AbstractLlmService
 from athina.llms.openai_service import OpenAiService
@@ -114,6 +116,18 @@ class Step(BaseModel):
             metadata["exported_vars"] = exported_vars
 
         return {"status": status, "data": data, "metadata": metadata}
+
+    def _create_jinja_env(
+        self,
+        variable_start_string: str = "{{",
+        variable_end_string: str = "}}",
+    ) -> Environment:
+        """Create a Jinja2 environment with custom settings."""
+        return Environment(
+            variable_start_string=variable_start_string,
+            variable_end_string=variable_end_string,
+            undefined=PreserveUndefined,
+        )
 
     @step
     def run(
