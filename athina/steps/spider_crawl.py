@@ -5,7 +5,6 @@ from typing import Union, Dict, List, Any, Iterable, Optional
 import requests
 from athina.steps import Step
 from jinja2 import Environment
-from athina.helpers.jinja_helper import PreserveUndefined
 
 
 def prepare_input_data(data):
@@ -51,12 +50,8 @@ class SpiderCrawl(Step):
                 start_time=start_time,
             )
 
-        # Create a custom Jinja2 environment with double curly brace delimiters and PreserveUndefined
-        self.env = Environment(
-            variable_start_string="{{",
-            variable_end_string="}}",
-            undefined=PreserveUndefined,
-        )
+        # Create a custom Jinja2 environment
+        self.env = self._create_jinja_env()
 
         body = {
             "url": self.url,
