@@ -2,8 +2,10 @@ from typing import Union, Dict, Any, Optional
 from athina.steps import Step
 from llama_parse import LlamaParse
 import nest_asyncio
+import time
 
-nest_asyncio.apply() # LlamaParse can cause nested asyncio exceptions so we need this line of code
+nest_asyncio.apply()  # LlamaParse can cause nested asyncio exceptions so we need this line of code
+
 
 class ParseDocument(Step):
     """
@@ -23,37 +25,47 @@ class ParseDocument(Step):
 
     def execute(self, input_data) -> Union[Dict[str, Any], None]:
         """Parse a document using LlamaParse and return the result."""
+        start_time = time.perf_counter()
 
         if input_data is None:
             input_data = {}
 
         if not isinstance(input_data, dict):
-            raise TypeError("Input data must be a dictionary.")
+            return self._create_step_result(
+                status="error",
+                data="Input data must be a dictionary.",
+                start_time=start_time,
+            )
 
         try:
             # Initialize LlamaParse client
-            llama_parse = LlamaParse(api_key=self.llama_parse_key, verbose=self.verbose, result_type=self.output_format)
+            llama_parse = LlamaParse(
+                api_key=self.llama_parse_key,
+                verbose=self.verbose,
+                result_type=self.output_format,
+            )
 
             # Parse the document
-            documents = llama_parse.load_data(
-                file_path=self.file_url
-            )
-            
+            documents = llama_parse.load_data(file_path=self.file_url)
+
             if not documents:
-                return {
-                    "status": "error",
-                    "data": "No documents were parsed."
-                }
+                return self._create_step_result(
+                    status="error",
+                    data="No documents were parsed.",
+                    start_time=start_time,
+                )
 
             parsed_content = documents[0].text
 
-            return {
-                "status": "success",
-                "data": parsed_content,
-            }
+            return self._create_step_result(
+                status="success",
+                data=parsed_content,
+                start_time=start_time,
+            )
 
         except Exception as e:
-            return {
-                "status": "error",
-                "data": f"LlamaParse error: {str(e)}",
-            }
+            return self._create_step_result(
+                status="error",
+                data=f"LlamaParse error: {str(e)}",
+                start_time=start_time,
+            )

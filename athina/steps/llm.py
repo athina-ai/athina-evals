@@ -12,10 +12,13 @@ from athina.helpers.jinja_helper import PreserveUndefined
 from athina.steps.transform import ExtractJsonFromString, ExtractNumberFromString
 import traceback
 import json
+import time
+
 
 class TextContent(BaseModel):
     type: str
     text: str
+
 
 class ImageContent(BaseModel):
     type: str = "image_url"
@@ -23,16 +26,12 @@ class ImageContent(BaseModel):
 
     def to_api_format(self):
         if isinstance(self.image_url, dict):
-            return {
-                "type": "image_url",
-                "image_url": self.image_url
-            }
-        return {
-            "type": "image_url",
-            "image_url": {"url": self.image_url}
-        }
+            return {"type": "image_url", "image_url": self.image_url}
+        return {"type": "image_url", "image_url": {"url": self.image_url}}
+
 
 Content = Union[str, List[Union[TextContent, ImageContent]]]
+
 
 class PromptMessage(BaseModel):
     role: str
@@ -43,21 +42,19 @@ class PromptMessage(BaseModel):
         """Convert the message to the format expected by the OpenAI API"""
         if self.content is None:
             return {"role": self.role}
-        
+
         if isinstance(self.content, str):
             return {"role": self.role, "content": self.content}
-        
+
         if isinstance(self.content, list):
             formatted_content = []
             for item in self.content:
                 if isinstance(item, TextContent):
-                    formatted_content.append({
-                        "type": "text",
-                        "text": item.text
-                    })
+                    formatted_content.append({"type": "text", "text": item.text})
                 elif isinstance(item, ImageContent):
                     formatted_content.append(item.to_api_format())
             return {"role": self.role, "content": formatted_content}
+
 
 class ModelOptions(BaseModel):
     max_tokens: Optional[int] = None
@@ -143,19 +140,27 @@ class PromptTemplate(BaseModel):
                     if isinstance(item, TextContent):
                         content_template = self.env.from_string(item.text)
                         resolved_text = content_template.render(**kwargs)
-                        resolved_content.append(TextContent(text=resolved_text, type='text'))
+                        resolved_content.append(
+                            TextContent(text=resolved_text, type="text")
+                        )
                     elif isinstance(item, ImageContent):
                         if isinstance(item.image_url, str):
                             url_template = self.env.from_string(item.image_url)
                             resolved_url = url_template.render(**kwargs)
-                            resolved_content.append(ImageContent(image_url=resolved_url))
+                            resolved_content.append(
+                                ImageContent(image_url=resolved_url)
+                            )
                         elif isinstance(item.image_url, dict):
                             resolved_url_dict = {}
                             for key, value in item.image_url.items():
                                 url_template = self.env.from_string(value)
                                 resolved_url_dict[key] = url_template.render(**kwargs)
-                            resolved_content.append(ImageContent(image_url=resolved_url_dict))
-                resolved_message = PromptMessage(role=message.role, content=resolved_content)
+                            resolved_content.append(
+                                ImageContent(image_url=resolved_url_dict)
+                            )
+                resolved_message = PromptMessage(
+                    role=message.role, content=resolved_content
+                )
                 resolved_messages.append(resolved_message)
 
         return resolved_messages
@@ -207,6 +212,7 @@ class PromptExecution(Step):
 
     def execute(self, input_data: dict, **kwargs) -> str:
         """Execute a prompt with the LLM service."""
+        start_time = time.perf_counter()
         if input_data is None:
             input_data = {}
 
@@ -217,7 +223,7 @@ class PromptExecution(Step):
             messages = self.template.resolve(**input_data)
             # Convert messages to API format
             api_formatted_messages = [msg.to_api_format() for msg in messages]
-            
+
             llm_service_response = self.llm_service.chat_completion(
                 api_formatted_messages,
                 model=self.model,
@@ -264,23 +270,29 @@ class PromptExecution(Step):
                 response = llmresponse
 
             if error:
-                return {"status": "error", "data": error}
+                return self._create_step_result(
+                    status="error", start_time=start_time, data=error
+                )
             else:
-                return {
-                    "status": "success",
-                    "data": response,
-                    "metadata": (
+                return self._create_step_result(
+                    status="success",
+                    data=response,
+                    start_time=start_time,
+                    metadata=(
                         json.loads(llm_service_response.get("metadata", "{}"))
                         if llm_service_response.get("metadata")
                         else {}
                     ),
-                }
+                )
         except Exception as e:
             traceback.print_exc()
-            return {"status": "error", "data": str(e)}
+            return self._create_step_result(
+                status="error", start_time=start_time, data=str(e)
+            )
 
     async def execute_async(self, input_data: dict, **kwargs) -> dict:
         """Execute a prompt with the LLM service asynchronously."""
+        start_time = time.perf_counter()
         if input_data is None:
             input_data = {}
 
@@ -339,17 +351,22 @@ class PromptExecution(Step):
                 response = llmresponse
 
             if error:
-                return {"status": "error", "data": error}
+                return self._create_step_result(
+                    status="error", start_time=start_time, data=error
+                )
             else:
-                return {
-                    "status": "success",
-                    "data": response,
-                    "metadata": (
+                return self._create_step_result(
+                    status="success",
+                    data=response,
+                    start_time=start_time,
+                    metadata=(
                         json.loads(llm_service_response.get("metadata", "{}"))
                         if llm_service_response.get("metadata")
                         else {}
                     ),
-                }
+                )
         except Exception as e:
             traceback.print_exc()
-            return {"status": "error", "data": str(e)}
+            return self._create_step_result(
+                status="error", start_time=start_time, data=str(e)
+            )

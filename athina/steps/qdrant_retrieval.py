@@ -8,6 +8,7 @@ from llama_index.vector_stores.qdrant import QdrantVectorStore
 from llama_index.core import VectorStoreIndex
 from llama_index.core.retrievers import VectorIndexRetriever
 import qdrant_client
+import time
 
 
 class QdrantRetrieval(Step):
@@ -19,7 +20,7 @@ class QdrantRetrieval(Step):
         url: url of the qdrant server
         top_k: How many chunks to fetch.
         api_key: api key for the qdrant server
-        input_column: column name in the input data
+        input_column: the query which will be sent to qdrant
         env: jinja environment
     """
 
@@ -55,37 +56,43 @@ class QdrantRetrieval(Step):
 
     def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
         """makes a call to pinecone index to fetch relevent chunks"""
+        start_time = time.perf_counter()
 
         if input_data is None:
             input_data = {}
 
         if not isinstance(input_data, dict):
-            raise TypeError("Input data must be a dictionary.")
+            return self._create_step_result(
+                status="error",
+                data="Input data must be a dictionary.",
+                start_time=start_time,
+            )
 
-        input_text = input_data.get(self.input_column, None)
+        self.env = self._create_jinja_env()
 
-        if input_text is None:
-            return None
+        query_text = self.env.from_string(self.input_column).render(**input_data)
+
+        if query_text is None:
+            return self._create_step_result(
+                status="error", data="Query text not found.", start_time=start_time
+            )
 
         try:
-            response = self._retriever.retrieve(input_text)
+            response = self._retriever.retrieve(query_text)
             if not response:
-                print("No chunks retrieved")
-                return {
-                    "status": "success",
-                    "data": [],
-                }
+                print("No chunks retrieved for query text")
+                return self._create_step_result(
+                    status="success", data=[], start_time=start_time
+                )
             result = [node.get_content() for node in response]
-            return {
-                "status": "success",
-                "data": result,
-            }
+            return self._create_step_result(
+                status="success", data=result, start_time=start_time
+            )
         except Exception as e:
             import traceback
 
             traceback.print_exc()
             print(f"Error during retrieval: {str(e)}")
-            return {
-                "status": "error",
-                "data": str(e),
-            }
+            return self._create_step_result(
+                status="error", data=str(e), start_time=start_time
+            )

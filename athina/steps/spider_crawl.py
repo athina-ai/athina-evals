@@ -9,8 +9,10 @@ from athina.helpers.jinja_helper import PreserveUndefined
 
 
 def prepare_input_data(data):
-    return {key: json.dumps(value) if isinstance(value, (list, dict)) else value
-        for key, value in data.items()}
+    return {
+        key: json.dumps(value) if isinstance(value, (list, dict)) else value
+        for key, value in data.items()
+    }
 
 
 class SpiderCrawl(Step):
@@ -34,56 +36,64 @@ class SpiderCrawl(Step):
 
     class Config:
         arbitrary_types_allowed = True
-       
 
     def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
         """Make an Search API call and return the response."""
+        start_time = time.perf_counter()
 
         if input_data is None:
             input_data = {}
 
         if not isinstance(input_data, dict):
-            raise TypeError("Input data must be a dictionary.")
+            return self._create_step_result(
+                status="error",
+                data="Input data must be a dictionary.",
+                start_time=start_time,
+            )
 
         # Create a custom Jinja2 environment with double curly brace delimiters and PreserveUndefined
         self.env = Environment(
-            variable_start_string='{{', 
-            variable_end_string='}}',
-            undefined=PreserveUndefined
+            variable_start_string="{{",
+            variable_end_string="}}",
+            undefined=PreserveUndefined,
         )
 
-        body={
+        body = {
             "url": self.url,
             "limit": self.limit,
             "metadata": self.metadata,
-            "return_format": self.return_format
+            "return_format": self.return_format,
         }
         prepared_body = None
         # Add a filter to the Jinja2 environment to convert the input data to JSON
         body_template = self.env.from_string(json.dumps(body))
         prepared_input_data = prepare_input_data(input_data)
         prepared_body = body_template.render(**prepared_input_data)
-        
 
         retries = 2  # number of retries
         timeout = 300  # seconds
         for attempt in range(retries):
             try:
                 response = requests.post(
-                    url= "https://api.spider.cloud/crawl",
+                    url="https://api.spider.cloud/crawl",
                     headers={
                         "Content-Type": "application/json",
-                      'Authorization': f'Bearer {self.spider_key}',
+                        "Authorization": f"Bearer {self.spider_key}",
                     },
-                    json=json.loads(prepared_body, strict=False) if prepared_body else None,
+                    json=(
+                        json.loads(prepared_body, strict=False)
+                        if prepared_body
+                        else None
+                    ),
                     timeout=timeout,
                 )
                 if response.status_code >= 400:
                     # If the status code is an error, return the error message
-                    return {
-                        "status": "error",
-                        "data": f"Failed to make the API call.\nStatus code: {response.status_code}\nError:\n{response.text}",
-                    }
+                    return self._create_step_result(
+                        status="error",
+                        data=f"Failed to make the API call.\nStatus code: {response.status_code}\nError:\n{response.text}",
+                        start_time=start_time,
+                    )
                 try:
                     json_response = response.json()
                     # If the response is JSON, return the JSON data
@@ -92,36 +102,40 @@ class SpiderCrawl(Step):
                     content = []
                     for item in json_response:
                         value = {
-                            "content": item.get('content'),
-                            "url": item.get('url'),
-                            "error": item.get('error'),
+                            "content": item.get("content"),
+                            "url": item.get("url"),
+                            "error": item.get("error"),
                         }
                         content.append(value)
 
-                    
-                    return {
-                        "status": "success",
-                        "data": content,
-                    }
-                
+                    return self._create_step_result(
+                        status="success",
+                        data=content,
+                        start_time=start_time,
+                    )
+
                 except json.JSONDecodeError:
                     # If the response is not JSON, return the text
-                    return {
-                        "status": "success",
-                        "data": response.text,
-                    }
+                    return self._create_step_result(
+                        status="success",
+                        data=response.text,
+                        start_time=start_time,
+                    )
             except requests.Timeout:
                 if attempt < retries - 1:
                     time.sleep(2)
                     continue
+
                 # If the request times out after multiple attempts, return an error message
-                return {
-                    "status": "error",
-                    "data": "Failed to make the API call.\nRequest timed out after multiple attempts.",
-                }
+                return self._create_step_result(
+                    status="error",
+                    data="Failed to make the API call.\nRequest timed out after multiple attempts.",
+                    start_time=start_time,
+                )
             except Exception as e:
                 # If an exception occurs, return the error message
-                return {
-                    "status": "error",
-                    "data": f"Failed to make the API call.\nError: {e.__class__.__name__}\nDetails:\n{str(e)}",
-                }
+                return self._create_step_result(
+                    status="error",
+                    data=f"Failed to make the API call.\nError: {e.__class__.__name__}\nDetails:\n{str(e)}",
+                    start_time=start_time,
+                )

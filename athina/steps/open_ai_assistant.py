@@ -3,6 +3,7 @@ from typing import Union, Dict, Any
 from athina.steps import Step
 from openai import OpenAI
 import os
+import time
 
 
 class OpenAiAssistant(Step):
@@ -33,17 +34,26 @@ class OpenAiAssistant(Step):
 
     def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
         """Calls OpenAI's Assistant API and returns the response."""
+        start_time = time.perf_counter()
 
         if input_data is None:
             input_data = {}
 
         if not isinstance(input_data, dict):
-            raise TypeError("Input data must be a dictionary.")
+            return self._create_step_result(
+                status="error",
+                data="Input data must be a dictionary.",
+                start_time=start_time,
+            )
 
         input_text = input_data.get(self.input_column, None)
 
         if input_text is None:
-            return None
+            return self._create_step_result(
+                status="error",
+                data="Input column must be a string.",
+                start_time=start_time,
+            )
         try:
             # Create a thread
             thread = self.client.beta.threads.create()
@@ -66,7 +76,11 @@ class OpenAiAssistant(Step):
 
             # Handle failed case
             if run.status == "failed":
-                return {"status": "error", "data": "The assistant run failed."}
+                return self._create_step_result(
+                    status="error",
+                    data="The assistant run failed.",
+                    start_time=start_time,
+                )
 
             # Retrieve the assistant's response
             messages = self.client.beta.threads.messages.list(thread_id=thread.id)
@@ -76,15 +90,26 @@ class OpenAiAssistant(Step):
                 if message.role == "assistant":
                     for content in message.content:
                         if content.type == "text":
-                            return {"status": "success", "data": content.text.value}
+                            return self._create_step_result(
+                                status="success",
+                                data=content.text.value,
+                                start_time=start_time,
+                            )
                         elif content.type == "json":
-                            return {"status": "success", "data": content.json.value}
-            return {
-                "status": "success",
-                "data": None,
-            }
+                            return self._create_step_result(
+                                status="success",
+                                data=content.json.value,
+                                start_time=start_time,
+                            )
+
+            return self._create_step_result(
+                status="success",
+                data=None,
+                start_time=start_time,
+            )
         except Exception as e:
-            return {
-                "status": "error",
-                "data": str(e),
-            }
+            return self._create_step_result(
+                status="error",
+                data=str(e),
+                start_time=start_time,
+            )

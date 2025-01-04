@@ -54,8 +54,11 @@ class Search(Step):
             input_data = {}
 
         if not isinstance(input_data, dict):
-            raise TypeError("Input data must be a dictionary.")
-
+            return self._create_step_result(
+                status="error",
+                data="Input data must be a dictionary.",
+                start_time=start_time,
+            )
         # Create a custom Jinja2 environment with double curly brace delimiters and PreserveUndefined
         self.env = Environment(
             variable_start_string="{{",
@@ -104,47 +107,40 @@ class Search(Step):
                 )
                 if response.status_code >= 400:
                     # If the status code is an error, return the error message
-                    return {
-                        "status": "error",
-                        "data": f"Failed to make the API call.\nStatus code: {response.status_code}\nError:\n{response.text}",
-                    }
+                    return self._create_step_result(
+                        status="error",
+                        data=f"Failed to make the API call.\nStatus code: {response.status_code}\nError:\n{response.text}",
+                        start_time=start_time,
+                    )
                 try:
                     json_response = response.json()
                     # If the response is JSON, return the JSON data
-                    return {
-                        "status": "success",
-                        "data": json_response,
-                        "metadata": {
-                            "response_time": (time.time() - start_time) * 1000,
-                        },
-                    }
+                    return self._create_step_result(
+                        status="success",
+                        data=json_response,
+                        start_time=start_time,
+                    )
                 except json.JSONDecodeError:
                     # If the response is not JSON, return the text
-                    return {
-                        "status": "success",
-                        "data": response.text,
-                        "metadata": {
-                            "response_time": (time.time() - start_time) * 1000,
-                        },
-                    }
+                    return self._create_step_result(
+                        status="success",
+                        data=response.text,
+                        start_time=start_time,
+                    )
             except requests.Timeout:
                 if attempt < retries - 1:
                     time.sleep(2)
                     continue
                 # If the request times out after multiple attempts, return an error message
-                return {
-                    "status": "error",
-                    "data": "Failed to make the API call.\nRequest timed out after multiple attempts.",
-                    "metadata": {
-                        "response_time": (time.time() - start_time) * 1000,
-                    },
-                }
+                return self._create_step_result(
+                    status="error",
+                    data="Failed to make the API call.\nRequest timed out after multiple attempts.",
+                    start_time=start_time,
+                )
             except Exception as e:
                 # If an exception occurs, return the error message
-                return {
-                    "status": "error",
-                    "data": f"Failed to make the API call.\nError: {e.__class__.__name__}\nDetails:\n{str(e)}",
-                    "metadata": {
-                        "response_time": (time.time() - start_time) * 1000,
-                    },
-                }
+                return self._create_step_result(
+                    status="error",
+                    data=f"Failed to make the API call.\nError: {e.__class__.__name__}\nDetails:\n{str(e)}",
+                    start_time=start_time,
+                )
