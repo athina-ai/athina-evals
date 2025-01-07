@@ -28,6 +28,10 @@ class Search(Step):
         includedDomains: Optional list of domains to include in the search. If specified, results will only come from these domains..
         excludeText: Optional list of strings that must not be present in webpage text of results. Currently, only 1 string is supported, of up to 5 words.
         includeText: Optional list of strings that must be present in webpage text of results. Currently, only 1 string is supported, of up to 5 words.
+        startPublishedDate: Optional start date for the search results. Format: YYYY-MM-DD.
+        endPublishedDate: Optional end date for the search results. Format: YYYY-MM-DD.
+        startCrawlDate: Optional Crawl date refers to the date that Exa discovered a link. Results will include links that were crawled after this date. Format: YYYY-MM-DD.
+        endCrawlDate: Crawl date refers to the date that Exa discovered a link. Results will include links that were crawled before this date. Format: YYYY-MM-DD.
         x_api_key: The API key to use for the request.
     """
 
@@ -39,6 +43,11 @@ class Search(Step):
     includeDomains: Optional[List[str]] = None
     excludeText: Optional[List[str]] = None
     includeText: Optional[List[str]] = None
+    startPublishedDate: Optional[str] = None
+    endPublishedDate: Optional[str] = None
+    startCrawlDate: Optional[str] = None
+    endCrawlDate: Optional[str] = None
+
     x_api_key: str
     env: Environment = None
 
@@ -81,6 +90,10 @@ class Search(Step):
                 },
                 "summary": {"query": self.query},
             },
+            "startPublishedDate": self.startPublishedDate,
+            "endPublishedDate": self.endPublishedDate,
+            "startCrawlDate": self.startCrawlDate,
+            "endCrawlDate": self.endCrawlDate,
         }
         prepared_body = None
         # Add a filter to the Jinja2 environment to convert the input data to JSON
