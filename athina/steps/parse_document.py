@@ -55,7 +55,7 @@ class ParseDocument(Step):
                     start_time=start_time,
                 )
 
-            parsed_content = documents[0].text
+            parsed_content = "\n".join(doc.text for doc in documents)
 
             return self._create_step_result(
                 status="success",
