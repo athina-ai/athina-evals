@@ -57,7 +57,7 @@ class Search(Step):
     def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
         """Make an Search API call and return the response."""
 
-        start_time = time.time()
+        start_time = time.perf_counter()
 
         if input_data is None:
             input_data = {}
