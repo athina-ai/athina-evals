@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "athina"
-version = "1.7.6"
+version = "1.7.7"
 description = "Python SDK to configure and run evaluations for your LLM-based application"
 authors = ["Shiv Sakhuja <shiv@athina.ai>", "Akshat Gupta <akshat@athina.ai>", "Vivek Aditya <vivek@athina.ai>", "Akhil Bisht <akhil@athina.ai>"]
 readme = "README.md"
@@ -20,8 +20,6 @@ python-dotenv = "^1.0.0"
 requests = "^2.31.0"
 litellm = "1.56.6"
 jinja2 = "^3.1.4"
-pinecone-client = "^4.1.0"
-qdrant-client = "^1.9.1"
 marvin = "^2.3.4"
 pydantic = "^2.6.3"
 pydantic-settings = "^2.2.1"
@@ -37,7 +35,7 @@ textdistance = "^4.6.3"
 textstat = "^0.7.4"
 chromadb-client = "^0.5.20"
 llama-index = "^0.11.0"
-llama-index-vector-stores-pinecone = "^0.2.0"
+llama-index-vector-stores-pinecone = "^0.3.1"
 llama-index-vector-stores-qdrant = "^0.3.0"
 
 [tool.poetry.group.dev.dependencies]
