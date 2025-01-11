@@ -1,5 +1,3 @@
-# Step to make a call to pinecone index to fetch relevent chunks
-import pinecone
 from typing import Optional, Union, Dict, Any
 
 from pydantic import Field, PrivateAttr
@@ -9,6 +7,7 @@ from llama_index.vector_stores.pinecone import PineconeVectorStore
 from llama_index.core import VectorStoreIndex
 from llama_index.core.retrievers import VectorIndexRetriever
 import time
+import traceback
 
 
 class PineconeRetrieval(Step):
@@ -22,36 +21,48 @@ class PineconeRetrieval(Step):
         metadata_filters: filters to apply to metadata.
         environment: pinecone environment.
         api_key: api key for the pinecone server
-        input_column: column name in the input data
+        user_query: the query which will be sent to pinecone
         env: jinja environment
     """
 
     index_name: str
     top_k: int
     api_key: str
-    input_column: str
+    user_query: str
     env: Environment = None
     metadata_filters: Optional[Dict[str, Any]] = None
     namespace: Optional[str] = None
     environment: Optional[str] = None
+    text_key: Optional[str] = None  # Optional parameter for text key
     _vector_store: PineconeVectorStore = PrivateAttr()
     _vector_index: VectorStoreIndex = PrivateAttr()
     _retriever: VectorIndexRetriever = PrivateAttr()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Initialize base vector store arguments
         vector_store_args = {"api_key": self.api_key, "index_name": self.index_name}
+        # Add text_key only if specified by user
+        if self.text_key:
+            vector_store_args["text_key"] = self.text_key
 
+        # Only add environment if it's provided
         if self.environment is not None:
             vector_store_args["environment"] = self.environment
 
-        if self.namespace is not None:
+        # Only add namespace if it's provided and not None
+        if self.namespace:
             vector_store_args["namespace"] = self.namespace
 
+        # Initialize vector store with filtered arguments
         self._vector_store = PineconeVectorStore(**vector_store_args)
+
+        # Create vector index from store
         self._vector_index = VectorStoreIndex.from_vector_store(
             vector_store=self._vector_store
         )
+
+        # Initialize retriever with specified top_k
         self._retriever = VectorIndexRetriever(
             index=self._vector_index, similarity_top_k=self.top_k
         )
@@ -60,9 +71,10 @@ class PineconeRetrieval(Step):
         arbitrary_types_allowed = True
 
     def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
-        """makes a call to pinecone index to fetch relevent chunks"""
+        """Makes a call to pinecone index to fetch relevant chunks"""
         start_time = time.perf_counter()
 
+        # Validate input data
         if input_data is None:
             input_data = {}
 
@@ -73,26 +85,36 @@ class PineconeRetrieval(Step):
                 start_time=start_time,
             )
 
-        input_text = input_data.get(self.input_column, None)
+        # Create Jinja environment and render query
+        self.env = self._create_jinja_env()
+        query_text = self.env.from_string(self.user_query).render(**input_data)
 
-        if input_text is None:
+        if not query_text:
             return self._create_step_result(
                 status="error",
-                data="Input column not found.",
+                data="Query text is Empty.",
                 start_time=start_time,
             )
 
         try:
-            response = self._retriever.retrieve(input_text)
-            result = [node.get_content() for node in response]
+            # Perform retrieval
+            response = self._retriever.retrieve(query_text)
+            result = [
+                {
+                    "text": node.get_content(),
+                    "score": node.get_score(),
+                }
+                for node in response
+            ]
+            return self._create_step_result(
+                status="success", data=result, start_time=start_time
+            )
             return self._create_step_result(
                 status="success",
                 data=result,
                 start_time=start_time,
             )
         except Exception as e:
-            import traceback
-
             traceback.print_exc()
             print(f"Error during retrieval: {str(e)}")
             return self._create_step_result(

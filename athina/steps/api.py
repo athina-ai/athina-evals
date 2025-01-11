@@ -8,14 +8,6 @@ import asyncio
 from jinja2 import Environment
 
 
-def prepare_input_data(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Prepare input data by converting complex types to JSON strings."""
-    return {
-        key: json.dumps(value) if isinstance(value, (list, dict)) else value
-        for key, value in data.items()
-    }
-
-
 def prepare_template_data(
     env: Environment,
     template_dict: Optional[Dict[str, str]],
@@ -29,6 +21,19 @@ def prepare_template_data(
     for key, value in prepared_dict.items():
         prepared_dict[key] = env.from_string(value).render(**input_data)
     return prepared_dict
+
+
+def debug_json_structure(body_str: str, error: json.JSONDecodeError) -> dict:
+    """Analyze JSON structure and identify problematic keys."""
+    lines = body_str.split("\n")
+    error_line_num = error.lineno - 1
+
+    return {
+        "original_body": body_str,
+        "problematic_line": (
+            lines[error_line_num] if error_line_num < len(lines) else None
+        ),
+    }
 
 
 def prepare_body(
@@ -112,31 +117,44 @@ class ApiCall(Step):
             )
         # Prepare the environment and input data
         self.env = self._create_jinja_env()
-        prepared_input_data = prepare_input_data(input_data)
 
         # Prepare request components
-        prepared_body = prepare_body(self.env, self.body, prepared_input_data)
-        prepared_headers = prepare_template_data(
-            self.env, self.headers, prepared_input_data
-        )
-        prepared_params = prepare_template_data(
-            self.env, self.params, prepared_input_data
-        )
+        prepared_body = prepare_body(self.env, self.body, input_data)
+        prepared_headers = prepare_template_data(self.env, self.headers, input_data)
+        prepared_params = prepare_template_data(self.env, self.params, input_data)
+        # Prepare the URL by rendering the template
+        prepared_url = self.env.from_string(self.url).render(**input_data)
 
         timeout = aiohttp.ClientTimeout(total=self.timeout)
 
         for attempt in range(self.retries):
             try:
                 async with aiohttp.ClientSession(timeout=timeout) as session:
-                    json_body = (
-                        json.loads(prepared_body, strict=False)
-                        if prepared_body
-                        else None
-                    )
+                    try:
+                        json_body = (
+                            json.loads(prepared_body, strict=False)
+                            if prepared_body
+                            else None
+                        )
+                    except json.JSONDecodeError as e:
+                        debug_info = debug_json_structure(prepared_body, e)
+                        return self._create_step_result(
+                            status="error",
+                            data=json.dumps(
+                                {
+                                    "message": f"Failed to parse request body as JSON",
+                                    "error_type": "JSONDecodeError",
+                                    "error_details": str(e),
+                                    "debug_info": debug_info,
+                                },
+                                indent=2,
+                            ),
+                            start_time=start_time,
+                        )
 
                     async with session.request(
                         method=self.method,
-                        url=self.url,
+                        url=prepared_url,
                         headers=prepared_headers,
                         params=prepared_params,
                         json=json_body,

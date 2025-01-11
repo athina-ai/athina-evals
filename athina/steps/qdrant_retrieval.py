@@ -20,7 +20,7 @@ class QdrantRetrieval(Step):
         url: url of the qdrant server
         top_k: How many chunks to fetch.
         api_key: api key for the qdrant server
-        input_column: the query which will be sent to qdrant
+        user_query: the query which will be sent to qdrant
         env: jinja environment
     """
 
@@ -28,7 +28,7 @@ class QdrantRetrieval(Step):
     url: str
     top_k: int
     api_key: str
-    input_column: str
+    user_query: str
     env: Environment = None
     _qdrant_client: qdrant_client.QdrantClient = PrivateAttr()
     _vector_store: QdrantVectorStore = PrivateAttr()
@@ -70,11 +70,11 @@ class QdrantRetrieval(Step):
 
         self.env = self._create_jinja_env()
 
-        query_text = self.env.from_string(self.input_column).render(**input_data)
+        query_text = self.env.from_string(self.user_query).render(**input_data)
 
         if query_text is None:
             return self._create_step_result(
-                status="error", data="Query text not found.", start_time=start_time
+                status="error", data="Query text is Empty.", start_time=start_time
             )
 
         try:
@@ -84,7 +84,13 @@ class QdrantRetrieval(Step):
                 return self._create_step_result(
                     status="success", data=[], start_time=start_time
                 )
-            result = [node.get_content() for node in response]
+            result = [
+                {
+                    "text": node.get_content(),
+                    "score": node.get_score(),
+                }
+                for node in response
+            ]
             return self._create_step_result(
                 status="success", data=result, start_time=start_time
             )

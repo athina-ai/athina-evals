@@ -26,7 +26,7 @@ class ChromaRetrieval(Step):
         port (int): The port of the Chroma server.
         collection_name (str): The name of the Chroma collection.
         limit (int): The maximum number of results to fetch.
-        input_column (str): The column name in the input data.
+        user_query (str): the query which will be sent to chroma.
         openai_api_key (str): The OpenAI API key.
         auth_type (str): The authentication type for the Chroma server (e.g., "token" or "basic").
         auth_credentials (str): The authentication credentials for the Chroma server.
@@ -35,9 +35,8 @@ class ChromaRetrieval(Step):
     host: str
     port: int
     collection_name: str
-    key: str
     limit: int
-    input_column: str
+    user_query: str
     openai_api_key: str
     auth_type: Optional[AuthType] = None
     auth_credentials: Optional[str] = None
@@ -76,12 +75,6 @@ class ChromaRetrieval(Step):
         self._collection = self._client.get_collection(
             name=self.collection_name, embedding_function=self._embedding_function
         )
-        # Create a custom Jinja2 environment with double curly brace delimiters and PreserveUndefined
-        self.env = Environment(
-            variable_start_string="{{",
-            variable_end_string="}}",
-            undefined=PreserveUndefined,
-        )
 
     """Makes a call to chromadb collection to fetch relevant chunks"""
 
@@ -95,31 +88,30 @@ class ChromaRetrieval(Step):
                 start_time=start_time,
             )
 
-        query = input_data.get(self.input_column)
-        if query is None:
+        self.env = self._create_jinja_env()
+
+        query_text = self.env.from_string(self.user_query).render(**input_data)
+
+        if query_text is None:
             return self._create_step_result(
-                status="error",
-                data="Input column not found.",
-                start_time=start_time,
+                status="error", data="Query text is Empty.", start_time=start_time
             )
 
         try:
-            if isinstance(query, list) and isinstance(query[0], float):
-                response = self._collection.query(
-                    query_embeddings=[query],
-                    n_results=self.limit,
-                    include=["documents", "metadatas", "distances"],
+            response = self._collection.query(
+                query_texts=[query_text],
+                n_results=self.limit,
+                include=["documents", "metadatas", "distances"],
+            )
+            result = [
+                {"text": text, "score": distance}
+                for text, distance in zip(
+                    response["documents"][0], response["distances"][0]
                 )
-            else:
-                response = self._collection.query(
-                    query_texts=[query],
-                    n_results=self.limit,
-                    include=["documents", "metadatas", "distances"],
-                )
-
+            ]
             return self._create_step_result(
                 status="success",
-                data=response["documents"][0],
+                data=result,
                 start_time=start_time,
             )
         except Exception as e:
