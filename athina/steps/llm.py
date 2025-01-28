@@ -52,7 +52,21 @@ class PromptMessage(BaseModel):
                 if isinstance(item, TextContent):
                     formatted_content.append({"type": "text", "text": item.text})
                 elif isinstance(item, ImageContent):
-                    formatted_content.append(item.to_api_format())
+                    # Only add image content if it has a valid URL
+                    image_data = item.to_api_format()
+                    if image_data.get("image_url") and (
+                        isinstance(image_data["image_url"], str) or 
+                        (isinstance(image_data["image_url"], dict) and image_data["image_url"].get("url"))
+                    ):
+                        formatted_content.append(image_data)
+            
+            # If content array is empty after filtering, return just the role
+            if not formatted_content:
+                return {"role": self.role}
+            # If only one item remains and it's text, simplify to just the text
+            elif len(formatted_content) == 1 and formatted_content[0].get("type") == "text":
+                return {"role": self.role, "content": formatted_content[0].get("text", "")}
+            
             return {"role": self.role, "content": formatted_content}
 
 
@@ -62,6 +76,27 @@ class ModelOptions(BaseModel):
     top_p: Optional[float] = None
     frequency_penalty: Optional[float] = None
     presence_penalty: Optional[float] = None
+    stream: Optional[bool] = None
+    streaming: Optional[bool] = None
+
+    def model_dump(self, *args, **kwargs):
+        data = super().model_dump(*args, **kwargs)
+        
+        # If stream is explicitly set (True or False), use it
+        if self.stream is not None:
+            data['stream'] = self.stream
+        # If streaming is set, use its value for stream
+        elif self.streaming is not None:
+            data['stream'] = self.streaming
+        # If neither is set, default stream to False
+        else:
+            data['stream'] = False
+            
+        # Always remove streaming from output
+        if 'streaming' in data:
+            del data['streaming']
+            
+        return {k: v for k, v in data.items() if v is not None}
 
 
 class ToolConfig(BaseModel):
@@ -223,6 +258,7 @@ class PromptExecution(Step):
             messages = self.template.resolve(**input_data)
             # Convert messages to API format
             api_formatted_messages = [msg.to_api_format() for msg in messages]
+            print(f"**self.model_options.model_dump(): {self.model_options.model_dump()}")
 
             llm_service_response = self.llm_service.chat_completion(
                 api_formatted_messages,
