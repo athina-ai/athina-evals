@@ -2,6 +2,7 @@ from athina.steps.base import Step, Fn, Debug
 from athina.steps.conditional import ConditionalStep
 from athina.steps.chain import Chain
 from athina.steps.iterator import Map
+from athina.steps.loop import Loop
 from athina.steps.llm import PromptExecution
 from athina.steps.api import ApiCall
 from athina.steps.extract_entities import ExtractEntities
@@ -42,4 +43,5 @@ __all__ = [
     "SpiderCrawl",
     "ParseDocument",
     "ConditionalStep",
+    "Loop",
 ]
