@@ -87,7 +87,10 @@ class Search(Step):
             "excludeText": self.excludeText,
             "includeText": self.includeText,
             "contents": {
-                "highlights": self.highlights,
+                "highlights": {
+                    "query": self.query,
+                    **(self.highlights or {})  # Merging self.highlights if it exists, otherwise an empty dict
+                },
                 "summary": {"query": self.query},
             },
             "startPublishedDate": self.startPublishedDate,
