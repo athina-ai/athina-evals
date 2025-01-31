@@ -32,6 +32,7 @@ class Search(Step):
         endPublishedDate: Optional end date for the search results. Format: YYYY-MM-DD.
         startCrawlDate: Optional Crawl date refers to the date that Exa discovered a link. Results will include links that were crawled after this date. Format: YYYY-MM-DD.
         endCrawlDate: Crawl date refers to the date that Exa discovered a link. Results will include links that were crawled before this date. Format: YYYY-MM-DD.
+        highlights: Text snippets the LLM identifies as most relevant from each page.
         x_api_key: The API key to use for the request.
     """
 
@@ -47,6 +48,7 @@ class Search(Step):
     endPublishedDate: Optional[str] = None
     startCrawlDate: Optional[str] = None
     endCrawlDate: Optional[str] = None
+    highlights: Optional[Dict[str, Any]] = None
 
     x_api_key: str
     env: Environment = None
@@ -85,9 +87,7 @@ class Search(Step):
             "excludeText": self.excludeText,
             "includeText": self.includeText,
             "contents": {
-                "highlights": {
-                    "query": self.query,
-                },
+                "highlights": self.highlights,
                 "summary": {"query": self.query},
             },
             "startPublishedDate": self.startPublishedDate,
