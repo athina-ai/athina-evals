@@ -34,7 +34,7 @@ class RagasAnswerSemanticSimilarity(RagasEvaluator):
 
     @property
     def ragas_metric_name(self):
-        return "answer_similarity"
+        return "semantic_similarity"
 
     @property
     def default_model(self):
