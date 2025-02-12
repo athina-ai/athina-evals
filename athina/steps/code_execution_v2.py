@@ -104,6 +104,7 @@ class CodeExecutionV2(Step):
     DEFAULT_TIMEOUT: ClassVar[int] = 60  # 1 minute default timeout for sandbox
     MAX_TIMEOUT: ClassVar[int] = 300  # 5 minute limit for e2b sandbox execution
     sandbox_timeout: Optional[int] = None
+    template: Optional[str] = None
 
     def __init__(
         self,
@@ -132,6 +133,7 @@ class CodeExecutionV2(Step):
 
             if self._sandbox is None:
                 self._sandbox = Sandbox(
+                    template=self.template,
                     timeout=min(
                         self.sandbox_timeout or self.DEFAULT_TIMEOUT, self.MAX_TIMEOUT
                     ),
