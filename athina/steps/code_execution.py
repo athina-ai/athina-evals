@@ -119,6 +119,7 @@ class CodeExecution(Step):
             import textdistance
             from datetime import datetime
             import textstat
+            import urllib
 
             custom_builtins = safe_builtins.copy()
             custom_builtins.update(
@@ -171,6 +172,7 @@ class CodeExecution(Step):
                     "_getitem_": default_guarded_getitem,
                     "_getiter_": default_guarded_getiter,
                     "_write_": lambda x: x,
+                    "urllib": urllib,
                 }
             )
             # Whitelist of allowed modules
@@ -182,6 +184,7 @@ class CodeExecution(Step):
                 "datetime",
                 "time",
                 "textstat",
+                "urllib",
             }
 
             def guarded_import(name, *args, **kwargs):
