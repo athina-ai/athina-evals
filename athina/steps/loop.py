@@ -1,8 +1,11 @@
 import asyncio
+import json
 from typing import Dict, List, Any, Optional
 from athina.steps.base import Step
 from concurrent.futures import ThreadPoolExecutor
-
+from jinja2 import Environment
+from athina.helpers.jinja_helper import PreserveUndefined
+from athina.helpers.step_helper import StepHelper
 
 class Loop(Step):
     loop_type: str
@@ -50,7 +53,16 @@ class Loop(Step):
         results = []
 
         if self.loop_type == "map":
-            items = inputs.get(self.loop_input, [])
+            env = Environment(
+                variable_start_string="{{",
+                variable_end_string="}}",
+                undefined=PreserveUndefined,
+                )
+            
+            loop_input_template = env.from_string(self.loop_input)
+            prepared_input_data = StepHelper.prepare_input_data(inputs)
+            loop_input = loop_input_template.render(**prepared_input_data)
+            items = json.loads(loop_input, strict=False) if loop_input else None
             if not isinstance(items, list):
                 return {"status": "error", "data": "Input not of type list", "metadata": {}}
 
