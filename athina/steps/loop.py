@@ -57,7 +57,7 @@ class Loop(Step):
                 variable_start_string="{{",
                 variable_end_string="}}",
                 undefined=PreserveUndefined,
-                )
+            )
             
             loop_input_template = env.from_string(self.loop_input)
             prepared_input_data = StepHelper.prepare_input_data(inputs)
