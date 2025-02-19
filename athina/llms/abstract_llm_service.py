@@ -37,3 +37,11 @@ class AbstractLlmService(ABC):
 
         """
         raise NotImplementedError
+    
+    @abstractmethod
+    async def chat_stream_completion(self, messages, model, **kwargs):
+        """
+        Fetches a chat completion response in streaming format. This method should be implemented by subclasses
+        to interact with the specific LLM provider's chat completion API in streaming mode.
+        """
+        raise NotImplementedError
