@@ -74,10 +74,7 @@ for var_name, var_value in _global_items:
         var_name not in ['json']):
         try:
             json.dumps(var_value)  # Test if value is JSON serializable
-            if var_name == 'output':
-                _exported_vars['{step_name}'] = var_value
-            else:
-                _exported_vars[var_name] = var_value
+            _exported_vars[var_name] = var_value
         except:
             print(f"Could not serialize {{var_name}}")
             continue
@@ -321,7 +318,7 @@ class CodeExecutionV2(Step):
                 return self._create_step_result(
                     status="success",
                     stdOut="\n".join(execution.logs.stdout),
-                    data=exported_vars.get(self.name, ""),
+                    data="\n".join(execution.logs.stdout),
                     start_time=start_time,
                     exported_vars=exported_vars,
                 )
@@ -471,13 +468,11 @@ class CodeExecutionV2(Step):
                 "\n".join(var_execution.logs.stdout)
             ) if not var_execution.error else {}
             
-            print(f"Exported vars: {exported_vars}", self.name, exported_vars.get("output", ""))
-            
 
             yield json.dumps(self._create_step_result(
                 status="success",
                 stdOut=print_output,
-                data=exported_vars.get(self.name, ""),
+                data=print_output,
                 start_time=start_time,
                 exported_vars=exported_vars,
                 
