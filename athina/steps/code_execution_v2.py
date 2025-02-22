@@ -6,6 +6,8 @@ from contextlib import redirect_stdout, redirect_stderr
 from dotenv import load_dotenv
 import time
 import json
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 try:
     from e2b_code_interpreter import Sandbox
@@ -54,7 +56,8 @@ def _serialize_variable(name: str, value: Any) -> Optional[str]:
 
 
 # Extract variable capture code into a constant
-VARIABLE_CAPTURE_CODE = f"""
+def generate_variable_capture(step_name: str) -> str:
+    return f"""
 import json
 
 _exported_vars = {{}}
@@ -151,6 +154,7 @@ class CodeExecutionV2(Step):
         data: str,
         start_time: float,
         exported_vars: Optional[Dict] = None,
+        stdOut: Optional[str] = None,
     ) -> StepResult:
         """
         Create a standardized result object for step execution.
@@ -166,6 +170,9 @@ class CodeExecutionV2(Step):
 
         if exported_vars is not None:
             metadata["exported_vars"] = exported_vars
+            
+        if stdOut is not None:
+            metadata["stdOut"] = stdOut
 
         return {"status": status, "data": data, "metadata": metadata}
 
@@ -294,7 +301,7 @@ class CodeExecutionV2(Step):
                     )
 
                 # Capture variables for Python execution
-                var_execution = self._sandbox.run_code(VARIABLE_CAPTURE_CODE)
+                var_execution = self._sandbox.run_code(generate_variable_capture(self.name))
                 if var_execution.error:
                     print(f"Error capturing variables: {var_execution.error}")
                     return self._create_step_result(
@@ -310,6 +317,7 @@ class CodeExecutionV2(Step):
                 )
                 return self._create_step_result(
                     status="success",
+                    stdOut="\n".join(execution.logs.stdout),
                     data="\n".join(execution.logs.stdout),
                     start_time=start_time,
                     exported_vars=exported_vars,
@@ -358,3 +366,157 @@ class CodeExecutionV2(Step):
             return self._execute_e2b(input_data=input_data, start_time=start_time)
         else:
             return self._execute_local(input_data, start_time)
+
+    async def _execute_e2b_stream(self, input_data: dict, start_time: float):
+        """
+        Execute code in E2B sandbox with proper real-time streaming.
+        Runs `run_code` in a background thread to prevent blocking.
+        """
+        print_output = str()
+        try:
+            self._create_or_initialize_sandbox()
+
+            if self._sandbox is None:
+                yield json.dumps(self._create_step_result(
+                    status="error",
+                    stdOut="Sandbox is not initialized",
+                    data="Sandbox is not initialized",
+                    start_time=start_time,
+                ))
+                return
+
+            queue = asyncio.Queue()
+            loop = asyncio.get_running_loop()
+
+            # Define synchronous callback functions that push data to the queue
+            def enqueue_message(output_type, message):
+                """ Convert OutputMessage to a string and push to queue safely """
+                if hasattr(message, 'text'):
+                    message = message.text  # Extract text if OutputMessage object
+                elif not isinstance(message, str):
+                    message = str(message)  # Convert to string if needed
+                loop.call_soon_threadsafe(queue.put_nowait, (output_type, message))
+
+            def on_stdout(output_msg):
+                enqueue_message('stdout', output_msg)
+
+            def on_stderr(output_msg):
+                enqueue_message('stderr', output_msg)
+
+            def on_error(error_msg):
+                enqueue_message('error', f"Execution error: {error_msg}")
+
+            # Prepare input variables if necessary
+            if not self.code.strip().startswith(COMMAND_PREFIX):
+                input_vars_code = self._prepare_input_variables(input_data)
+                if input_vars_code:
+                    setup_code = "\n".join(input_vars_code)
+                    await asyncio.to_thread(self._sandbox.run_code, setup_code, on_stdout=on_stdout, on_stderr=on_stderr, on_error=on_error)
+
+            # Run main code in a background thread to avoid blocking
+            with ThreadPoolExecutor() as executor:
+                future = loop.run_in_executor(
+                    executor,
+                    lambda: self._sandbox.run_code(
+                        self.code, on_stdout=on_stdout, on_stderr=on_stderr, on_error=on_error
+                    )
+                )
+
+                # Stream output from the queue while execution is running
+                while not future.done():
+                    try:
+                        output_type, message = await asyncio.wait_for(queue.get(), timeout=1.0)
+                        
+                        print_output = print_output + message
+                        
+
+                        if output_type == 'stdout':
+                            yield json.dumps(self._create_step_result(status="in_progress",
+                                data="",
+                                stdOut=message,
+                                start_time=start_time))
+                        elif output_type == 'stderr':
+                            yield json.dumps(self._create_step_result(status="in_progress",
+                                data="",
+                                stdOut=message,
+                                start_time=start_time))
+                        elif output_type == 'error':
+                            yield json.dumps(self._create_step_result(
+                                status="error",
+                                stdOut=message,
+                                data=message,
+                                start_time=start_time,
+                            ))
+                            return
+                    except asyncio.TimeoutError:
+                        continue  # Keep checking for new messages
+
+                # Ensure all remaining messages are processed
+                while not queue.empty():
+                    output_type, data = await queue.get()
+                    yield json.dumps(self._create_step_result(
+                        status="in_progress",
+                        data="",
+                        stdOut=data,
+                        start_time=start_time,
+                    ))
+
+            # Capture exported variables after execution is complete
+            var_execution = await asyncio.to_thread(self._sandbox.run_code, generate_variable_capture(self.name), on_stdout=on_stdout, on_stderr=on_stderr, on_error=on_error)
+
+            exported_vars = self._extract_exported_vars(
+                "\n".join(var_execution.logs.stdout)
+            ) if not var_execution.error else {}
+            
+
+            yield json.dumps(self._create_step_result(
+                status="success",
+                stdOut=print_output,
+                data=print_output,
+                start_time=start_time,
+                exported_vars=exported_vars,
+                
+            ))
+
+        except Exception as e:
+            yield json.dumps(self._create_step_result(
+                status="error",
+                stdOut=print_output,
+                data=f"Failed to execute the code.\nDetails:\n{str(e)}",
+                start_time=start_time,
+            ))
+        
+    async def execute_stream(self, input_data: Any):
+        """
+        Execute code and yield outputs in a streaming manner.
+
+        Args:
+            input_data: Dictionary containing input variables for execution.
+
+        Yields:
+            Step execution updates as they occur.
+        """
+        if not self.code.strip():
+            raise ValueError("No code provided for execution")
+
+        if self.execution_environment == "e2b" and not self.session_id:
+            raise ValueError("session_id is required for e2b execution")
+
+        input_data = input_data or {}
+        if not isinstance(input_data, dict):
+            raise TypeError("Input data must be a dictionary")
+
+        # Start timing
+        start_time = time.time()
+
+        if self.execution_environment == "e2b":
+            if not HAS_E2B:
+                print("Warning: e2b not installed, falling back to local execution")
+                yield self._execute_local(input_data, start_time)  # 🔹 Use `yield` for async generator
+                return
+
+            # ✅ FIX: Convert `_execute_e2b_stream()` into a streaming generator
+            async for chunk in self._execute_e2b_stream(input_data, start_time):
+                yield chunk
+        else:
+            yield self._execute_local(input_data, start_time)  # 🔹 Use `yield`

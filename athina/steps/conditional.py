@@ -15,13 +15,13 @@ class ConditionalStep(Step):
         """Evaluate a Python condition with given context using sandbox execution."""
         try:
             # Create evaluation code that returns a boolean
-            evaluation_code = f"result = bool({condition})\nprint(result)"
+            evaluation_code = f"output = bool({condition})"
 
             executor = CodeExecutionV2(
                 code=evaluation_code,
                 session_id=context.get("session_id", "default"),
                 execution_environment=EXECUTION_E2B,
-                sandbox_timeout=15,  # 15 sec timeout
+                sandbox_timeout=40,  # 15 sec timeout
             )
 
             result = executor.execute(context)
@@ -30,7 +30,7 @@ class ConditionalStep(Step):
                 print(f"Error evaluating condition: {result['data']}")
                 return False
 
-            return result["data"].strip().lower() == "true"
+            return result["data"] == True
 
         except Exception as e:
             print(f"Error evaluating condition: {str(e)}")
