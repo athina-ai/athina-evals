@@ -434,7 +434,6 @@ class PromptExecution(Step):
                     else {}
                 ),
             ):
-                print(chunk)
                 stream_response = json.loads(chunk)
                 if(stream_response.get("current_response")):
                     llmresponse = stream_response.get("current_response")
