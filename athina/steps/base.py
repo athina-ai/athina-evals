@@ -110,7 +110,7 @@ class Step(BaseModel):
         """
         if "response_time" not in metadata:
             execution_time_ms = round((time.perf_counter() - start_time) * 1000)
-            metadata = {"response_time": execution_time_ms}
+            metadata["response_time"] = execution_time_ms
 
         if exported_vars is not None:
             metadata["exported_vars"] = exported_vars
