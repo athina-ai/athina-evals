@@ -199,7 +199,7 @@ class CodeExecution(Step):
             result = loc["main"](**input_data)
 
             def wrap_non_serializable(obj):
-                if isinstance(obj, (str, int, float, list, dict)):
+                if isinstance(obj, (str, bool, int, float, list, dict)):
                     if isinstance(obj, list):
                         return [wrap_non_serializable(item) for item in obj]
                     elif isinstance(obj, dict):
