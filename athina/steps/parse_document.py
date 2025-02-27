@@ -22,6 +22,7 @@ class ParseDocument(Step):
     output_format: Optional[str] = "text"
     llama_parse_key: str
     verbose: Optional[bool] = False
+    mode: Optional[str] = "balanced"
 
     def execute(self, input_data) -> Union[Dict[str, Any], None]:
         """Parse a document using LlamaParse and return the result."""
@@ -54,9 +55,13 @@ class ParseDocument(Step):
                     start_time=start_time,
                     )
             
+            isFastMode = self.mode == "fast"
+            isPremiumMode = self.mode == "premium"
             
             # Initialize LlamaParse client
             llama_parse = LlamaParse(
+                fast_mode=isFastMode,
+                premium_mode=isPremiumMode,
                 api_key=self.llama_parse_key,
                 verbose=prepared_body.get("verbose"),
                 result_type=prepared_body.get("result_type"),
