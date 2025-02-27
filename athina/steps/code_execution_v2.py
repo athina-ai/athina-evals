@@ -373,16 +373,21 @@ class CodeExecutionV2(Step):
         config.pop('code', None)
         
         prepared_body = self.prepare_dict(config, input_data)
+        
+        final_input = {
+            **prepared_body,
+            **input_data
+        }
         # Start timing
         start_time = time.time()
 
         if self.execution_environment == "e2b":
             if not HAS_E2B:
                 print("Warning: e2b not installed, falling back to local execution")
-                return self._execute_local(prepared_body, start_time)
-            return self._execute_e2b(input_data=prepared_body, start_time=start_time)
+                return self._execute_local(final_input, start_time)
+            return self._execute_e2b(input_data=final_input, start_time=start_time)
         else:
-            return self._execute_local(prepared_body, start_time)
+            return self._execute_local(final_input, start_time)
 
     async def _execute_e2b_stream(self, input_data: dict, start_time: float):
         """
@@ -533,6 +538,11 @@ class CodeExecutionV2(Step):
         config.pop('code', None)
         
         prepared_body = self.prepare_dict(config, input_data)
+        
+        final_input = {
+            **prepared_body,
+            **input_data
+        }
 
         # Start timing
         start_time = time.time()
@@ -540,11 +550,11 @@ class CodeExecutionV2(Step):
         if self.execution_environment == "e2b":
             if not HAS_E2B:
                 print("Warning: e2b not installed, falling back to local execution")
-                yield self._execute_local(prepared_body, start_time)  # 🔹 Use `yield` for async generator
+                yield self._execute_local(final_input, start_time)  # 🔹 Use `yield` for async generator
                 return
 
             # ✅ FIX: Convert `_execute_e2b_stream()` into a streaming generator
-            async for chunk in self._execute_e2b_stream(prepared_body, start_time):
+            async for chunk in self._execute_e2b_stream(final_input, start_time):
                 yield chunk
         else:
-            yield self._execute_local(prepared_body, start_time)  # 🔹 Use `yield`
+            yield self._execute_local(final_input, start_time)  # 🔹 Use `yield`
