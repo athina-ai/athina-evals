@@ -22,6 +22,7 @@ class ParseDocument(Step):
     output_format: Optional[str] = "text"
     llama_parse_key: str
     verbose: Optional[bool] = False
+    mode: Optional[str] = "balanced"
 
     def execute(self, input_data) -> Union[Dict[str, Any], None]:
         """Parse a document using LlamaParse and return the result."""
@@ -36,17 +37,38 @@ class ParseDocument(Step):
                 data="Input data must be a dictionary.",
                 start_time=start_time,
             )
-
+        
         try:
+            body ={
+                "verbose": self.verbose,
+                "result_type": self.output_format,
+                "file_url": self.file_url
+            }
+            prepared_body = self.prepare_dict(body, input_data)
+            file_path = prepared_body.get("file_url","")
+
+
+            if not file_path.startswith("https://"):
+                return self._create_step_result(
+                    status="error",
+                    data=f"Only HTTPS URLs are allowed for security",
+                    start_time=start_time,
+                    )
+            
+            isFastMode = self.mode == "fast"
+            isPremiumMode = self.mode == "premium"
+            
             # Initialize LlamaParse client
             llama_parse = LlamaParse(
+                fast_mode=isFastMode,
+                premium_mode=isPremiumMode,
                 api_key=self.llama_parse_key,
-                verbose=self.verbose,
-                result_type=self.output_format,
+                verbose=prepared_body.get("verbose"),
+                result_type=prepared_body.get("result_type"),
             )
 
             # Parse the document
-            documents = llama_parse.load_data(file_path=self.file_url)
+            documents = llama_parse.load_data(file_path=file_path)
 
             if not documents:
                 return self._create_step_result(

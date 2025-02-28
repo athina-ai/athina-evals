@@ -701,10 +701,14 @@ def custom_code_eval(code, **kwargs):
 
     # Check the result and return the appropriate response
     if result.get("status") == "success":
-        if result.get("data"):
-            return {"result": True, "reason": "Custom eval code passed"}
+        data = result.get("data")
+        if isinstance(data, bool):
+            if data:
+                return {"result": True, "reason": "Custom eval code passed"}
+            else:
+                return {"result": False, "reason": "Custom eval code failed"}
         else:
-            return {"result": False, "reason": "Custom eval code failed"}
+            return {"result": data, "reason": 'Custom eval code executed'}
     else:
         return {
             "result": False,

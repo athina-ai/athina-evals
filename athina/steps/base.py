@@ -89,6 +89,18 @@ class Step(BaseModel):
         else:
             input_data = context
         return input_data
+    
+    def prepare_dict(
+        self, object: Optional[Dict[str, Any]], input_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """Prepare request body by rendering Jinja2 template."""
+        if object is None:
+            return None
+        
+        obj = json.dumps(object)
+        env = self._create_jinja_env()
+        prepared_obj = env.from_string(obj).render(**input_data)
+        return json.loads(prepared_obj)
 
     def _create_step_result(
         self,

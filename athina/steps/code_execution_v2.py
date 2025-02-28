@@ -98,7 +98,8 @@ class CodeExecutionV2(Step):
         DEFAULT_TIMEOUT (ClassVar[int]): Default timeout for sandbox operations.
         sandbox_timeout (Optional[int]): Custom timeout for sandbox operations.
     """
-
+    # Sometimes code can have some specific variables only needed in code, same as inputs but specifically required for custom block
+    config: Optional[Dict[str, Any]]
     code: str
     session_id: str
     name: Optional[str] = None
@@ -251,6 +252,7 @@ class CodeExecutionV2(Step):
                 print("Sandbox is not initialized")
                 return self._create_step_result(
                     status="error",
+                    stdOut="Sandbox is not initialized",
                     data="Sandbox is not initialized",
                     start_time=start_time,
                 )
@@ -278,6 +280,7 @@ class CodeExecutionV2(Step):
                     if command_result.error or command_result.exit_code != 0:
                         return self._create_step_result(
                             status="error",
+                            stdOut=f"Failed to execute command: {command}\nexit_code: {command_result.exit_code}\nDetails:\n{command_result.error}",
                             data=f"Failed to execute command: {command}\nexit_code: {command_result.exit_code}\nDetails:\n{command_result.error}",
                             start_time=start_time,
                         )
@@ -286,6 +289,7 @@ class CodeExecutionV2(Step):
                         output.extend(command_result.stdout)
                 return self._create_step_result(
                     status="success",
+                    stdOut="".join(output),
                     data="".join(output),
                     start_time=start_time,
                     exported_vars={},
@@ -296,6 +300,7 @@ class CodeExecutionV2(Step):
                 if execution.error:
                     return self._create_step_result(
                         status="error",
+                        stdOut=f"Failed to execute the code.\nDetails:\n{execution.error}",
                         data=f"Failed to execute the code.\nDetails:\n{execution.error}",
                         start_time=start_time,
                     )
@@ -306,6 +311,7 @@ class CodeExecutionV2(Step):
                     print(f"Error capturing variables: {var_execution.error}")
                     return self._create_step_result(
                         status="success",
+                        stdOut="\n".join(execution.logs.stdout),
                         data="\n".join(execution.logs.stdout),
                         start_time=start_time,
                         exported_vars={},
@@ -327,6 +333,7 @@ class CodeExecutionV2(Step):
             print(f"\nUnexpected error: {str(e)}")
             return self._create_step_result(
                 status="error",
+                stdOut=f"Failed to execute the code.\nDetails:\n{str(e)}",
                 data=f"Failed to execute the code.\nDetails:\n{str(e)}",
                 start_time=start_time,
             )
@@ -355,17 +362,32 @@ class CodeExecutionV2(Step):
         input_data = input_data or {}
         if not isinstance(input_data, dict):
             raise TypeError("Input data must be a dictionary")
+        
+        # Required for custom block
+        # Sometimes code can have some specific variables only needed in code, same as inputs but specifically required for custom block
+        config = {
+            **self.config
+        }
 
+        # Remove the 'code' key from the config dictionary if it exists
+        config.pop('code', None)
+        
+        prepared_body = self.prepare_dict(config, input_data)
+        
+        final_input = {
+            **prepared_body,
+            **input_data
+        }
         # Start timing
         start_time = time.time()
 
         if self.execution_environment == "e2b":
             if not HAS_E2B:
                 print("Warning: e2b not installed, falling back to local execution")
-                return self._execute_local(input_data, start_time)
-            return self._execute_e2b(input_data=input_data, start_time=start_time)
+                return self._execute_local(final_input, start_time)
+            return self._execute_e2b(input_data=final_input, start_time=start_time)
         else:
-            return self._execute_local(input_data, start_time)
+            return self._execute_local(final_input, start_time)
 
     async def _execute_e2b_stream(self, input_data: dict, start_time: float):
         """
@@ -505,6 +527,22 @@ class CodeExecutionV2(Step):
         input_data = input_data or {}
         if not isinstance(input_data, dict):
             raise TypeError("Input data must be a dictionary")
+        
+
+        # Required for custom block
+        # Sometimes code can have some specific variables only needed in code, same as inputs but specifically required for custom block
+        config = {
+            **self.config
+        }
+        # Remove the 'code' key from the config dictionary if it exists
+        config.pop('code', None)
+        
+        prepared_body = self.prepare_dict(config, input_data)
+        
+        final_input = {
+            **prepared_body,
+            **input_data
+        }
 
         # Start timing
         start_time = time.time()
@@ -512,11 +550,11 @@ class CodeExecutionV2(Step):
         if self.execution_environment == "e2b":
             if not HAS_E2B:
                 print("Warning: e2b not installed, falling back to local execution")
-                yield self._execute_local(input_data, start_time)  # 🔹 Use `yield` for async generator
+                yield self._execute_local(final_input, start_time)  # 🔹 Use `yield` for async generator
                 return
 
             # ✅ FIX: Convert `_execute_e2b_stream()` into a streaming generator
-            async for chunk in self._execute_e2b_stream(input_data, start_time):
+            async for chunk in self._execute_e2b_stream(final_input, start_time):
                 yield chunk
         else:
-            yield self._execute_local(input_data, start_time)  # 🔹 Use `yield`
+            yield self._execute_local(final_input, start_time)  # 🔹 Use `yield`

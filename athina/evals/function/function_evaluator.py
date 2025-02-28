@@ -94,13 +94,22 @@ class FunctionEvaluator(BaseEvaluator):
             if (operator is None) or (not callable(operator)):
                 raise ValueError(f"Unsupported function: {self._function_name}")
             eval_response = operator(**kwargs, **self._function_arguments)
-            metrics.append(
-                EvalResultMetric(
-                    id=MetricType.PASSED.value, value=float(eval_response["result"])
-                )
-            )
+            result = eval_response["result"]
+            
+            if isinstance(result, bool):
+                metrics.append(EvalResultMetric(id=MetricType.PASSED.value, value=result))
+                failure = self.is_failure(eval_response)
+            elif isinstance(result, int) or isinstance(result, float):
+                metrics.append(EvalResultMetric(id=MetricType.SCORE.value, value=result))
+                failure = None
+            elif isinstance(result, str):
+                metrics.append(EvalResultMetric(id=MetricType.LABEL.value, value=result))
+                failure = None
+            else:
+                output_type = type(result).__name__
+                raise Exception(f"Unsupported output type: {output_type}")
+            
             explanation = eval_response["reason"]
-            failure = self.is_failure(eval_response)
         except Exception as e:
             logger.error(f"Error occurred during eval: {e}")
             raise e

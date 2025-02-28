@@ -55,18 +55,27 @@ class PromptMessage(BaseModel):
                     # Only add image content if it has a valid URL
                     image_data = item.to_api_format()
                     if image_data.get("image_url") and (
-                        isinstance(image_data["image_url"], str) or 
-                        (isinstance(image_data["image_url"], dict) and image_data["image_url"].get("url"))
+                        isinstance(image_data["image_url"], str)
+                        or (
+                            isinstance(image_data["image_url"], dict)
+                            and image_data["image_url"].get("url")
+                        )
                     ):
                         formatted_content.append(image_data)
-            
+
             # If content array is empty after filtering, return just the role
             if not formatted_content:
                 return {"role": self.role}
             # If only one item remains and it's text, simplify to just the text
-            elif len(formatted_content) == 1 and formatted_content[0].get("type") == "text":
-                return {"role": self.role, "content": formatted_content[0].get("text", "")}
-            
+            elif (
+                len(formatted_content) == 1
+                and formatted_content[0].get("type") == "text"
+            ):
+                return {
+                    "role": self.role,
+                    "content": formatted_content[0].get("text", ""),
+                }
+
             return {"role": self.role, "content": formatted_content}
 
 
@@ -81,21 +90,21 @@ class ModelOptions(BaseModel):
 
     def model_dump(self, *args, **kwargs):
         data = super().model_dump(*args, **kwargs)
-        
+
         # If stream is explicitly set (True or False), use it
         if self.stream is not None:
-            data['stream'] = self.stream
+            data["stream"] = self.stream
         # If streaming is set, use its value for stream
         elif self.streaming is not None:
-            data['stream'] = self.streaming
+            data["stream"] = self.streaming
         # If neither is set, default stream to False
         else:
-            data['stream'] = False
-            
+            data["stream"] = False
+
         # Always remove streaming from output
-        if 'streaming' in data:
-            del data['streaming']
-            
+        if "streaming" in data:
+            del data["streaming"]
+
         return {k: v for k, v in data.items() if v is not None}
 
 
@@ -258,7 +267,9 @@ class PromptExecution(Step):
             messages = self.template.resolve(**input_data)
             # Convert messages to API format
             api_formatted_messages = [msg.to_api_format() for msg in messages]
-            print(f"**self.model_options.model_dump(): {self.model_options.model_dump()}")
+            print(
+                f"**self.model_options.model_dump(): {self.model_options.model_dump()}"
+            )
 
             llm_service_response = self.llm_service.chat_completion(
                 api_formatted_messages,
@@ -406,7 +417,7 @@ class PromptExecution(Step):
             return self._create_step_result(
                 status="error", start_time=start_time, data=str(e)
             )
-            
+
     async def execute_stream(self, input_data: dict, **kwargs):
         """Execute a prompt with the LLM service."""
         start_time = time.perf_counter()
@@ -420,7 +431,7 @@ class PromptExecution(Step):
             messages = self.template.resolve(**input_data)
             # Convert messages to API format
             api_formatted_messages = [msg.to_api_format() for msg in messages]
-            final_response = ''
+            final_response = ""
 
             async for chunk in self.llm_service.chat_stream_completion(
                 api_formatted_messages,
@@ -435,14 +446,18 @@ class PromptExecution(Step):
                 ),
             ):
                 stream_response = json.loads(chunk)
-                if(stream_response.get("current_response")):
+                if stream_response.get("current_response"):
                     llmresponse = stream_response.get("current_response")
                     final_response += llmresponse
-                    yield json.dumps(self._create_step_result(
-                        status="in_progress", start_time=start_time, data=llmresponse, metadata={}
-                    ))
-                elif (stream_response.get("usage")):
-                    print("akhil bisht", stream_response)
+                    yield json.dumps(
+                        self._create_step_result(
+                            status="in_progress",
+                            start_time=start_time,
+                            data=llmresponse,
+                            metadata={},
+                        )
+                    )
+                elif stream_response.get("usage"):
                     output_type = kwargs.get("output_type", None)
                     error = None
                     response = None
@@ -453,19 +468,25 @@ class PromptExecution(Step):
                             response = final_response
 
                         elif output_type == "number":
-                            extracted_response = ExtractNumberFromString().execute(final_response)
+                            extracted_response = ExtractNumberFromString().execute(
+                                final_response
+                            )
                             if not isinstance(extracted_response, (int, float)):
                                 error = "LLM response is not a number"
                             response = extracted_response
 
                         elif output_type == "array":
-                            extracted_response = ExtractJsonFromString().execute(final_response)
+                            extracted_response = ExtractJsonFromString().execute(
+                                final_response
+                            )
                             if not isinstance(extracted_response, list):
                                 error = "LLM response is not an array"
                             response = extracted_response
 
                         elif output_type == "object":
-                            extracted_response = ExtractJsonFromString().execute(final_response)
+                            extracted_response = ExtractJsonFromString().execute(
+                                final_response
+                            )
                             if not isinstance(extracted_response, dict):
                                 error = "LLM response is not an object"
                             response = extracted_response
@@ -477,30 +498,40 @@ class PromptExecution(Step):
                         response = final_response
 
                     if error:
-                        yield json.dumps(self._create_step_result(
-                            status="error", start_time=start_time, data=error
-                        ))
+                        yield json.dumps(
+                            self._create_step_result(
+                                status="error", start_time=start_time, data=error
+                            )
+                        )
                     else:
-                        usage  = stream_response.get("usage", {})
+                        usage = stream_response.get("usage", {})
                         citations = stream_response.get("citations", None)
-                        prompt_sent = stream_response.get("prompt_sent", None) 
-                        yield json.dumps(self._create_step_result(
-                            status="success",
-                            data=response,
-                            start_time=start_time,
-                            metadata={
-                                **usage,
-                                "citations": citations,
-                                "prompt_sent": prompt_sent
-                            }
-                        ))
+                        prompt_sent = stream_response.get("prompt_sent", None)
+                        yield json.dumps(
+                            self._create_step_result(
+                                status="success",
+                                data=response,
+                                start_time=start_time,
+                                metadata={
+                                    **usage,
+                                    "citations": citations,
+                                    "prompt_sent": prompt_sent,
+                                },
+                            )
+                        )
                 else:
-                    yield json.dumps(self._create_step_result(
-                        status="error", start_time=start_time, data=stream_response.get("error", None), metadata={}
-                    ))
+                    yield json.dumps(
+                        self._create_step_result(
+                            status="error",
+                            start_time=start_time,
+                            data=stream_response.get("error", None),
+                            metadata={},
+                        )
+                    )
         except Exception as e:
             traceback.print_exc()
-            yield json.dumps(self._create_step_result(
-                status="error", start_time=start_time, data=str(e)
-            ))
-        
+            yield json.dumps(
+                self._create_step_result(
+                    status="error", start_time=start_time, data=str(e)
+                )
+            )
