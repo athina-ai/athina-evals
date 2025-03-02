@@ -99,7 +99,7 @@ class CodeExecutionV2(Step):
         sandbox_timeout (Optional[int]): Custom timeout for sandbox operations.
     """
     # Sometimes code can have some specific variables only needed in code, same as inputs but specifically required for custom block
-    config: Optional[Dict[str, Any]]
+    config: Optional[Dict[str, Any]] = {}
     code: str
     session_id: str
     name: Optional[str] = None

@@ -15,8 +15,7 @@ class ConditionalStep(Step):
         """Evaluate a Python condition with given context using sandbox execution."""
         try:
             # Create evaluation code that returns a boolean
-            evaluation_code = f"output = bool({condition})"
-
+            evaluation_code = f"result = bool({condition})\nprint(result)"
             executor = CodeExecutionV2(
                 code=evaluation_code,
                 session_id=context.get("session_id", "default"),
@@ -29,8 +28,7 @@ class ConditionalStep(Step):
             if result["status"] == "error":
                 print(f"Error evaluating condition: {result['data']}")
                 return False
-
-            return result["data"] == True
+            return result["data"].strip().lower() == "true"
 
         except Exception as e:
             print(f"Error evaluating condition: {str(e)}")
@@ -57,7 +55,7 @@ class ConditionalStep(Step):
             "metadata": {"executed_steps": executed_steps},
         }
 
-    def execute(self, inputs: Dict) -> Dict:
+    def execute(self, input_data: Dict) -> Dict:
         """Execute the conditional step by evaluating branches and running appropriate steps."""
         try:
             # Find the first matching branch
@@ -66,9 +64,9 @@ class ConditionalStep(Step):
                 condition = branch.get("condition")
 
                 if branch_type == "else" or (
-                    condition and self._evaluate_condition(condition, inputs)
+                    condition and self._evaluate_condition(condition, input_data)
                 ):
-                    result = self._execute_branch_steps(branch.get("steps", []), inputs)
+                    result = self._execute_branch_steps(branch.get("steps", []), input_data)
                     if result.get("status") == "success":
                         result["metadata"]["executed_branch"] = {
                             "condition": condition,
