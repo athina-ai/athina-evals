@@ -134,3 +134,4 @@ class SpiderCrawl(Step):
                     data=f"Failed to make the API call.\nError: {e.__class__.__name__}\nDetails:\n{str(e)}",
                     start_time=start_time,
                 )
+                
