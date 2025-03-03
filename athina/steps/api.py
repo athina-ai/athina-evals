@@ -4,7 +4,6 @@ import time
 from typing import Union, Dict, Any, Optional
 import aiohttp
 from athina.steps.base import Step
-from athina.steps.utils.metadata import filter_essential_metadata
 import asyncio
 from jinja2 import Environment
 
@@ -88,17 +87,12 @@ class ApiCall(Step):
             )
 
         try:
-            metadata = {}
             json_response = json.loads(response_text)
-            if isinstance(json_response, dict) and "metadata" in json_response:
-                api_metadata = json_response.get("metadata", {})
-                metadata = filter_essential_metadata(api_metadata)
             # If the response is JSON, return the JSON data
             return self._create_step_result(
                 status="success",
                 data=json_response,
                 start_time=start_time,
-                metadata=metadata,
             )
         except json.JSONDecodeError:
             # If the response is not JSON, return the text
