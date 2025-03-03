@@ -16,6 +16,7 @@ from athina.steps.open_ai_assistant import OpenAiAssistant
 from athina.steps.transcribe_speech_to_text import TranscribeSpeechToText
 from athina.steps.search import Search
 from athina.steps.code_execution import CodeExecution
+from athina.steps.tool_call_agent import ToolCallAgent
 
 from athina.steps.spider_crawl import SpiderCrawl
 from athina.steps.parse_document import ParseDocument
@@ -44,4 +45,5 @@ __all__ = [
     "ParseDocument",
     "ConditionalStep",
     "Loop",
+    "ToolCallAgent",
 ]
