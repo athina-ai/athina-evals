@@ -121,16 +121,18 @@ class CodeExecutionV2(Step):
         self.execution_environment = execution_environment
         self.sandbox_timeout = sandbox_timeout
 
-    def _create_or_initialize_sandbox(self):
+    def _create_or_initialize_sandbox(self, session_id: Optional[str] = None):
+        
+        session_id = session_id or self.session_id
         """Checks if sandbox exists and connects to it or creates a new one if not"""
-        if not self.session_id:
+        if not session_id:
             raise ValueError("session_id is required for e2b execution")
 
         try:
             running_sandboxes = Sandbox.list()
 
             for sandbox in running_sandboxes:
-                if sandbox.metadata.get("session_id") == self.session_id:
+                if sandbox.metadata.get("session_id") == session_id:
                     # Connect to the existing sandbox
                     self._sandbox = Sandbox.connect(sandbox.sandbox_id)
                     break
@@ -141,7 +143,7 @@ class CodeExecutionV2(Step):
                     timeout=min(
                         self.sandbox_timeout or self.DEFAULT_TIMEOUT, self.MAX_TIMEOUT
                     ),
-                    metadata={"session_id": self.session_id},
+                    metadata={"session_id": session_id},
                 )
                 print(f"Created new sandbox with ID: {self._sandbox.sandbox_id}")
 
@@ -247,7 +249,8 @@ class CodeExecutionV2(Step):
         4. Capture and extract output variables for Python code
         """
         try:
-            self._create_or_initialize_sandbox()
+            session_id = input_data.get("session_id", None)
+            self._create_or_initialize_sandbox(session_id=session_id)
             if self._sandbox is None:
                 print("Sandbox is not initialized")
                 return self._create_step_result(
@@ -396,7 +399,8 @@ class CodeExecutionV2(Step):
         """
         print_output = str()
         try:
-            self._create_or_initialize_sandbox()
+            session_id = input_data.get("session_id", None)
+            self._create_or_initialize_sandbox(session_id)
 
             if self._sandbox is None:
                 yield json.dumps(self._create_step_result(
@@ -465,7 +469,7 @@ class CodeExecutionV2(Step):
                         elif output_type == 'error':
                             yield json.dumps(self._create_step_result(
                                 status="error",
-                                stdOut=message,
+                                stdOut=print_output,
                                 data=message,
                                 start_time=start_time,
                             ))

@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import List, Dict, Any, Optional, Union
 from athina.steps.base import Step
 from athina.llms.abstract_llm_service import AbstractLlmService
+import json
 
 
 class Chain(BaseModel):
@@ -55,8 +56,14 @@ class Chain(BaseModel):
         latest_step_output = None
         for step in self.sequence:
             step_output = step.execute(input_data=cumulative_context)
+            exported_vars = step_output.get("metadata", {}).get("exported_vars", {})
             if step.name:
-                cumulative_context[step.name] = step_output.get("data")
+                cumulative_context={
+                    **cumulative_context,
+                    **exported_vars,
+                    f'{step.name}_str': isinstance(step_output.get("data"), dict) and json.dumps(step_output.get("data")) or None,
+                    step.name: step_output.get("data")
+                }
             latest_step_output = step_output
         response = {
             "chain_output": latest_step_output,
