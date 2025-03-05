@@ -47,6 +47,7 @@ load_dotenv()
 MODEL_TOKEN_LIMITS = {
     "gpt-4-turbo-preview": 128000,
     "gpt-4o": 128000,
+    "gpt-4o-mini": 128000,
     "gpt-4": 8192,
     "gpt-3.5-turbo": 16385,
 }
@@ -147,7 +148,7 @@ class ResearchAgent(Step):
     search_provider: str = "perplexity"
     max_iterations: int = 3
     model: str = DEFAULT_MODEL
-    num_search_queries: int = 3
+    num_search_queries: int = 10
     llm_service: Any = None
     research_context: List[Dict[str, Any]] = []
     stream_log_handler: Optional[StreamLogHandler] = None
@@ -180,7 +181,7 @@ class ResearchAgent(Step):
             )
 
         self.llm_service = LitellmService(api_key=self.openai_api_key)
-        self.num_search_queries = self.num_search_queries or 5
+        self.num_search_queries = self.num_search_queries or 10
         self.research_context = []
         self.stream_log_handler = StreamLogHandler()
         self.stream_log_handler.setFormatter(logging.Formatter("%(message)s"))
@@ -207,15 +208,14 @@ class ResearchAgent(Step):
         return {"status": status, "data": data, "metadata": metadata}
 
     def _extract_evaluation_criteria(self, prompt: str) -> Dict[str, Any]:
-        """Extract evaluation statements and search queries from the research prompt."""
+        """Extract evaluation criteria and initial search queries from the prompt."""
+        try:
+            logger.info(
+                "🔍 Analyzing research prompt to extract evaluation criteria and search queries..."
+            )
 
-        logger.info(
-            "🔍 Analyzing research prompt to extract evaluation criteria and search queries..."
-        )
-
-        NUM_EVALUATION_STATEMENTS = 5
-        NUM_SEARCH_QUERIES = 3
-        system_prompt = f"""You are a research planning assistant. Your task is to analyze a research prompt and create evaluation criteria and search queries.
+            NUM_EVALUATION_STATEMENTS = 5
+            system_prompt = f"""You are a research planning assistant. Your task is to analyze a research prompt and create evaluation criteria and search queries.
 
 Return your response in the following JSON format ONLY, with no additional text:
 {{
@@ -254,12 +254,11 @@ The search queries are meant to be used to gather information as research for th
 The evaluation statements are meant to be used to determine if the research is complete as related to the prompt.
 
 1. Create exactly {NUM_EVALUATION_STATEMENTS} specific evaluation statements that can be used to determine if the research is complete as related to the prompt
-2. Create exactly {NUM_SEARCH_QUERIES} specific, well-formed search queries that would help gather relevant information.
+2. Create exactly {self.num_search_queries} specific, well-formed search queries that would help gather relevant information.
 3. All evaluation statements should initially have "status": "fail"
 4. Evaluation statements should be specific and directly related to the prompt. For example, if the prompt is "Sam Altman".
 5. Search queries should be specific and directly related to the evaluation statements"""
 
-        try:
             response_content = self.llm_service.chat_completion(
                 model=self.model,
                 messages=[
@@ -275,17 +274,21 @@ The evaluation statements are meant to be used to determine if the research is c
             result = json.loads(response_content)
 
             # Log the extracted information
-            logger.info("📋 Received Evaluation Statements:")
+            logger.info("Research Agent: Identified evaluation criteria:")
             for stmt in result.get("evaluation_statements", {}).get("evaluation", []):
-                logger.info(f"  • {stmt['statement']} (Status: {stmt['status']})")
+                logger.info(
+                    f"Research Agent: Criterion - {stmt['statement']} (Initial Status: {stmt['status']})"
+                )
 
-            logger.info("🔎 Initial Search Queries:")
+            logger.info("Research Agent: Generated initial search queries:")
             for query in result.get("search_queries", []):
-                logger.info(f"  • {query}")
+                logger.info(f"Research Agent: Query - {query}")
 
             return result
         except Exception as e:
-            logger.error(f"Error extracting evaluation criteria: {str(e)}")
+            logger.error(
+                f"Research Agent: Error extracting evaluation criteria: {str(e)}"
+            )
             return {
                 "evaluation_statements": {
                     "evaluation": [
@@ -297,7 +300,9 @@ The evaluation statements are meant to be used to determine if the research is c
 
     def _execute_search(self, query: str) -> List[Dict[str, Any]]:
         """Execute a search query using the configured search provider."""
-        logger.info(f"🔍 Executing search with {self.search_provider}: '{query}'")
+        logger.info(
+            f"Research Agent: Executing search with {self.search_provider}: '{query}'"
+        )
 
         if self.search_provider == "perplexity":
             return self._execute_perplexity_search(query)
@@ -322,14 +327,18 @@ The evaluation statements are meant to be used to determine if the research is c
             results = response.json()
             if results and isinstance(results, dict) and results.get("results"):
                 data = results.get("results", [])
-                logger.info(f"  Found {len(data)} results")
+                logger.info(
+                    f"Research Agent: Retrieved {len(data)} results from Exa search"
+                )
                 return data
 
-            logger.warning(f"  Invalid search results format")
+            logger.warning(
+                f"Research Agent: Exa search returned invalid results format"
+            )
             return []
 
         except Exception as e:
-            logger.error(f"  Search error: {str(e)}")
+            logger.error(f"Research Agent: Exa search error: {str(e)}")
             return []
 
     def _execute_perplexity_search(self, query: str) -> List[Dict[str, Any]]:
@@ -395,24 +404,27 @@ The evaluation statements are meant to be used to determine if the research is c
                         )
 
                     logger.info(
-                        f"  Found Perplexity result with {len(citations)} citations"
+                        f"Research Agent: Retrieved Perplexity search result with {len(citations)} supporting citations"
                     )
                     return transformed_results
 
-            logger.warning(f"  Invalid Perplexity search results format")
+            logger.warning(
+                f"Research Agent: Perplexity search returned invalid results format"
+            )
             return []
 
         except Exception as e:
-            logger.error(f"  Perplexity search error: {str(e)}")
+            logger.error(f"Research Agent: Perplexity search error: {str(e)}")
             return []
 
     def _evaluate_progress(
         self, context: str, evaluation_statements: Dict[str, List[Dict[str, Any]]]
     ) -> Dict[str, List[Dict[str, Any]]]:
-        """Evaluate research progress against criteria."""
-        logger.info("📊 Evaluating research progress...")
+        """Evaluate research progress against the evaluation statements."""
+        try:
+            logger.info("Research Agent: Evaluating research progress against criteria")
 
-        system_prompt = """Given the current research context and evaluation statements, determine which criteria have been met.
+            system_prompt = """Given the current research context and evaluation statements, determine which criteria have been met.
 For each statement, mark it as "pass" if the criteria has been satisfied based on the context.
 Return the updated evaluation statements as a JSON array.
 The JSON array should be in the following format:
@@ -422,7 +434,6 @@ The JSON array should be in the following format:
         {"statement": "...", "status": "fail"}
     ]
 }"""
-        try:
             response_content = self.llm_service.chat_completion(
                 model=self.model,
                 messages=[
@@ -439,51 +450,51 @@ The JSON array should be in the following format:
                 raise ValueError("Empty response from LLM")
 
             updated_statements = json.loads(response_content)
-            logger.info(f"Updated evaluation statements")
-
-            print(updated_statements)
-            for stmt in updated_statements.get("evaluation", []):
+            logger.info(f"Research Agent: Updated evaluation criteria status")
+            for stmt in updated_statements:
                 if isinstance(stmt, dict):
                     logger.info(
-                        f"Updated evaluation statement: {stmt['statement']} (Status: {stmt['status']})"
-                    )
-                    status_emoji = "✅" if stmt.get("status") == "pass" else "❌"
-                    logger.info(
-                        f"  {status_emoji} {stmt['statement']} (Status: {stmt['status']})"
+                        f"Research Agent: Criterion '{stmt.get('statement')}' - Status: {stmt.get('status')}, Reason: {stmt.get('reason', 'No reason provided')}"
                     )
                 else:
-                    logger.warning(f"Eval statement is not a dict: {stmt}")
+                    logger.warning(
+                        f"Research Agent: Invalid evaluation statement format: {stmt}"
+                    )
 
-            return updated_statements
-
+            return {"evaluation": updated_statements}
         except Exception as e:
-            logger.error(f"Error evaluating progress: {str(e)}")
+            logger.error(
+                f"Research Agent: Error evaluating research progress: {str(e)}"
+            )
             return evaluation_statements
 
     def _synthesize_findings(self, prompt: str, context: str) -> str:
         """Synthesize research findings into a coherent response."""
-        logger.info("📚 Synthesizing research findings...")
-
-        # Calculate available tokens for context
-        # Reserve tokens for the system prompt, user prompt, and response
-        SYSTEM_PROMPT_TOKENS = 500  # Approximate tokens for system prompt
-        USER_PROMPT_TOKENS = 100  # Approximate tokens for user prompt
-        RESPONSE_TOKENS = 2000  # Reserve tokens for response
-        model_limit = MODEL_TOKEN_LIMITS.get(self.model, 8192)
-        available_context_tokens = model_limit - (
-            SYSTEM_PROMPT_TOKENS + USER_PROMPT_TOKENS + RESPONSE_TOKENS
-        )
-
-        # Truncate context if needed
-        if get_token_count(context, self.model) > available_context_tokens:
+        try:
             logger.info(
-                f"⚠️ Context exceeds token limit. Truncating to {available_context_tokens} tokens..."
-            )
-            context = truncate_to_token_limit(
-                context, available_context_tokens, self.model
+                "Research Agent: Synthesizing research findings into a coherent response"
             )
 
-        system_prompt = """Given the user prompt and accumulated context, synthesize a comprehensive, college-level report about the prompt.
+            # Calculate available tokens for context
+            # Reserve tokens for the system prompt, user prompt, and response
+            SYSTEM_PROMPT_TOKENS = 500  # Approximate tokens for system prompt
+            USER_PROMPT_TOKENS = 100  # Approximate tokens for user prompt
+            RESPONSE_TOKENS = 2000  # Reserve tokens for response
+            model_limit = MODEL_TOKEN_LIMITS.get(self.model, 8192)
+            available_context_tokens = model_limit - (
+                SYSTEM_PROMPT_TOKENS + USER_PROMPT_TOKENS + RESPONSE_TOKENS
+            )
+
+            # Truncate context if needed
+            if get_token_count(context, self.model) > available_context_tokens:
+                logger.info(
+                    f"⚠️ Context exceeds token limit. Truncating to {available_context_tokens} tokens..."
+                )
+                context = truncate_to_token_limit(
+                    context, available_context_tokens, self.model
+                )
+
+            system_prompt = """Given the user prompt and accumulated context, synthesize a comprehensive, college-level report about the prompt.
 
 Your response must follow these requirements:
 
@@ -520,7 +531,6 @@ Citation Requirements:
 The final report should demonstrate thorough research, critical analysis, and clear communication while remaining directly relevant to the user's prompt.
 """
 
-        try:
             response_content = self.llm_service.chat_completion(
                 model=self.model,
                 messages=[
@@ -535,10 +545,12 @@ The final report should demonstrate thorough research, critical analysis, and cl
             if not response_content:
                 return "Error: No response from LLM"
 
+            logger.info(
+                f"Research Agent: Completed synthesis of research findings ({get_token_count(response_content, self.model)} tokens)"
+            )
             return response_content
-
         except Exception as e:
-            logger.error(f"Error synthesizing findings: {str(e)}")
+            logger.error(f"Research Agent: Error synthesizing findings: {str(e)}")
             return "Error synthesizing research findings."
 
     def execute(self, input_data: Any) -> Dict[str, Any]:
