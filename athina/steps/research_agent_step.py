@@ -135,12 +135,16 @@ class ResearchAgent(Step):
     Attributes:
         openai_api_key: OpenAI API key for LLM interactions
         exa_api_key: Exa API key for search operations
+        perplexity_api_key: Perplexity API key for search operations
+        search_provider: Search provider to use ('exa' or 'perplexity')
         max_iterations: Maximum number of research iterations
         model: LLM model to use
     """
 
     openai_api_key: str
-    exa_api_key: str
+    exa_api_key: str = ""
+    perplexity_api_key: str = ""
+    search_provider: str = "perplexity"
     max_iterations: int = 3
     model: str = DEFAULT_MODEL
     num_search_queries: int = 3
@@ -155,6 +159,26 @@ class ResearchAgent(Step):
         super().__init__(**data)
         self.openai_api_key = self.openai_api_key or os.getenv("OPENAI_API_KEY", "")
         self.exa_api_key = self.exa_api_key or os.getenv("EXA_API_KEY", "")
+        self.perplexity_api_key = self.perplexity_api_key or os.getenv(
+            "PERPLEXITY_API_KEY", ""
+        )
+        self.search_provider = self.search_provider.lower()
+
+        if self.search_provider not in ["exa", "perplexity"]:
+            logger.warning(
+                f"Invalid search provider '{self.search_provider}'. Defaulting to 'exa'."
+            )
+            self.search_provider = "exa"
+
+        if self.search_provider == "exa" and not self.exa_api_key:
+            logger.warning(
+                "Exa API key not provided. Search functionality may not work properly."
+            )
+        elif self.search_provider == "perplexity" and not self.perplexity_api_key:
+            logger.warning(
+                "Perplexity API key not provided. Search functionality may not work properly."
+            )
+
         self.llm_service = LitellmService(api_key=self.openai_api_key)
         self.num_search_queries = self.num_search_queries or 5
         self.research_context = []
@@ -162,7 +186,7 @@ class ResearchAgent(Step):
         self.stream_log_handler.setFormatter(logging.Formatter("%(message)s"))
         logger.addHandler(self.stream_log_handler)
         logger.info(
-            f"Research Agent initialized with {self.max_iterations} iterations and {self.num_search_queries} search queries using model {self.model}"
+            f"Research Agent initialized with {self.max_iterations} iterations and {self.num_search_queries} search queries using model {self.model} and {self.search_provider} search provider"
         )
 
     def _create_step_result(
@@ -225,8 +249,12 @@ For example, if the prompt is "Analyze the market opportunity for a new AI-power
 "Research includes information about the potential revenue for the new AI-powered personal assistant"
 
 Guidelines:
+Think carefully about the user's prompt to create appropriate search queries and evaluation statements. 
+The search queries are meant to be used to gather information as research for the user's prompt.
+The evaluation statements are meant to be used to determine if the research is complete as related to the prompt.
+
 1. Create exactly {NUM_EVALUATION_STATEMENTS} specific evaluation statements that can be used to determine if the research is complete as related to the prompt
-2. Create exactly {NUM_SEARCH_QUERIES} specific, well-formed search queries that would help gather relevant information
+2. Create exactly {NUM_SEARCH_QUERIES} specific, well-formed search queries that would help gather relevant information.
 3. All evaluation statements should initially have "status": "fail"
 4. Evaluation statements should be specific and directly related to the prompt. For example, if the prompt is "Sam Altman".
 5. Search queries should be specific and directly related to the evaluation statements"""
@@ -247,8 +275,7 @@ Guidelines:
             result = json.loads(response_content)
 
             # Log the extracted information
-            logger.info("📋 Received JSON Evaluation Statements:", result)
-            print("Received JSON Evaluation Statements:", result)
+            logger.info("📋 Received Evaluation Statements:")
             for stmt in result.get("evaluation_statements", {}).get("evaluation", []):
                 logger.info(f"  • {stmt['statement']} (Status: {stmt['status']})")
 
@@ -269,9 +296,16 @@ Guidelines:
             }
 
     def _execute_search(self, query: str) -> List[Dict[str, Any]]:
-        """Execute a search query using Exa search API."""
-        logger.info(f"🔍 Executing search: '{query}'")
+        """Execute a search query using the configured search provider."""
+        logger.info(f"🔍 Executing search with {self.search_provider}: '{query}'")
 
+        if self.search_provider == "perplexity":
+            return self._execute_perplexity_search(query)
+        else:
+            return self._execute_exa_search(query)
+
+    def _execute_exa_search(self, query: str) -> List[Dict[str, Any]]:
+        """Execute a search query using Exa search API."""
         try:
             import requests
 
@@ -296,6 +330,80 @@ Guidelines:
 
         except Exception as e:
             logger.error(f"  Search error: {str(e)}")
+            return []
+
+    def _execute_perplexity_search(self, query: str) -> List[Dict[str, Any]]:
+        """Execute a search query using Perplexity Sonar API."""
+        try:
+            import requests
+
+            url = "https://api.perplexity.ai/chat/completions"
+            headers = {
+                "content-type": "application/json",
+                "Authorization": f"Bearer {self.perplexity_api_key}",
+            }
+            payload = {
+                "model": "sonar",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "Be precise and concise. Provide factual information with citations.",
+                    },
+                    {"role": "user", "content": query},
+                ],
+                "temperature": 0.2,
+                "top_p": 0.9,
+                "return_images": False,
+                "return_related_questions": False,
+                "stream": False,
+            }
+
+            response = requests.post(url, headers=headers, json=payload)
+            response.raise_for_status()
+
+            results = response.json()
+
+            # Transform Perplexity response to match Exa format for compatibility
+            transformed_results = []
+
+            if results and isinstance(results, dict):
+                # Extract content from the first choice
+                choices = results.get("choices", [])
+                if choices and len(choices) > 0:
+                    content = choices[0].get("message", {}).get("content", "")
+
+                    # Get citations
+                    citations = results.get("citations", [])
+
+                    # Create a single result with the content
+                    transformed_results.append(
+                        {
+                            "text": content,
+                            "url": "perplexity_search_result",
+                            "title": "Perplexity Search Result",
+                        }
+                    )
+
+                    # Add each citation as a separate result
+                    for i, citation in enumerate(citations):
+                        transformed_results.append(
+                            {
+                                "text": f"Citation {i+1}",
+                                "url": citation,
+                                "title": f"Citation {i+1}",
+                            }
+                        )
+
+                    logger.info(
+                        f"  Found Perplexity result with {len(citations)} citations"
+                    )
+                    return transformed_results
+
+            logger.warning(f"  Invalid Perplexity search results format")
+            return []
+
+        except Exception as e:
+            logger.error(f"  Perplexity search error: {str(e)}")
             return []
 
     def _evaluate_progress(
@@ -331,9 +439,8 @@ The JSON array should be in the following format:
                 raise ValueError("Empty response from LLM")
 
             updated_statements = json.loads(response_content)
-            logger.info(f"Updated evaluation statements: {updated_statements}")
+            logger.info(f"Updated evaluation statements")
 
-            logger.info("Updated Evaluation Status:")
             print(updated_statements)
             for stmt in updated_statements.get("evaluation", []):
                 if isinstance(stmt, dict):
@@ -476,14 +583,29 @@ The final report should demonstrate thorough research, critical analysis, and cl
                 results = self._execute_search(query)
                 for result in results:
                     source = str(result.get("url", ""))
+                    content = str(result.get("text", ""))
+
+                    # Skip empty results
+                    if not content:
+                        continue
+
                     if source and source not in sources:
                         sources.append(source)
 
+                    # For Perplexity, the first result contains the main content
+                    if (
+                        self.search_provider == "perplexity"
+                        and source == "perplexity_search_result"
+                    ):
+                        result_type = "perplexity_answer"
+                    else:
+                        result_type = "search"
+
                     self.research_context.append(
                         {
-                            "type": "search",
+                            "type": result_type,
                             "query": query,
-                            "content": str(result.get("text", "")),
+                            "content": content,
                             "source": source,
                         }
                     )
