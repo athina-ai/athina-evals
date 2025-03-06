@@ -9,6 +9,7 @@ from athina.helpers.json import JsonHelper, JsonExtractor
 from athina.llms.abstract_llm_service import AbstractLlmService
 from athina.llms.openai_service import OpenAiService
 from athina.keys import OpenAiApiKey
+from athina.steps.utils.metadata import get_filtered_metadata
 import functools
 import time
 
@@ -89,14 +90,14 @@ class Step(BaseModel):
         else:
             input_data = context
         return input_data
-    
+
     def prepare_dict(
         self, object: Optional[Dict[str, Any]], input_data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """Prepare request body by rendering Jinja2 template."""
         if object is None:
             return None
-        
+
         obj = json.dumps(object)
         env = self._create_jinja_env()
         prepared_obj = env.from_string(obj).render(**input_data)
@@ -105,7 +106,7 @@ class Step(BaseModel):
     def _create_step_result(
         self,
         status: Literal["success", "error"],
-        data: str,
+        data: Any,
         start_time: float,
         metadata: Dict[str, Any] = {},
         exported_vars: Optional[Dict] = None,
@@ -120,9 +121,11 @@ class Step(BaseModel):
             metadata: Optional dictionary of metadata
             exported_vars: Optional dictionary of exported variables
         """
+        metadata.update(get_filtered_metadata(data))
+
         if "response_time" not in metadata:
             execution_time_ms = round((time.perf_counter() - start_time) * 1000)
-            metadata = {"response_time": execution_time_ms}
+            metadata["response_time"] = execution_time_ms
 
         if exported_vars is not None:
             metadata["exported_vars"] = exported_vars
