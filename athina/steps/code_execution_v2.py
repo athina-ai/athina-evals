@@ -95,7 +95,7 @@ class CodeExecutionV2(Step):
         session_id (str): Unique identifier for the sandbox session.
         name (Optional[str]): Name identifier for the execution.
         execution_environment (ExecutionEnvironment): Execution context ('local' or 'e2b').
-        _sandbox (Optional[Sandbox]): E2B sandbox instance.
+        _sandbox (Optional[Any]): E2B sandbox instance.
         DEFAULT_TIMEOUT (ClassVar[int]): Default timeout for sandbox operations.
         sandbox_timeout (Optional[int]): Custom timeout for sandbox operations.
     """
@@ -105,7 +105,7 @@ class CodeExecutionV2(Step):
     code: str
     session_id: str
     name: Optional[str] = None
-    _sandbox: Optional[Sandbox] = None
+    _sandbox: Optional[Any] = None
     execution_environment: ExecutionEnvironment = EXECUTION_LOCAL
     DEFAULT_TIMEOUT: ClassVar[int] = 60  # 1 minute default timeout for sandbox
     MAX_TIMEOUT: ClassVar[int] = 300  # 5 minute limit for e2b sandbox execution

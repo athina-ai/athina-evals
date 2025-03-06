@@ -4,7 +4,6 @@ from athina.steps.base import Step
 from athina.steps.base import StepResult
 import os
 import dotenv
-from composio_llamaindex import Action, ComposioToolSet
 from llama_index.core.llms import ChatMessage
 from llama_index.llms.openai import OpenAI
 from llama_index.agent.openai import OpenAIAgent
@@ -32,6 +31,8 @@ class ToolCallAgent(Step):
     allow_parallel_tool_calls: bool = False  # Default parallel tool calls setting
 
     def execute(self, input_data: Any) -> StepResult:
+        from composio_llamaindex import Action, ComposioToolSet
+
         """Execute the tool call agent with LlamaIndex and Composio tools."""
         start_time = time.perf_counter()
 
