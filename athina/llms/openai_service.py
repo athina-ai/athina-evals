@@ -145,6 +145,7 @@ class OpenAiService(AbstractLlmService):
         if "temperature" not in kwargs:
             kwargs["temperature"] = DEFAULT_TEMPERATURE
         try:
+            start_time = time.time()
             response = self.openai.chat.completions.create(
                 model=model, messages=messages, stream=True, **kwargs
             )
