@@ -1,0 +1,48 @@
+name: MyPy static type checker
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  static_type_checker:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install mypy
+
+    - name: Run Mypy
+      id: mypy
+      continue-on-error: true
+      run: |
+        mypy . \
+        --exclude 'venv|.git|__pycache__' \
+        --ignore-missing-imports \
+        --allow-untyped-defs \
+        --allow-untyped-decorators \
+        --allow-subclassing-any \
+        --disable-error-code="var-annotated" \
+        --disable-error-code="union-attr" \
+        --disable-error-code="assignment" \
+        --implicit-optional \
+        --no-error-summary \
+        --no-pretty \
+        --explicit-package-bases \
+        --namespace-packages \
+        --check-untyped-defs
+
+    - name: Check for Failures
+      if: ${{ steps.mypy.outcome == 'failure' }}
+      run: |
+        echo "::error::Linting checks failed! Please check the logs above for Mypy errors"
+        exit 1

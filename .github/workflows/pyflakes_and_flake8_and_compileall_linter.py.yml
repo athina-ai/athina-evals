@@ -1,0 +1,58 @@
+name: Flake8, Pyflakes and Compileall Linter
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pyflakes isort
+
+    - name: Run Flake8
+      id: flake8
+      continue-on-error: true
+      run: |
+        flake8 . \
+        --exclude=venv,.git,__pycache__ \
+        --ignore=E123,E128,E222,E225,E226,E241,E251,E266,E275,E301,E302,E303,E402,E41,E501,W291,W292,W293,W391,W503,E203,F401,F841 \
+        --max-line-length=120 \
+        --max-complexity=20
+
+    - name: Check syntax with compileall
+      id: compileall
+      continue-on-error: true
+      run: python -m compileall .
+          
+    - name: Check syntax with pyflakes
+      id: pyflakes
+      continue-on-error: true
+      run: pyflakes .
+
+    - name: Check for Failures
+      if: ${{ steps.flake8.outcome == 'failure' || steps.compileall.outcome == 'failure' || steps.pyflakes.outcome == 'failure' }}
+      run: |
+        echo "::error::Linting checks failed! The following linters reported issues:"
+        if [[ "${{ steps.flake8.outcome }}" == "failure" ]]; then
+          echo "::error::- Flake8 failed"
+        fi
+        if [[ "${{ steps.compileall.outcome }}" == "failure" ]]; then
+          echo "::error::- Compileall failed"
+        fi
+        if [[ "${{ steps.pyflakes.outcome }}" == "failure" ]]; then
+          echo "::error::- Pyflakes failed"
+        fi
+        exit 1

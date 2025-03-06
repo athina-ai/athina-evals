@@ -138,6 +138,21 @@ class OpenAiService(AbstractLlmService):
             print(f"Error in JSON ChatCompletion: {e}")
             raise e
 
+    async def chat_stream_completion(self, messages, model, **kwargs):
+        """
+        Fetches a streaming response from OpenAI's ChatCompletion API.
+        """
+        if "temperature" not in kwargs:
+            kwargs["temperature"] = DEFAULT_TEMPERATURE
+        try:
+            response = self.openai.chat.completions.create(
+                model=model, messages=messages, stream=True, **kwargs
+            )
+            return self._process_response(response, start_time, model)
+        except Exception as e:
+            print(f"Error in ChatStreamCompletion: {e}")
+            raise e
+
     def json_completion(self, messages, model, **kwargs):
         """
         Fetches response from OpenAI's ChatCompletion API using JSON mode.
