@@ -39,7 +39,6 @@ def get_filtered_metadata(data: Union[Dict[str, Any], str]) -> Dict[str, Any]:
                 return {}
 
     # Now handle dictionary data
-    # Now handle dictionary data
     if isinstance(data, dict) and "metadata" in data:
         metadata = data["metadata"]
         filtered_metadata = {
