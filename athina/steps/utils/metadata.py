@@ -30,9 +30,15 @@ def get_filtered_metadata(data: Union[Dict[str, Any], str]) -> Dict[str, Any]:
             data = data.strip()
             data = json.loads(data)
         except json.JSONDecodeError:
-            # Not a valid JSON string, return empty metadata
-            return {}
+            try:
+                # Try to remove the JSON markers and load the remaining string
+                data = data.replace("```json", "").replace("```", "").strip()
+                data = json.loads(data)
+            except json.JSONDecodeError:
+                # Not a valid JSON string, return empty metadata
+                return {}
 
+    # Now handle dictionary data
     # Now handle dictionary data
     if isinstance(data, dict) and "metadata" in data:
         metadata = data["metadata"]
