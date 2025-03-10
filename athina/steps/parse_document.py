@@ -58,13 +58,22 @@ class ParseDocument(Step):
             isFastMode = self.mode == "fast"
             isPremiumMode = self.mode == "premium"
             
+            resultType = prepared_body.get("result_type")
+            
+            if self.mode == "fast" and resultType == 'markdown':
+                return self._create_step_result(
+                    status="error",
+                    data=f"Fast mode doesnot support markdown output",
+                    start_time=start_time,
+                )
+            
             # Initialize LlamaParse client
             llama_parse = LlamaParse(
                 fast_mode=isFastMode,
                 premium_mode=isPremiumMode,
                 api_key=self.llama_parse_key,
                 verbose=prepared_body.get("verbose"),
-                result_type=prepared_body.get("result_type"),
+                result_type= resultType,
             )
 
             # Parse the document

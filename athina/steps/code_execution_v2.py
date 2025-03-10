@@ -253,7 +253,7 @@ class CodeExecutionV2(Step):
         4. Capture and extract output variables for Python code
         """
         try:
-            session_id = input_data.get("session_id", None)
+            session_id = input_data.get("athina_session_id", None)
             self._create_or_initialize_sandbox(session_id=session_id)
             if self._sandbox is None:
                 print("Sandbox is not initialized")
@@ -381,7 +381,7 @@ class CodeExecutionV2(Step):
 
         prepared_body = self.prepare_dict(config, input_data)
 
-        final_input = {**prepared_body, **input_data}
+        final_input = {**input_data, **prepared_body,}
         # Start timing
         start_time = time.time()
 
@@ -400,7 +400,7 @@ class CodeExecutionV2(Step):
         """
         print_output = str()
         try:
-            session_id = input_data.get("session_id", None)
+            session_id = input_data.get("athina_session_id", None)
             self._create_or_initialize_sandbox(session_id)
 
             if self._sandbox is None:
@@ -575,7 +575,7 @@ class CodeExecutionV2(Step):
 
         prepared_body = self.prepare_dict(config, input_data)
 
-        final_input = {**prepared_body, **input_data}
+        final_input = {**input_data, **prepared_body,}
 
         # Start timing
         start_time = time.time()
