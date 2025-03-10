@@ -6,7 +6,7 @@ import aiohttp
 from athina.steps.base import Step
 import asyncio
 from jinja2 import Environment
-
+import base64
 
 def prepare_template_data(
     env: Environment,
@@ -70,6 +70,79 @@ class ApiCall(Step):
 
     class Config:
         arbitrary_types_allowed = True
+
+    def process_binary_response(
+            self,
+            status_code: int,
+            content_type: str,
+            response_data: bytes,
+            start_time: float,
+        ) -> Dict[str, Any]:
+        """Process the binary API response and return a formatted result."""
+
+        # Handle HTTP error responses
+        if not isinstance(status_code, int) or status_code >= 400:
+            return self._create_step_result(
+                status="error",
+                data=f"Failed to make the API call.\nStatus code: {status_code}",
+                start_time=start_time,
+            )
+
+        # Validate content type (Default: application/octet-stream)
+        if not content_type or not isinstance(content_type, str):
+            content_type = "application/octet-stream"
+
+        metadata = {"content_type": content_type}
+
+        # Ensure response_data is valid
+        if response_data is None or not isinstance(response_data, (bytes, bytearray)):
+            return self._create_step_result(
+                status="error",
+                data="Invalid or empty binary response data.",
+                start_time=start_time,
+            )
+
+        try:
+            # Try decoding as UTF-8 text (if applicable)
+            try:
+                decoded_text = response_data.decode("utf-8")
+                if decoded_text.isprintable():  # Ensure it's readable text
+                    return self._create_step_result(
+                        status="success",
+                        data=decoded_text,
+                        metadata=metadata,
+                        start_time=start_time,
+                    )
+            except (UnicodeDecodeError, AttributeError):
+                pass  # Not text, continue processing as binary
+
+            # Convert binary data to Base64
+            base64_encoded = base64.b64encode(response_data).decode("utf-8")
+            data_url = f"data:{content_type};base64,{base64_encoded}"
+
+            # Categorize the file type
+            if content_type.startswith("audio/"):
+                file_type = "audio"
+            elif content_type.startswith("image/"):
+                file_type = "image"
+            else:
+                file_type = "file"
+
+            metadata["content_type"] = file_type  # Store category in metadata
+
+            return self._create_step_result(
+                status="success",
+                data=data_url,
+                metadata=metadata,
+                start_time=start_time,
+            )
+
+        except Exception as e:
+            return self._create_step_result(
+                status="error",
+                data=f"Failed to process response data: {str(e)}",
+                start_time=start_time,
+            )
 
     def process_response(
         self,
@@ -159,10 +232,15 @@ class ApiCall(Step):
                         params=prepared_params,
                         json=json_body,
                     ) as response:
-                        response_text = await response.text()
-                        return self.process_response(
-                            response.status, response_text, start_time
-                        )
+                        content_type = response.headers.get("content-type", "").lower()
+                        if "application/json" in content_type or "text" in content_type:
+                            response_data = await response.text()
+                        else:  # Handle binary responses
+                            response_data = await response.read()
+                            return self.process_binary_response(
+                                response.status, content_type, response_data, start_time
+                            )
+                        return self.process_response(response.status, response_data, start_time)
 
             except asyncio.TimeoutError:
                 if attempt < self.retries - 1:
