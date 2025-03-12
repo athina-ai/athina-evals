@@ -2,18 +2,13 @@ import os
 import json
 import logging
 import tiktoken
-from typing import Dict, Any, Optional, List, Union, Literal, AsyncGenerator
-from datetime import datetime
+from typing import Dict, Any, Optional, List, Literal, AsyncGenerator
 from athina.steps import Step
-from openai import OpenAI
 from dotenv import load_dotenv
-import io
-import sys
-from contextlib import redirect_stdout, redirect_stderr
 import time
 import asyncio
 from athina.llms.litellm_service import LitellmService
-from jinja2 import Environment, meta
+from jinja2 import Environment
 
 # Configure logging with both file and console handlers
 logger = logging.getLogger(__name__)
@@ -580,7 +575,14 @@ The final report should demonstrate thorough research, critical analysis, and cl
                 self.env = self._create_jinja_env()
 
             # Interpolate the prompt with variables from input_data
-            resolved_prompt = self.env.from_string(self.prompt).render(**input_data)
+            try:
+                resolved_prompt = self.env.from_string(self.prompt).render(**input_data)
+            except Exception as e:
+                return self._create_step_result(
+                    status="error",
+                    data=f"Error interpolating prompt template: {str(e)}",
+                    start_time=start_time,
+                )
 
             if not resolved_prompt:
                 return self._create_step_result(
@@ -783,7 +785,17 @@ The final report should demonstrate thorough research, critical analysis, and cl
                 self.env = self._create_jinja_env()
 
             # Interpolate the prompt with variables from input_data
-            resolved_prompt = self.env.from_string(self.prompt).render(**input_data)
+            try:
+                resolved_prompt = self.env.from_string(self.prompt).render(**input_data)
+            except Exception as e:
+                yield json.dumps(
+                    self._create_step_result(
+                        status="error",
+                        data=f"Error interpolating prompt template: {str(e)}",
+                        start_time=start_time,
+                    )
+                )
+                return
 
             if not resolved_prompt:
                 yield json.dumps(
