@@ -13,6 +13,7 @@ from contextlib import redirect_stdout, redirect_stderr
 import time
 import asyncio
 from athina.llms.litellm_service import LitellmService
+from jinja2 import Environment, meta
 
 # Configure logging with both file and console handlers
 logger = logging.getLogger(__name__)
@@ -140,6 +141,7 @@ class ResearchAgent(Step):
         search_provider: Search provider to use ('exa' or 'perplexity')
         max_iterations: Maximum number of research iterations
         model: LLM model to use
+        prompt: The research prompt template with optional Jinja2 variables
     """
 
     openai_api_key: str
@@ -149,9 +151,11 @@ class ResearchAgent(Step):
     max_iterations: int = 3
     model: str = DEFAULT_MODEL
     num_search_queries: int = 10
+    prompt: str = ""
     llm_service: Any = None
     research_context: List[Dict[str, Any]] = []
     stream_log_handler: Optional[StreamLogHandler] = None
+    env: Optional[Environment] = None
 
     class Config:
         arbitrary_types_allowed = True
@@ -189,6 +193,11 @@ class ResearchAgent(Step):
         logger.info(
             f"Research Agent initialized with {self.max_iterations} iterations and {self.num_search_queries} search queries using model {self.model} and {self.search_provider} search provider"
         )
+        self.env = self._create_jinja_env()
+
+    def _create_jinja_env(self) -> Environment:
+        """Create a Jinja2 environment for template rendering."""
+        return Environment(trim_blocks=True, lstrip_blocks=True, autoescape=False)
 
     def _create_step_result(
         self,
@@ -558,29 +567,32 @@ The final report should demonstrate thorough research, critical analysis, and cl
         start_time = time.time()
 
         # Validate input
-        if not isinstance(input_data, (str, dict)):
+        if not isinstance(input_data, dict):
             return self._create_step_result(
                 status="error",
-                data="Input must be a string (prompt) or a dictionary with a 'prompt' key",
-                start_time=start_time,
-            )
-
-        # Extract prompt from input
-        prompt = (
-            input_data if isinstance(input_data, str) else input_data.get("prompt", "")
-        )
-        if not prompt:
-            return self._create_step_result(
-                status="error",
-                data="No research prompt provided",
+                data="Input must be a dictionary for variable interpolation",
                 start_time=start_time,
             )
 
         try:
-            logger.info(f"🔍 Starting research on: {prompt}")
+            # Ensure env is initialized
+            if self.env is None:
+                self.env = self._create_jinja_env()
+
+            # Interpolate the prompt with variables from input_data
+            resolved_prompt = self.env.from_string(self.prompt).render(**input_data)
+
+            if not resolved_prompt:
+                return self._create_step_result(
+                    status="error",
+                    data="No research prompt provided or empty prompt after interpolation",
+                    start_time=start_time,
+                )
+
+            logger.info(f"🔍 Starting research on: {resolved_prompt}")
 
             # Extract evaluation criteria and initial queries
-            eval_result = self._extract_evaluation_criteria(prompt)
+            eval_result = self._extract_evaluation_criteria(resolved_prompt)
             evaluation_statements = eval_result.get(
                 "evaluation_statements", {"evaluation": []}
             )
@@ -626,7 +638,6 @@ The final report should demonstrate thorough research, critical analysis, and cl
             iteration = 0
             while iteration < self.max_iterations:
                 # Combine context for evaluation
-                print("research_context", self.research_context)
                 current_context = "\n".join(
                     [
                         f"{item['type']} - {item['source']} - {item['content']}"
@@ -646,19 +657,6 @@ The final report should demonstrate thorough research, critical analysis, and cl
                     current_context, evaluation_statements
                 )
 
-                # Check if all criteria are met
-                # print("evaluation_statements", evaluation_statements)
-                # if (
-                #     isinstance(evaluation_statements, dict)
-                #     and "evaluation" in evaluation_statements
-                #     and all(
-                #         isinstance(stmt, dict) and stmt.get("status", "") == "pass"
-                #         for stmt in evaluation_statements["evaluation"]
-                #     )
-                # ):
-                #     logger.info("✨ Research criteria satisfied!")
-                #     break
-
                 # Generate next search query if needed
                 if iteration < self.max_iterations - 1:
                     next_query_prompt = f"""Based on the current research progress, the user prompt, and evaluation statements, what should be the next search query? Return only the search query text. Consider the prompt carefully - we should search for information related to the prompt."""
@@ -669,7 +667,7 @@ The final report should demonstrate thorough research, critical analysis, and cl
                             {"role": "system", "content": next_query_prompt},
                             {
                                 "role": "user",
-                                "content": f"Context: {current_context}\nPrompt: {prompt}\nEvaluation statements: {json.dumps(evaluation_statements)}",
+                                "content": f"Context: {current_context}\nPrompt: {resolved_prompt}\nEvaluation statements: {json.dumps(evaluation_statements)}",
                             },
                         ],
                     )
@@ -709,7 +707,7 @@ The final report should demonstrate thorough research, critical analysis, and cl
                     for item in self.research_context
                 ]
             )
-            synthesis = self._synthesize_findings(prompt, final_context)
+            synthesis = self._synthesize_findings(resolved_prompt, final_context)
 
             logger.info("✅ Research complete!")
 
@@ -769,32 +767,35 @@ The final report should demonstrate thorough research, critical analysis, and cl
             return []
 
         # Validate input
-        if not isinstance(input_data, (str, dict)):
+        if not isinstance(input_data, dict):
             yield json.dumps(
                 self._create_step_result(
                     status="error",
-                    data="Input must be a string (prompt) or a dictionary with a 'prompt' key",
-                    start_time=start_time,
-                )
-            )
-            return
-
-        # Extract prompt from input
-        prompt = (
-            input_data if isinstance(input_data, str) else input_data.get("prompt", "")
-        )
-        if not prompt:
-            yield json.dumps(
-                self._create_step_result(
-                    status="error",
-                    data="No research prompt provided",
+                    data="Input must be a dictionary for variable interpolation",
                     start_time=start_time,
                 )
             )
             return
 
         try:
-            logger.info(f"🔍 Starting research on: {prompt}")
+            # Ensure env is initialized
+            if self.env is None:
+                self.env = self._create_jinja_env()
+
+            # Interpolate the prompt with variables from input_data
+            resolved_prompt = self.env.from_string(self.prompt).render(**input_data)
+
+            if not resolved_prompt:
+                yield json.dumps(
+                    self._create_step_result(
+                        status="error",
+                        data="No research prompt provided or empty prompt after interpolation",
+                        start_time=start_time,
+                    )
+                )
+                return
+
+            logger.info(f"🔍 Starting research on: {resolved_prompt}")
             yield json.dumps(
                 self._create_step_result(
                     status="in_progress",
@@ -805,7 +806,7 @@ The final report should demonstrate thorough research, critical analysis, and cl
             )
 
             # Extract evaluation criteria and initial queries
-            eval_result = self._extract_evaluation_criteria(prompt)
+            eval_result = self._extract_evaluation_criteria(resolved_prompt)
             evaluation_statements = eval_result.get(
                 "evaluation_statements", {"evaluation": []}
             )
@@ -979,7 +980,7 @@ The final report should demonstrate thorough research, critical analysis, and cl
                             {"role": "system", "content": next_query_prompt},
                             {
                                 "role": "user",
-                                "content": f"Context: {current_context}\nEvaluation statements: {json.dumps(evaluation_statements)}",
+                                "content": f"Context: {current_context}\nEvaluation statements: {json.dumps(evaluation_statements)}\nPrompt: {resolved_prompt}",
                             },
                         ],
                     )
@@ -1062,7 +1063,7 @@ The final report should demonstrate thorough research, critical analysis, and cl
                     for item in self.research_context
                 ]
             )
-            synthesis = self._synthesize_findings(prompt, final_context)
+            synthesis = self._synthesize_findings(resolved_prompt, final_context)
 
             logger.info("✅ Research complete!")
 
