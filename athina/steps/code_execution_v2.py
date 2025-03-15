@@ -105,7 +105,6 @@ class CodeExecutionV2(Step):
     code: str
     session_id: str
     name: Optional[str] = None
-    _sandbox: Optional[Any] = None
     execution_environment: ExecutionEnvironment = EXECUTION_LOCAL
     DEFAULT_TIMEOUT: ClassVar[int] = 60  # 1 minute default timeout for sandbox
     MAX_TIMEOUT: ClassVar[int] = 300  # 5 minute limit for e2b sandbox execution
@@ -119,35 +118,36 @@ class CodeExecutionV2(Step):
         **data,
     ):
         super().__init__(**data)
-        self._sandbox = None
         self.execution_environment = execution_environment
         self.sandbox_timeout = sandbox_timeout
 
     def _create_or_initialize_sandbox(self, session_id: Optional[str] = None):
-
-        session_id = session_id or self.session_id
+        session_id = session_id if session_id else self.session_id
         """Checks if sandbox exists and connects to it or creates a new one if not"""
         if not session_id:
             raise ValueError("session_id is required for e2b execution")
 
         try:
             running_sandboxes = Sandbox.list()
+            current_sandbox = None
 
             for sandbox in running_sandboxes:
                 if sandbox.metadata.get("session_id") == session_id:
                     # Connect to the existing sandbox
-                    self._sandbox = Sandbox.connect(sandbox.sandbox_id)
+                    current_sandbox = Sandbox.connect(sandbox.sandbox_id)
                     break
 
-            if self._sandbox is None:
-                self._sandbox = Sandbox(
+            if current_sandbox is None:
+                current_sandbox = Sandbox(
                     template=self.template,
                     timeout=min(
                         self.sandbox_timeout or self.DEFAULT_TIMEOUT, self.MAX_TIMEOUT
                     ),
                     metadata={"session_id": session_id},
                 )
-                print(f"Created new sandbox with ID: {self._sandbox.sandbox_id}")
+                print(f"Created new sandbox with ID: {current_sandbox.sandbox_id}")
+            
+            return current_sandbox
 
         except Exception as e:
             print(f"Error initializing sandbox: {str(e)}")
@@ -254,8 +254,8 @@ class CodeExecutionV2(Step):
         """
         try:
             session_id = input_data.get("athina_session_id", None)
-            self._create_or_initialize_sandbox(session_id=session_id)
-            if self._sandbox is None:
+            sandbox = self._create_or_initialize_sandbox(session_id=session_id)
+            if sandbox is None:
                 print("Sandbox is not initialized")
                 return self._create_step_result(
                     status="error",
@@ -269,7 +269,7 @@ class CodeExecutionV2(Step):
                 input_vars_code = self._prepare_input_variables(input_data)
                 if input_vars_code:
                     setup_code = "\n".join(input_vars_code)
-                    setup_execution = self._sandbox.run_code(setup_code)
+                    setup_execution = sandbox.run_code(setup_code)
                     if setup_execution.error:
                         print(
                             f"Error setting up input variables: {setup_execution.error}"
@@ -283,7 +283,7 @@ class CodeExecutionV2(Step):
                 ]
                 output = []
                 for command in commands:
-                    command_result = self._sandbox.commands.run(command)
+                    command_result = sandbox.commands.run(command)
                     if command_result.error or command_result.exit_code != 0:
                         return self._create_step_result(
                             status="error",
@@ -303,7 +303,7 @@ class CodeExecutionV2(Step):
                 )
             else:
                 # Handle Python code execution
-                execution = self._sandbox.run_code(self.code)
+                execution = sandbox.run_code(self.code)
                 if execution.error:
                     return self._create_step_result(
                         status="error",
@@ -313,7 +313,7 @@ class CodeExecutionV2(Step):
                     )
 
                 # Capture variables for Python execution
-                var_execution = self._sandbox.run_code(
+                var_execution = sandbox.run_code(
                     generate_variable_capture(self.name)
                 )
                 if var_execution.error:
@@ -401,9 +401,9 @@ class CodeExecutionV2(Step):
         print_output = str()
         try:
             session_id = input_data.get("athina_session_id", None)
-            self._create_or_initialize_sandbox(session_id)
+            sandbox = self._create_or_initialize_sandbox(session_id)
 
-            if self._sandbox is None:
+            if sandbox is None:
                 yield json.dumps(
                     self._create_step_result(
                         status="error",
@@ -441,7 +441,7 @@ class CodeExecutionV2(Step):
                 if input_vars_code:
                     setup_code = "\n".join(input_vars_code)
                     await asyncio.to_thread(
-                        self._sandbox.run_code,
+                        sandbox.run_code,
                         setup_code,
                         on_stdout=on_stdout,
                         on_stderr=on_stderr,
@@ -452,7 +452,7 @@ class CodeExecutionV2(Step):
             with ThreadPoolExecutor() as executor:
                 future = loop.run_in_executor(
                     executor,
-                    lambda: self._sandbox.run_code(
+                    lambda: sandbox.run_code(
                         self.code,
                         on_stdout=on_stdout,
                         on_stderr=on_stderr,
@@ -514,7 +514,7 @@ class CodeExecutionV2(Step):
 
             # Capture exported variables after execution is complete
             var_execution = await asyncio.to_thread(
-                self._sandbox.run_code,
+                sandbox.run_code,
                 generate_variable_capture(self.name),
                 on_stdout=on_stdout,
                 on_stderr=on_stderr,
