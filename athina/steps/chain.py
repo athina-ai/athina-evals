@@ -53,6 +53,8 @@ class Chain(BaseModel):
     def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
         """Execute the sequence of steps with the provided inputs."""
         cumulative_context = input_data.copy()
+        prepared_body = self.prepare_dict(self.context, input_data)
+        cumulative_context = {**cumulative_context, **prepared_body}
         latest_step_output = None
         for step in self.sequence:
             step_output = step.execute(input_data=cumulative_context)
