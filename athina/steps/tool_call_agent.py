@@ -35,20 +35,19 @@ class ToolCallAgent(Step):
 
         """Execute the tool call agent with LlamaIndex and Composio tools."""
         start_time = time.perf_counter()
+        
+        # Extract entity_id from config or input data
+        # Extract actions from config or input data
+        body ={
+                    "entity_id": self.entity_id,
+                    "prompt": self.prompt,
+                }
+        prepared_body = self.prepare_dict(body, input_data)
+        
+        entity_id = prepared_body.get("entity_id","")
+        prompt = prepared_body.get("prompt","")
 
         try:
-            # Extract entity_id from config or input data
-            entity_id = self.entity_id
-
-            # If entity_id is in the input data, use that instead (overrides the config)
-            if isinstance(input_data, dict) and "entity_id" in input_data:
-                entity_id = input_data["entity_id"]
-
-            # Extract prompt from config or input data
-            prompt = self.prompt
-            if isinstance(input_data, dict) and "prompt" in input_data:
-                prompt = input_data["prompt"]
-
             # Extract actions from config or input data
             actions = self.actions or []
             if (

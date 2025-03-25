@@ -97,11 +97,24 @@ class Step(BaseModel):
         """Prepare request body by rendering Jinja2 template."""
         if object is None:
             return None
-
-        obj = json.dumps(object)
+        
         env = self._create_jinja_env()
-        prepared_obj = env.from_string(obj).render(**input_data)
-        return json.loads(prepared_obj)
+        def render_value(value):
+            """Renders individual values safely using Jinja2."""
+            if isinstance(value, str):
+                rendered = env.from_string(value).render(**input_data)
+                return rendered  # Otherwise, return as string
+
+            elif isinstance(value, dict):  # Recursive rendering for nested dicts
+                return {k: render_value(v) for k, v in value.items()}
+            elif isinstance(value, list):  # Recursive rendering for lists
+                return [render_value(item) for item in value]
+
+            return value  # Return other data types as-is
+
+        rendered_config = {k: render_value(v) for k, v in object.items()}
+
+        return rendered_config
 
     def _create_step_result(
         self,
