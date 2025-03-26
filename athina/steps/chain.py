@@ -53,9 +53,11 @@ class Chain(BaseModel):
     def execute(self, input_data: Any) -> Union[Dict[str, Any], None]:
         """Execute the sequence of steps with the provided inputs."""
         cumulative_context = input_data.copy()
-        prepared_body = self.prepare_dict(self.context, input_data)
+        emptyStep = Step()
+        prepared_body = emptyStep.prepare_dict(self.context, input_data)
         cumulative_context = {**cumulative_context, **prepared_body}
         latest_step_output = None
+        all_steps_output= {}
         for step in self.sequence:
             step_output = step.execute(input_data=cumulative_context)
             exported_vars = step_output.get("metadata", {}).get("exported_vars", {})
@@ -66,9 +68,13 @@ class Chain(BaseModel):
                     f'{step.name}_str': isinstance(step_output.get("data"), dict) and json.dumps(step_output.get("data")) or None,
                     step.name: step_output.get("data")
                 }
+                all_steps_output = {
+                    **all_steps_output,
+                    step.name: step_output
+                }
             latest_step_output = step_output
         response = {
             "chain_output": latest_step_output,
-            "all_steps_output": cumulative_context,
+            "all_steps_output": all_steps_output,
         }
         return response
