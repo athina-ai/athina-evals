@@ -227,6 +227,7 @@ class PromptExecution(Step):
     tool_config: Optional[ToolConfig] = None
     response_format: Optional[dict] = None
     name: Optional[str] = None
+    thinking: Optional[dict] = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -277,6 +278,7 @@ class PromptExecution(Step):
                 **self.model_options.model_dump(),
                 **(self.tool_config.model_dump() if self.tool_config else {}),
                 **({"response_format": self.response_format}),
+                **({"thinking": self.thinking} if self.thinking else {}),
                 **(
                     kwargs.get("search_domain_filter", {})
                     if isinstance(kwargs.get("search_domain_filter"), dict)
@@ -358,6 +360,7 @@ class PromptExecution(Step):
                 **self.model_options.model_dump(),
                 **(self.tool_config.model_dump() if self.tool_config else {}),
                 **({"response_format": self.response_format}),
+                **({"thinking": self.thinking} if self.thinking else {}),
                 **(
                     kwargs.get("search_domain_filter", {})
                     if isinstance(kwargs.get("search_domain_filter"), dict)
