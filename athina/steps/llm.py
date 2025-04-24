@@ -319,6 +319,10 @@ class PromptExecution(Step):
                 response = llmresponse
 
             if error:
+                error += (
+                    f" | Received type: {type(llmresponse).__name__} | "
+                    f"Preview: {repr(llmresponse)[:300]}"
+                )
                 return self._create_step_result(
                     status="error", start_time=start_time, data=error
                 )
@@ -401,6 +405,10 @@ class PromptExecution(Step):
                 response = llmresponse
 
             if error:
+                error += (
+                    f" | Received type: {type(llmresponse).__name__} | "
+                    f"Preview: {repr(llmresponse)[:300]}"
+                )
                 return self._create_step_result(
                     status="error", start_time=start_time, data=error
                 )
@@ -501,6 +509,10 @@ class PromptExecution(Step):
                         response = final_response
 
                     if error:
+                        error += (
+                            f" | Received type: {type(llmresponse).__name__} | "
+                            f"Preview: {repr(llmresponse)[:300]}"
+                        )
                         yield json.dumps(
                             self._create_step_result(
                                 status="error", start_time=start_time, data=error
