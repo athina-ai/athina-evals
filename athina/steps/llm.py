@@ -510,8 +510,8 @@ class PromptExecution(Step):
 
                     if error:
                         error += (
-                            f" | Received type: {type(llmresponse).__name__} | "
-                            f"Preview: {repr(llmresponse)[:300]}"
+                            f" | Received type: {type(final_response).__name__} | "
+                            f"Preview: {repr(final_response)[:300]}"
                         )
                         yield json.dumps(
                             self._create_step_result(
