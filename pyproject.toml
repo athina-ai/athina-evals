@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "athina"
-version = "1.7.38"
+version = "1.7.39"
 description = "Python SDK to configure and run evaluations for your LLM-based application"
 authors = ["Shiv Sakhuja <shiv@athina.ai>", "Akshat Gupta <akshat@athina.ai>", "Vivek Aditya <vivek@athina.ai>", "Akhil Bisht <akhil@athina.ai>"]
 readme = "README.md"
@@ -31,7 +31,7 @@ jsonschema = "^4.22.0"
 jsonpath-ng = "^1.6.0"
 RestrictedPython = "^7.1"
 bandit = "^1.7.8"
-weaviate-client = "^4.7.1"
+weaviate-client = "^4.9.0"
 editdistance = "^0.8.1"
 textdistance = "^4.6.3"
 textstat = "^0.7.4"
