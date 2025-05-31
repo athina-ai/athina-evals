@@ -455,7 +455,7 @@ The JSON array should be in the following format:
 
             updated_statements = json.loads(response_content)
             logger.info(f"Research Agent: Updated evaluation criteria status")
-            for stmt in updated_statements:
+            for stmt in updated_statements.get("evaluation", []):
                 if isinstance(stmt, dict):
                     logger.info(
                         f"Research Agent: Criterion '{stmt.get('statement')}' - Status: {stmt.get('status')}, Reason: {stmt.get('reason', 'No reason provided')}"
@@ -518,6 +518,7 @@ Content Quality and Citations:
 4. Present balanced viewpoints when addressing controversial topics
 5. Include quantitative data and specific examples where relevant
 6. Do NOT make up any information. ONLY use the information provided in the research context.
+7. Stick to the facts. You are reporting the research, not making up new information, or providing an opinion.
 
 Readability:
 1. Use professional but accessible language (avoid jargon unless necessary)
