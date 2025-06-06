@@ -228,6 +228,8 @@ class PromptExecution(Step):
     response_format: Optional[dict] = None
     name: Optional[str] = None
     thinking: Optional[dict] = None
+    search_mode: Optional[str] = None
+    search_context_size: Optional[str] = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -279,6 +281,16 @@ class PromptExecution(Step):
                 **(self.tool_config.model_dump() if self.tool_config else {}),
                 **({"response_format": self.response_format}),
                 **({"thinking": self.thinking} if self.thinking else {}),
+                **({"search_mode": self.search_mode} if self.search_mode else {}),
+                **(
+                    {
+                        "web_search_options": (
+                            {"search_context_size": self.search_context_size}
+                            if self.search_context_size
+                            else {}
+                        )
+                    }
+                ),
                 **(
                     kwargs.get("search_domain_filter", {})
                     if isinstance(kwargs.get("search_domain_filter"), dict)
@@ -365,6 +377,16 @@ class PromptExecution(Step):
                 **(self.tool_config.model_dump() if self.tool_config else {}),
                 **({"response_format": self.response_format}),
                 **({"thinking": self.thinking} if self.thinking else {}),
+                **({"search_mode": self.search_mode} if self.search_mode else {}),
+                **(
+                    {
+                        "web_search_options": (
+                            {"search_context_size": self.search_context_size}
+                            if self.search_context_size
+                            else {}
+                        )
+                    }
+                ),
                 **(
                     kwargs.get("search_domain_filter", {})
                     if isinstance(kwargs.get("search_domain_filter"), dict)
@@ -450,6 +472,16 @@ class PromptExecution(Step):
                 **self.model_options.model_dump(),
                 **(self.tool_config.model_dump() if self.tool_config else {}),
                 **({"response_format": self.response_format}),
+                **({"search_mode": self.search_mode} if self.search_mode else {}),
+                **(
+                    {
+                        "web_search_options": (
+                            {"search_context_size": self.search_context_size}
+                            if self.search_context_size
+                            else {}
+                        )
+                    }
+                ),
                 **(
                     kwargs.get("search_domain_filter", {})
                     if isinstance(kwargs.get("search_domain_filter"), dict)
